@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../main.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../../core/theme/widgets/retro_top_bar.dart';
 import 'package:raite/features/class/presentation/providers/class_provider.dart';
 import 'package:raite/features/auth/presentation/providers/auth_provider.dart';
 import 'package:raite/features/home/presentation/providers/user_stats_provider.dart';
+import 'package:raite/features/teacher/presentation/providers/teacher_class_hub_provider.dart';
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -12,32 +17,22 @@ class HomeScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
+    // Current user data
+    final authUser = ref.watch(authStateProvider).value;
+    final supabaseUser = Supabase.instance.client.auth.currentUser;
+    final displayName = authUser?.name ??
+        (supabaseUser?.userMetadata?['name'] as String?) ??
+        (supabaseUser?.email?.split('@').first.toUpperCase()) ??
+        'Alex Rivera';
+
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        backgroundColor: colorScheme.surface.withValues(alpha: 0.8),
-        elevation: 0,
-        title: Text(
-          'Home',
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: colorScheme.onSurface,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.notifications_none, color: colorScheme.onSurfaceVariant),
-            onPressed: () {},
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0, left: 8.0),
-            child: CircleAvatar(
-              radius: 16,
-              backgroundColor: colorScheme.primary,
-              child: Icon(Icons.person, size: 18, color: colorScheme.onPrimary),
-            ),
-          ),
-        ],
+      appBar: const RetroTopAppBar(
+        subtitle: 'Study Desk',
+        title: 'Dashboard',
+        showStreak: true,
+        showNotifications: true,
+        showProfileAvatar: true,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -261,7 +256,9 @@ class HomeScreen extends ConsumerWidget {
                       ),
                       const SizedBox(width: 10),
                       InkWell(
-                        onTap: () {},
+                        onTap: () {
+                          ref.read(studentBottomNavIndexProvider.notifier).setIndex(1);
+                        },
                         child: Text(
                           'View All',
                           style: theme.textTheme.labelMedium?.copyWith(
@@ -520,6 +517,202 @@ class HomeScreen extends ConsumerWidget {
           },
         );
       },
+    );
+  }
+
+  void _showNotificationsSheet(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final announcements = ref.watch(classAnnouncementsProvider);
+    final assignments = ref.watch(classAssignmentsProvider);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        height: MediaQuery.of(context).size.height * 0.75,
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: colorScheme.primaryContainer,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.notifications_active, color: colorScheme.primary, size: 20),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Class Alerts & Notifications',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: announcements.isEmpty && assignments.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.notifications_none, size: 48, color: colorScheme.outline),
+                          const SizedBox(height: 12),
+                          Text(
+                            'No new notifications right now.',
+                            style: TextStyle(color: colorScheme.onSurfaceVariant),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView(
+                      padding: const EdgeInsets.all(16),
+                      children: [
+                        if (announcements.isNotEmpty) ...[
+                          Text(
+                            'RECENT ANNOUNCEMENTS',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              letterSpacing: 1.0,
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.primary,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          ...announcements.take(4).map((ann) => Container(
+                                margin: const EdgeInsets.only(bottom: 10),
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.surfaceContainerLow,
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                    color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+                                  ),
+                                ),
+                                child: InkWell(
+                                  onTap: () {
+                                    Navigator.pop(ctx);
+                                    context.push('/class/${ann.classId}');
+                                  },
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Icon(Icons.campaign, color: colorScheme.primary, size: 20),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              ann.title,
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 13,
+                                                color: colorScheme.onSurface,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              ann.content,
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                color: colorScheme.onSurfaceVariant,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )),
+                        ],
+                        if (assignments.isNotEmpty) ...[
+                          const SizedBox(height: 16),
+                          Text(
+                            'UPCOMING ASSIGNMENTS',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              letterSpacing: 1.0,
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.primary,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          ...assignments.take(3).map((asg) => Container(
+                                margin: const EdgeInsets.only(bottom: 10),
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.surfaceContainerLow,
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                    color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+                                  ),
+                                ),
+                                child: InkWell(
+                                  onTap: () {
+                                    Navigator.pop(ctx);
+                                    context.push('/class/${asg.classId}');
+                                  },
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.assignment, color: colorScheme.tertiary, size: 20),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              asg.title,
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 13,
+                                                color: colorScheme.onSurface,
+                                              ),
+                                            ),
+                                            Text(
+                                              'Due: ${asg.dueDate} • ${asg.points} pts',
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                color: colorScheme.onSurfaceVariant,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Icon(Icons.chevron_right, size: 16, color: colorScheme.outline),
+                                    ],
+                                  ),
+                                ),
+                              )),
+                        ],
+                      ],
+                    ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

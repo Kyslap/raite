@@ -14,11 +14,79 @@ import '../../../ai_tutor/data/knowledge_base_repository.dart';
 import '../../../ai_tutor/presentation/providers/ai_tutor_provider.dart';
 import '../providers/teacher_lesson_provider.dart';
 import '../providers/teacher_insights_provider.dart';
+import 'teacher_class_detail_screen.dart';
 
-class TeacherClassesScreen extends ConsumerWidget {
+class TeacherClassesScreen extends ConsumerStatefulWidget {
   final Function(int)? onNavigateTab;
 
   const TeacherClassesScreen({super.key, this.onNavigateTab});
+
+  @override
+  ConsumerState<TeacherClassesScreen> createState() => _TeacherClassesScreenState();
+}
+
+class _TeacherClassesScreenState extends ConsumerState<TeacherClassesScreen> {
+  TeacherClass? _selectedClass;
+
+  void _showDeleteClassDialog(TeacherClass cls) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: colorScheme.error, size: 28),
+            const SizedBox(width: 10),
+            const Text('Delete Class?'),
+          ],
+        ),
+        content: Text(
+          'Are you sure you want to delete "${cls.title}"?\n\n'
+          'This will permanently delete the class, its lessons, materials, and student enrollments. This cannot be undone.',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+            height: 1.4,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              if (_selectedClass?.id == cls.id) {
+                setState(() => _selectedClass = null);
+              }
+              await ref.read(teacherClassesProvider.notifier).deleteClass(cls.id);
+              ref.read(teacherLessonsProvider.notifier).removeLessonsForClass(cls.id);
+
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('🗑️ Class "${cls.title}" deleted.'),
+                  duration: const Duration(seconds: 2),
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colorScheme.error,
+              foregroundColor: colorScheme.onError,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('Delete Class', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
 
   Future<void> _uploadMaterial(BuildContext context, WidgetRef ref, String classId) async {
     final theme = Theme.of(context);
@@ -84,7 +152,7 @@ class TeacherClassesScreen extends ConsumerWidget {
     }
   }
 
-  void _showCreateClassSheet(BuildContext context, WidgetRef ref) {
+  void _showCreateClassSheet() {
     final titleController = TextEditingController();
     final deptController = TextEditingController();
     final codeController = TextEditingController();
@@ -251,21 +319,23 @@ class TeacherClassesScreen extends ConsumerWidget {
                               if (!ctx.mounted) return;
                               Navigator.pop(ctx);
 
+                              Clipboard.setData(ClipboardData(text: newCls.code));
+                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text(
-                                    '🎉 Class created! Join code: ${newCls.code}',
+                                  content: Row(
+                                    children: [
+                                      const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text('🎉 Class created! Join code ${newCls.code} copied to clipboard.'),
+                                      ),
+                                    ],
                                   ),
                                   backgroundColor: colorScheme.primary,
-                                  action: SnackBarAction(
-                                    label: 'Copy Code',
-                                    textColor: Colors.white,
-                                    onPressed: () {
-                                      Clipboard.setData(
-                                        ClipboardData(text: newCls.code),
-                                      );
-                                    },
-                                  ),
+                                  duration: const Duration(seconds: 3),
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                 ),
                               );
                             } catch (e) {
@@ -311,11 +381,30 @@ class TeacherClassesScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final classes = ref.watch(teacherClassesProvider);
     final lessons = ref.watch(teacherLessonsProvider);
+
+    // Keep bottom navigation bar visible by rendering detail screen in-place
+    if (_selectedClass != null) {
+      final matching = classes.where((c) => c.id == _selectedClass!.id);
+      if (matching.isEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) setState(() => _selectedClass = null);
+        });
+      } else {
+        return TeacherClassDetailScreen(
+          teacherClass: matching.first,
+          onBack: () {
+            setState(() {
+              _selectedClass = null;
+            });
+          },
+        );
+      }
+    }
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -333,7 +422,7 @@ class TeacherClassesScreen extends ConsumerWidget {
           IconButton(
             icon: Icon(Icons.add_circle, color: colorScheme.primary, size: 28),
             tooltip: 'Create New Class',
-            onPressed: () => _showCreateClassSheet(context, ref),
+            onPressed: _showCreateClassSheet,
           ),
           IconButton(
             icon: Icon(Icons.logout, color: colorScheme.onSurfaceVariant),
@@ -385,7 +474,7 @@ class TeacherClassesScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 24),
                     ElevatedButton.icon(
-                      onPressed: () => _showCreateClassSheet(context, ref),
+                      onPressed: _showCreateClassSheet,
                       icon: const Icon(Icons.add, size: 18),
                       label: const Text('Create Your First Class'),
                       style: ElevatedButton.styleFrom(
@@ -432,308 +521,563 @@ class TeacherClassesScreen extends ConsumerWidget {
                       ),
                     ],
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Class Header
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              width: 52,
-                              height: 52,
-                              decoration: BoxDecoration(
-                                color: colorScheme.primaryContainer,
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: Icon(
-                                Icons.menu_book,
-                                color: colorScheme.onPrimaryContainer,
-                                size: 26,
-                              ),
-                            ),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    cls.title,
-                                    style: theme.textTheme.titleMedium
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                          color: colorScheme.onSurface,
-                                        ),
+                  child: Material(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(18),
+                    clipBehavior: Clip.antiAlias,
+                    child: InkWell(
+                      onTap: () {
+                        setState(() {
+                          _selectedClass = cls;
+                        });
+                      },
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Class Header
+                          Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  width: 52,
+                                  height: 52,
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.primaryContainer,
+                                    borderRadius: BorderRadius.circular(14),
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    '${cls.department} • ${cls.studentCount} Students Enrolled',
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: colorScheme.onSurfaceVariant,
-                                    ),
+                                  child: Icon(
+                                    Icons.menu_book,
+                                    color: colorScheme.onPrimaryContainer,
+                                    size: 26,
                                   ),
-                                  const SizedBox(height: 10),
-
-                                  // Mobile-Optimized Join Code Badge with 1-Tap Copy
-                                  Row(
+                                ),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      InkWell(
-                                        onTap: () {
-                                          Clipboard.setData(
-                                            ClipboardData(text: cls.code),
-                                          );
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                '📋 Code ${cls.code} copied to clipboard!',
-                                              ),
-                                              duration: const Duration(
-                                                seconds: 2,
-                                              ),
-                                              behavior:
-                                                  SnackBarBehavior.floating,
+                                      Text(
+                                        cls.title,
+                                        style: theme.textTheme.titleMedium
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                              color: colorScheme.onSurface,
                                             ),
-                                          );
-                                        },
-                                        borderRadius: BorderRadius.circular(8),
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 10,
-                                            vertical: 5,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: colorScheme.primary
-                                                .withValues(alpha: 0.1),
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
-                                            border: Border.all(
-                                              color: colorScheme.primary
-                                                  .withValues(alpha: 0.3),
-                                            ),
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Icon(
-                                                Icons.key,
-                                                size: 14,
-                                                color: colorScheme.primary,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '${cls.department} • ${cls.studentCount} Students Enrolled',
+                                        style: theme.textTheme.bodySmall?.copyWith(
+                                          color: colorScheme.onSurfaceVariant,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 10),
+
+                                      // Mobile-Optimized Join Code Badge with 1-Tap Copy
+                                      Row(
+                                        children: [
+                                          InkWell(
+                                            onTap: () {
+                                              Clipboard.setData(
+                                                ClipboardData(text: cls.code),
+                                              );
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).hideCurrentSnackBar();
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    '📋 Code ${cls.code} copied to clipboard!',
+                                                  ),
+                                                  duration: const Duration(
+                                                    milliseconds: 1500,
+                                                  ),
+                                                  behavior:
+                                                      SnackBarBehavior.floating,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(10),
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(
+                                                horizontal: 10,
+                                                vertical: 5,
                                               ),
-                                              const SizedBox(width: 6),
-                                              Text(
-                                                'CODE: ${cls.code}',
-                                                style: TextStyle(
-                                                  color: colorScheme.primary,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 12,
-                                                  letterSpacing: 0.5,
+                                              decoration: BoxDecoration(
+                                                color: colorScheme.primary
+                                                    .withValues(alpha: 0.1),
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                                border: Border.all(
+                                                  color: colorScheme.primary
+                                                      .withValues(alpha: 0.3),
                                                 ),
                                               ),
-                                              const SizedBox(width: 6),
-                                              Icon(
-                                                Icons.copy,
-                                                size: 13,
-                                                color: colorScheme.primary,
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(
+                                                    Icons.key,
+                                                    size: 14,
+                                                    color: colorScheme.primary,
+                                                  ),
+                                                  const SizedBox(width: 6),
+                                                  Text(
+                                                    'CODE: ${cls.code}',
+                                                    style: TextStyle(
+                                                      color: colorScheme.primary,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 12,
+                                                      letterSpacing: 0.5,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 6),
+                                                  Icon(
+                                                    Icons.copy,
+                                                    size: 13,
+                                                    color: colorScheme.primary,
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          IconButton(
+                                            icon: const Icon(
+                                              Icons.share_outlined,
+                                              size: 18,
+                                            ),
+                                            tooltip: 'Share Invite',
+                                            padding: EdgeInsets.zero,
+                                            constraints: const BoxConstraints(),
+                                            onPressed: () {
+                                              final shareMsg =
+                                                  'Join my class "${cls.title}" on Raite using code: ${cls.code}';
+                                              Clipboard.setData(
+                                                ClipboardData(text: shareMsg),
+                                              );
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).hideCurrentSnackBar();
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    'Invite message copied: "$shareMsg"',
+                                                  ),
+                                                  duration: const Duration(
+                                                    milliseconds: 1500,
+                                                  ),
+                                                  behavior:
+                                                      SnackBarBehavior.floating,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(10),
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                PopupMenuButton<String>(
+                                  icon: Icon(
+                                    Icons.more_vert,
+                                    color: colorScheme.outline,
+                                    size: 20,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  onSelected: (val) {
+                                    if (val == 'open') {
+                                      setState(() {
+                                        _selectedClass = cls;
+                                      });
+                                    } else if (val == 'copy_code') {
+                                      Clipboard.setData(
+                                        ClipboardData(text: cls.code),
+                                      );
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).hideCurrentSnackBar();
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            '📋 Code ${cls.code} copied!',
+                                          ),
+                                          duration: const Duration(
+                                            milliseconds: 1500,
+                                          ),
+                                          behavior: SnackBarBehavior.floating,
+                                        ),
+                                      );
+                                    } else if (val == 'delete') {
+                                      _showDeleteClassDialog(cls);
+                                    }
+                                  },
+                                  itemBuilder: (ctx) => [
+                                    const PopupMenuItem(
+                                      value: 'open',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.hub_outlined, size: 18),
+                                          SizedBox(width: 10),
+                                          Text('Open Class Hub (Teams)'),
+                                        ],
+                                      ),
+                                    ),
+                                    const PopupMenuItem(
+                                      value: 'copy_code',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.key, size: 18),
+                                          SizedBox(width: 10),
+                                          Text('Copy Join Code'),
+                                        ],
+                                      ),
+                                    ),
+                                    const PopupMenuDivider(),
+                                    PopupMenuItem(
+                                      value: 'delete',
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.delete_outline,
+                                            color: colorScheme.error,
+                                            size: 18,
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Text(
+                                            'Delete Class',
+                                            style: TextStyle(
+                                              color: colorScheme.error,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Divider(height: 1),
+
+                          // Lessons in this class
+                          Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Published Lessons (${classLessons.length})',
+                                      style: theme.textTheme.labelMedium?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                                    InkWell(
+                                      onTap: () {
+                                        if (widget.onNavigateTab != null) {
+                                          widget.onNavigateTab!(2);
+                                        }
+                                      },
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.add,
+                                            size: 14,
+                                            color: colorScheme.primary,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            'Add Lesson',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                              color: colorScheme.primary,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                if (classLessons.isEmpty)
+                                  Text(
+                                    'No lessons published yet. Post your first lesson to engage students!',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: colorScheme.outline,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  )
+                                else
+                                  ...classLessons.map((l) {
+                                    return Padding(
+                                      padding:
+                                          const EdgeInsets.only(bottom: 10.0),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.check_circle,
+                                                color: Color(0xFF10B981),
+                                                size: 16,
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child: Text(
+                                                  l.title,
+                                                  style: theme
+                                                      .textTheme.bodyMedium
+                                                      ?.copyWith(
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                      ),
+                                                ),
+                                              ),
+                                              Text(
+                                                l.estimatedMinutes,
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: colorScheme.outline,
+                                                ),
                                               ),
                                             ],
                                           ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.share_outlined,
-                                          size: 18,
-                                        ),
-                                        tooltip: 'Share Invite',
-                                        padding: EdgeInsets.zero,
-                                        constraints: const BoxConstraints(),
-                                        onPressed: () {
-                                          final shareMsg =
-                                              'Join my class "${cls.title}" on Raite using code: ${cls.code}';
-                                          Clipboard.setData(
-                                            ClipboardData(text: shareMsg),
-                                          );
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                'Invite message copied: "$shareMsg"',
+                                          if (l.attachments.isNotEmpty) ...[
+                                            const SizedBox(height: 4),
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                  left: 24.0),
+                                              child: Wrap(
+                                                spacing: 6,
+                                                runSpacing: 4,
+                                                children: l.attachments.map((att) {
+                                                  final isPdf = att.fileType
+                                                      .toLowerCase()
+                                                      .contains('pdf');
+                                                  final isPpt = att.fileType
+                                                      .toLowerCase()
+                                                      .contains('ppt');
+                                                  return Container(
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                            horizontal: 8,
+                                                            vertical: 3),
+                                                    decoration: BoxDecoration(
+                                                      color: isPpt
+                                                          ? Colors.orange
+                                                              .withValues(alpha: 0.12)
+                                                          : isPdf
+                                                              ? Colors.red
+                                                                  .withValues(alpha: 0.12)
+                                                              : colorScheme.primary
+                                                                  .withValues(alpha: 0.1),
+                                                      borderRadius:
+                                                          BorderRadius.circular(6),
+                                                      border: Border.all(
+                                                        color: isPpt
+                                                            ? Colors.orange
+                                                                .withValues(alpha: 0.3)
+                                                            : isPdf
+                                                                ? Colors.red
+                                                                    .withValues(alpha: 0.3)
+                                                                : colorScheme.primary
+                                                                    .withValues(alpha: 0.2),
+                                                      ),
+                                                    ),
+                                                    child: Row(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      children: [
+                                                        Icon(
+                                                          isPpt
+                                                              ? Icons.slideshow_rounded
+                                                              : isPdf
+                                                                  ? Icons.picture_as_pdf_rounded
+                                                                  : Icons.attach_file_rounded,
+                                                          size: 13,
+                                                          color: isPpt
+                                                              ? Colors.orange.shade800
+                                                              : isPdf
+                                                                  ? Colors.red.shade800
+                                                                  : colorScheme.primary,
+                                                        ),
+                                                        const SizedBox(width: 4),
+                                                        ConstrainedBox(
+                                                          constraints:
+                                                              const BoxConstraints(
+                                                                  maxWidth: 180),
+                                                          child: Text(
+                                                            att.name,
+                                                            overflow: TextOverflow.ellipsis,
+                                                            style: TextStyle(
+                                                              fontSize: 11,
+                                                              fontWeight:
+                                                                  FontWeight.w600,
+                                                              color: isPpt
+                                                                  ? Colors.orange.shade900
+                                                                  : isPdf
+                                                                      ? Colors.red.shade900
+                                                                      : colorScheme.primary,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        if (att.formattedSize.isNotEmpty) ...[
+                                                          const SizedBox(width: 4),
+                                                          Text(
+                                                            '(${att.formattedSize})',
+                                                            style: TextStyle(
+                                                              fontSize: 10,
+                                                              color:
+                                                                  colorScheme.outline,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ],
+                                                    ),
+                                                  );
+                                                }).toList(),
                                               ),
-                                              duration: const Duration(
-                                                seconds: 3,
-                                              ),
-                                              behavior:
-                                                  SnackBarBehavior.floating,
                                             ),
-                                          );
-                                        },
+                                          ],
+                                        ],
                                       ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Divider(height: 1),
-
-                      // Lessons in this class
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Published Lessons (${classLessons.length})',
-                                  style: theme.textTheme.labelMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                                InkWell(
-                                  onTap: () {
-                                    if (onNavigateTab != null)
-                                      onNavigateTab!(2);
-                                  },
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        Icons.add,
-                                        size: 14,
-                                        color: colorScheme.primary,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        'Add Lesson',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                          color: colorScheme.primary,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                                    );
+                                  }),
                               ],
                             ),
-                            const SizedBox(height: 10),
-                            if (classLessons.isEmpty)
-                              Text(
-                                'No lessons published yet. Post your first lesson to engage students!',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: colorScheme.outline,
-                                  fontStyle: FontStyle.italic,
-                                ),
-                              )
-                            else
-                              ...classLessons.map((l) {
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: 8.0),
-                                  child: Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.check_circle,
-                                        color: Color(0xFF10B981),
-                                        size: 16,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: Text(
-                                          l.title,
-                                          style: theme.textTheme.bodyMedium
-                                              ?.copyWith(
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                        ),
-                                      ),
-                                      Text(
-                                        l.estimatedMinutes,
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: colorScheme.outline,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              }),
-                          ],
-                        ),
-                      ),
-                      const Divider(height: 1),
+                          ),
+                          const Divider(height: 1),
 
-                      // AI Brain / Knowledge Base
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          // AI Brain / Knowledge Base
+                          Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'AI Brain Knowledge Base',
+                                      style:
+                                          theme.textTheme.labelMedium?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
                                 Text(
-                                  'AI Brain Knowledge Base',
-                                  style: theme.textTheme.labelMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: colorScheme.onSurfaceVariant,
+                                  'Upload text materials to teach your class\'s AI Tutor new context.',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: colorScheme.outline,
                                   ),
                                 ),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            Text(
-                              'Upload text materials to teach your class\'s AI Tutor new context.',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: colorScheme.outline,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            SizedBox(
-                              width: double.infinity,
-                              child: OutlinedButton.icon(
-                                onPressed: () =>
-                                    _uploadMaterial(context, ref, cls.id),
-                                icon: Icon(
-                                  Icons.upload_file,
-                                  size: 16,
-                                  color: colorScheme.primary,
-                                ),
-                                label: Text(
-                                  'Upload Material (.pdf, .txt, .md, .csv)',
-                                  style: TextStyle(color: colorScheme.primary),
-                                ),
-                                style: OutlinedButton.styleFrom(
-                                  side: BorderSide(
-                                    color: colorScheme.primary.withValues(
-                                      alpha: 0.3,
+                                const SizedBox(height: 12),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: OutlinedButton.icon(
+                                    onPressed: () =>
+                                        _uploadMaterial(context, ref, cls.id),
+                                    icon: Icon(
+                                      Icons.upload_file,
+                                      size: 16,
+                                      color: colorScheme.primary,
+                                    ),
+                                    label: Text(
+                                      'Upload Material (.pdf, .txt, .md, .csv)',
+                                      style:
+                                          TextStyle(color: colorScheme.primary),
+                                    ),
+                                    style: OutlinedButton.styleFrom(
+                                      side: BorderSide(
+                                        color: colorScheme.primary.withValues(
+                                          alpha: 0.3,
+                                        ),
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 12,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
                                     ),
                                   ),
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 12,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
                                 ),
-                              ),
+                                const SizedBox(height: 12),
+                                _ClassMaterialsList(classId: cls.id),
+                              ],
                             ),
-                            const SizedBox(height: 12),
-                            _ClassMaterialsList(classId: cls.id),
-                          ],
-                        ),
+                          ),
+                          const Divider(height: 1),
+
+                          // Bottom Action Banner
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: colorScheme.primaryContainer
+                                  .withValues(alpha: 0.15),
+                              borderRadius: const BorderRadius.vertical(
+                                  bottom: Radius.circular(18)),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(Icons.dashboard_customize_outlined,
+                                        size: 16, color: colorScheme.primary),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Open Class Hub (Announcements & Tasks)',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: colorScheme.primary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Icon(Icons.arrow_forward_ios,
+                                    size: 12, color: colorScheme.primary),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                       const Divider(height: 1),
                       _ClassInsightsCard(classId: cls.id),
@@ -823,7 +1167,7 @@ class _ClassMaterialsList extends ConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 }

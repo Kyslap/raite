@@ -5,13 +5,10 @@ import '../../data/ai_tutor_repository.dart';
 final classDocumentsProvider = FutureProvider.family<List<Map<String, String>>, String>((ref, classId) async {
   final supabase = Supabase.instance.client;
   final docs = await supabase.from('class_documents').select('title, file_url').eq('class_id', classId);
-  if (docs is List) {
-    return docs.map((d) => {
-      'title': d['title'] as String,
-      'file_url': d['file_url'] as String,
-    }).toList();
-  }
-  return [];
+  return docs.map((d) => {
+    'title': (d['title'] as String?) ?? 'Unknown',
+    'file_url': (d['file_url'] as String?) ?? '',
+  }).toList();
 });
 
 // Chat message domain model

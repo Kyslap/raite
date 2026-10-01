@@ -1,16 +1,29 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import '../../../../features/class/domain/topic_model.dart';
 import '../providers/ai_tutor_provider.dart';
 
 class AiTutorScreen extends ConsumerStatefulWidget {
   final TopicModel? initialTopic;
+  final String? initialPdfUrl;
+  final String? initialPdfTitle;
+  final bool showTopicContent;
 
-  const AiTutorScreen({super.key, this.initialTopic});
+  const AiTutorScreen({
+    super.key, 
+    this.initialTopic,
+    this.initialPdfUrl,
+    this.initialPdfTitle,
+    this.showTopicContent = false,
+  });
 
   @override
   ConsumerState<AiTutorScreen> createState() => _AiTutorScreenState();
@@ -18,6 +31,58 @@ class AiTutorScreen extends ConsumerStatefulWidget {
 
 class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
   final TextEditingController _inputController = TextEditingController();
+  
+  String? _activePdfUrl;
+  String? _activePdfTitle;
+  bool _showingTopicContent = false;
+  String? _attachedFileName;
+  String? _attachedFilePath;
+
+  Future<void> _pickAttachment() async {
+    try {
+      final result = await FilePicker.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'png', 'jpg', 'jpeg', 'txt', 'md'],
+      );
+      if (result.isNotEmpty && result.first.path != null) {
+        final file = result.first;
+        final isPdf = file.extension?.toLowerCase() == 'pdf';
+        setState(() {
+          _attachedFileName = file.name;
+          _attachedFilePath = file.path;
+          if (isPdf) {
+            _activePdfUrl = file.path;
+            _activePdfTitle = file.name;
+          }
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('📎 Attached "${file.name}" for Nova to review'),
+              duration: const Duration(seconds: 2),
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not pick file: $e')),
+        );
+      }
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _activePdfUrl = widget.initialPdfUrl;
+    _activePdfTitle = widget.initialPdfTitle;
+    _showingTopicContent = widget.showTopicContent;
+  }
 
   // Selected customization state (would normally be managed by Riverpod)
   String _selectedTone = 'Academic';
@@ -94,10 +159,18 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
           ),
           Padding(
             padding: const EdgeInsets.only(right: 16.0, left: 8.0),
-            child: CircleAvatar(
-              radius: 16,
-              backgroundColor: colorScheme.primary,
-              child: Icon(Icons.person, size: 18, color: colorScheme.onPrimary),
+            child: InkWell(
+              onTap: () {
+                if (context.canPop()) {
+                  context.pop();
+                }
+              },
+              borderRadius: BorderRadius.circular(16),
+              child: CircleAvatar(
+                radius: 16,
+                backgroundColor: colorScheme.primary,
+                child: Icon(Icons.person, size: 18, color: colorScheme.onPrimary),
+              ),
             ),
           ),
         ],
@@ -105,7 +178,112 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
       body: SafeArea(
         child: Column(
           children: [
+            if (_activePdfUrl != null)
+              Expanded(
+                flex: 4,
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
+                  ),
+                  child: Column(
+                    children: [
+                      Container(
+                        color: colorScheme.surfaceContainerHighest,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        child: Row(
+                          children: [
+                            Icon(Icons.picture_as_pdf, size: 16, color: colorScheme.primary),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                _activePdfTitle ?? 'Document',
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.onSurface,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.close),
+                              visualDensity: VisualDensity.compact,
+                              onPressed: () => setState(() {
+                                _activePdfUrl = null;
+                                _activePdfTitle = null;
+                              }),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: _activePdfUrl!.startsWith('http')
+                            ? SfPdfViewer.network(
+                                _activePdfUrl!,
+                                canShowScrollHead: false,
+                              )
+                            : SfPdfViewer.file(
+                                File(_activePdfUrl!),
+                                canShowScrollHead: false,
+                              ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else if (_showingTopicContent && widget.initialTopic != null && widget.initialTopic!.description.isNotEmpty)
+              Expanded(
+                flex: 4,
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
+                  ),
+                  child: Column(
+                    children: [
+                      Container(
+                        color: colorScheme.surfaceContainerHighest,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        child: Row(
+                          children: [
+                            Icon(Icons.article, size: 16, color: colorScheme.primary),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                widget.initialTopic!.title,
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.onSurface,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.close),
+                              visualDensity: VisualDensity.compact,
+                              onPressed: () => setState(() {
+                                _showingTopicContent = false;
+                              }),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.all(24),
+                          child: Text(
+                            widget.initialTopic!.description,
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              height: 1.6,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             Expanded(
+              flex: (_activePdfUrl != null || _showingTopicContent) ? 6 : 1,
               child: ListView(
                 padding: const EdgeInsets.all(24.0),
                 children: [
@@ -306,55 +484,107 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
               ),
               child: SafeArea(
                 top: false,
-                child: Row(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    IconButton(
-                      icon: Icon(Icons.add_photo_alternate, color: colorScheme.onSurfaceVariant),
-                      onPressed: () {},
-                    ),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    if (_attachedFileName != null)
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainerLow,
-                          borderRadius: BorderRadius.circular(24),
+                          color: colorScheme.primaryContainer.withValues(alpha: 0.35),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3)),
                         ),
-                        child: TextField(
-                          controller: _inputController,
-                          decoration: InputDecoration(
-                            hintText: 'Ask Nova anything...',
-                            hintStyle: TextStyle(color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6)),
-                            border: InputBorder.none,
-                            isDense: true,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.attachment_rounded, size: 16, color: colorScheme.primary),
+                            const SizedBox(width: 6),
+                            ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 220),
+                              child: Text(
+                                _attachedFileName!,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            InkWell(
+                              onTap: () {
+                                setState(() {
+                                  _attachedFileName = null;
+                                  _attachedFilePath = null;
+                                });
+                              },
+                              child: Icon(Icons.close, size: 16, color: colorScheme.primary),
+                            ),
+                          ],
+                        ),
+                      ),
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.add_photo_alternate, color: colorScheme.primary),
+                          tooltip: 'Attach Image or Document',
+                          onPressed: _pickAttachment,
+                        ),
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: colorScheme.surfaceContainerLow,
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            child: TextField(
+                              controller: _inputController,
+                              decoration: InputDecoration(
+                                hintText: 'Ask Nova anything...',
+                                hintStyle: TextStyle(color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6)),
+                                border: InputBorder.none,
+                                isDense: true,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: colorScheme.primary,
-                        shape: BoxShape.circle,
-                      ),
-                      child: IconButton(
-                        icon: Icon(Icons.send, color: colorScheme.onPrimary, size: 20),
-                        onPressed: () {
-                          final text = _inputController.text;
-                          if (text.isNotEmpty) {
-                            final topicId = widget.initialTopic?.id ?? 'global';
-                            final classId = widget.initialTopic?.classId;
-                            ref.read(chatMessagesProvider.notifier).sendMessage(
-                                  topicId: topicId,
-                                  text: text,
-                                  tone: _selectedTone,
-                                  language: _selectedLanguage,
-                                  topicContext: widget.initialTopic?.title,
-                                  classId: classId, // Pass the actual class ID
-                                );
-                            _inputController.clear();
-                          }
-                        },
-                      ),
+                        const SizedBox(width: 8),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: colorScheme.primary,
+                            shape: BoxShape.circle,
+                          ),
+                          child: IconButton(
+                            icon: Icon(Icons.send, color: colorScheme.onPrimary, size: 20),
+                            onPressed: () {
+                              final text = _inputController.text.trim();
+                              if (text.isNotEmpty || _attachedFileName != null) {
+                                final messageToSend = _attachedFileName != null
+                                    ? '[Attached File: $_attachedFileName]\n${text.isEmpty ? "Please review and explain this material." : text}'
+                                    : text;
+                                final topicId = widget.initialTopic?.id ?? 'global';
+                                final classId = widget.initialTopic?.classId;
+                                ref.read(chatMessagesProvider.notifier).sendMessage(
+                                      topicId: topicId,
+                                      text: messageToSend,
+                                      tone: _selectedTone,
+                                      language: _selectedLanguage,
+                                      topicContext: widget.initialTopic?.title,
+                                      classId: classId,
+                                    );
+                                _inputController.clear();
+                                setState(() {
+                                  _attachedFileName = null;
+                                  _attachedFilePath = null;
+                                });
+                              }
+                            },
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -469,21 +699,26 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
                         child: InkWell(
                           borderRadius: BorderRadius.circular(8),
                           onTap: () async {
+                            final messenger = ScaffoldMessenger.of(context);
                             try {
                               final supabase = Supabase.instance.client;
                               final url = await supabase.storage.from('class_materials').createSignedUrl(m['file_url']!, 60 * 60);
-                              final uri = Uri.parse(url);
-                              if (await canLaunchUrl(uri)) {
-                                await launchUrl(uri);
+                              final fileUrlLower = m['file_url']!.toLowerCase();
+                              if (fileUrlLower.endsWith('.pdf')) {
+                                setState(() {
+                                  _activePdfUrl = url;
+                                  _activePdfTitle = m['title'] ?? 'Document';
+                                });
                               } else {
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not open file.')));
+                                final uri = Uri.parse(url);
+                                if (await canLaunchUrl(uri)) {
+                                  await launchUrl(uri);
+                                } else {
+                                  messenger.showSnackBar(const SnackBar(content: Text('Could not open file.')));
                                 }
                               }
                             } catch (e) {
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error opening file: $e')));
-                              }
+                              messenger.showSnackBar(SnackBar(content: Text('Error opening file: $e')));
                             }
                           },
                           child: Container(
@@ -525,7 +760,7 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
         );
       },
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 }
@@ -947,25 +1182,54 @@ class _StepBreakdown extends StatelessWidget {
                     color: colorScheme.onSurfaceVariant,
                   ),
                 ),
-                const SizedBox(height: 8),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainer,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      code,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.primary,
-                        fontFamily: 'monospace',
-                        fontWeight: FontWeight.bold,
+                if (code.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Theme(
+                    data: theme.copyWith(dividerColor: Colors.transparent),
+                    child: ExpansionTile(
+                      initiallyExpanded: false,
+                      tilePadding: const EdgeInsets.symmetric(horizontal: 12),
+                      collapsedBackgroundColor: colorScheme.surfaceContainer,
+                      backgroundColor: colorScheme.surfaceContainer,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      title: Text(
+                        'View Code',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.primary,
+                        ),
                       ),
+                      trailing: IconButton(
+                        icon: Icon(Icons.copy, size: 16, color: colorScheme.primary),
+                        onPressed: () {
+                          Clipboard.setData(ClipboardData(text: code));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Code copied to clipboard', style: TextStyle(fontSize: 12))),
+                          );
+                        },
+                      ),
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: colorScheme.surfaceContainerHigh,
+                            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(8)),
+                          ),
+                          child: Text(
+                            code,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurface,
+                              fontFamily: 'monospace',
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
+                ],
               ],
             ),
           ),

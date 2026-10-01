@@ -102,6 +102,18 @@ class TeacherClassNotifier extends Notifier<List<TeacherClass>> {
     state = [newClass, ...state];
     return newClass;
   }
+
+  Future<void> deleteClass(String classId) async {
+    final client = _client;
+    if (client != null) {
+      try {
+        await client.from('classes').delete().eq('id', classId);
+      } catch (e) {
+        debugPrint('Supabase delete class error: $e');
+      }
+    }
+    state = state.where((c) => c.id != classId).toList();
+  }
 }
 
 final teacherClassesProvider =
@@ -116,6 +128,10 @@ class TeacherLessonNotifier extends Notifier<List<LessonModel>> {
     } catch (_) {
       return null;
     }
+  }
+
+  void removeLessonsForClass(String classId) {
+    state = state.where((l) => l.classId != classId).toList();
   }
 
   @override
@@ -136,6 +152,14 @@ class TeacherLessonNotifier extends Notifier<List<LessonModel>> {
       final loaded = (res as List).map((l) {
         final objs = (l['objectives'] as List?)?.map((e) => e.toString()).toList() ?? [];
         final quizzes = (l['quiz_questions'] as List?)?.map((e) => e.toString()).toList() ?? [];
+        final rawAttachments = l['attachments'];
+        List<LessonAttachment> attList = [];
+        if (rawAttachments is List) {
+          attList = rawAttachments
+              .whereType<Map>()
+              .map((a) => LessonAttachment.fromJson(Map<String, dynamic>.from(a)))
+              .toList();
+        }
         final created = DateTime.tryParse(l['created_at']?.toString() ?? '') ?? DateTime.now();
 
         return LessonModel(
@@ -147,6 +171,7 @@ class TeacherLessonNotifier extends Notifier<List<LessonModel>> {
           estimatedMinutes: l['estimated_minutes']?.toString() ?? '45 mins',
           objectives: objs,
           quizQuestions: quizzes,
+          attachments: attList,
           createdAt: created,
         );
       }).toList();
@@ -165,6 +190,7 @@ class TeacherLessonNotifier extends Notifier<List<LessonModel>> {
     required String estimatedMinutes,
     List<String> objectives = const [],
     List<String> quizQuestions = const [],
+    List<LessonAttachment> attachments = const [],
   }) async {
     String lessonId = 'lesson-${DateTime.now().millisecondsSinceEpoch}';
 
@@ -179,6 +205,7 @@ class TeacherLessonNotifier extends Notifier<List<LessonModel>> {
           'estimated_minutes': estimatedMinutes,
           'objectives': objectives,
           'quiz_questions': quizQuestions,
+          'attachments': attachments.map((a) => a.toJson()).toList(),
         };
 
         final res = await client.from('lessons').insert(insertData).select().maybeSingle();
@@ -186,6 +213,24 @@ class TeacherLessonNotifier extends Notifier<List<LessonModel>> {
           lessonId = res['id'].toString();
         }
       } catch (e) {
+        // Fallback without attachments column if table schema not updated yet
+        try {
+          final fallbackData = {
+            'class_id': classId.startsWith('class-') ? null : classId,
+            'class_name': className,
+            'title': title,
+            'content': content,
+            'estimated_minutes': estimatedMinutes,
+            'objectives': objectives,
+            'quiz_questions': quizQuestions,
+          };
+          final res = await client.from('lessons').insert(fallbackData).select().maybeSingle();
+          if (res != null && res['id'] != null) {
+            lessonId = res['id'].toString();
+          }
+        } catch (inner) {
+          debugPrint('Supabase insert lesson fallback error: $inner');
+        }
         debugPrint('Supabase insert lesson error: $e');
       }
     }
@@ -199,6 +244,7 @@ class TeacherLessonNotifier extends Notifier<List<LessonModel>> {
       estimatedMinutes: estimatedMinutes,
       objectives: objectives,
       quizQuestions: quizQuestions,
+      attachments: attachments,
       createdAt: DateTime.now(),
     );
     state = [newLesson, ...state];
