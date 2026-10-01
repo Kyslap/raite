@@ -1,6 +1,9 @@
+import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_generative_ai/google_generative_ai.dart';
 import '../../../../core/theme/widgets/retro_button.dart';
 import '../../../../core/theme/widgets/retro_text_field.dart';
 import '../../domain/lesson_model.dart';
@@ -65,15 +68,67 @@ class _TeacherCreateLessonScreenState
 
     setState(() => _isGeneratingAI = true);
 
-    // Simulate high-impact AI Lesson Generation for hackathon
-    await Future.delayed(const Duration(milliseconds: 1400));
+    String? generatedTitle;
+    String? generatedContent;
+    List<String> generatedObjectives = [];
+    List<String> generatedQuizzes = [];
+
+    final key = dotenv.env['GEMINI_API_KEY'];
+    if (key != null && key.isNotEmpty) {
+      try {
+        final model = GenerativeModel(
+          model: 'gemini-3.5-flash-lite',
+          apiKey: key,
+          generationConfig: GenerationConfig(
+            responseMimeType: 'application/json',
+          ),
+        );
+
+        final aiPrompt = '''
+You are an expert college professor curriculum architect.
+Design an engaging, comprehensive lesson plan on: "$prompt".
+Return a JSON object with this exact structure:
+{
+  "title": "Title of the Lesson",
+  "content": "A detailed Markdown document containing: ## 1. Executive Summary, ## 2. Core Principles & Formulae, ## 3. Practical Walkthrough, ## 4. Common Pitfalls & Takeaways",
+  "objectives": ["Clear measurable learning objective 1", "Objective 2", "Objective 3"],
+  "quizQuestions": [
+    "Thought-provoking conceptual question 1?",
+    "Applied analysis scenario question 2?"
+  ]
+}
+''';
+
+        final response = await model.generateContent([Content.text(aiPrompt)]);
+        final text = response.text;
+        if (text != null && text.isNotEmpty) {
+          final decoded = jsonDecode(text) as Map<String, dynamic>;
+          generatedTitle = decoded['title']?.toString();
+          generatedContent = decoded['content']?.toString();
+          if (decoded['objectives'] is List) {
+            generatedObjectives = (decoded['objectives'] as List)
+                .map((e) => e.toString())
+                .toList();
+          }
+          if (decoded['quizQuestions'] is List) {
+            generatedQuizzes = (decoded['quizQuestions'] as List)
+                .map((e) => e.toString())
+                .toList();
+          }
+        }
+      } catch (e) {
+        debugPrint('Gemini curriculum generation error: $e');
+      }
+    } else {
+      await Future.delayed(const Duration(milliseconds: 1000));
+    }
 
     if (!mounted) return;
 
     setState(() {
       _isGeneratingAI = false;
-      _titleController.text = prompt;
-      _contentController.text =
+      _titleController.text = generatedTitle ?? prompt;
+      _contentController.text = generatedContent ??
           '## 1. Executive Summary\n'
           'In this session, we investigate the underlying mechanics of $prompt. '
           'Students will learn theoretical foundations, mathematical formulations, '
@@ -86,17 +141,25 @@ class _TeacherCreateLessonScreenState
           'Follow the guided walkthrough to verify empirical outcomes against baseline models.';
 
       _objectives.clear();
-      _objectives.addAll([
-        'Master the theoretical foundations of $prompt',
-        'Analyze latency vs accuracy trade-offs in deployment',
-        'Design a prototype test harness demonstrating core axioms',
-      ]);
+      if (generatedObjectives.isNotEmpty) {
+        _objectives.addAll(generatedObjectives);
+      } else {
+        _objectives.addAll([
+          'Master the theoretical foundations of $prompt',
+          'Analyze latency vs accuracy trade-offs in deployment',
+          'Design a prototype test harness demonstrating core axioms',
+        ]);
+      }
 
       _quizQuestions.clear();
-      _quizQuestions.addAll([
-        'What is the principal operational bottleneck in $prompt?',
-        'How would you diagnose convergence failure in this scenario?',
-      ]);
+      if (generatedQuizzes.isNotEmpty) {
+        _quizQuestions.addAll(generatedQuizzes);
+      } else {
+        _quizQuestions.addAll([
+          'What is the principal operational bottleneck in $prompt?',
+          'How would you diagnose convergence failure in this scenario?',
+        ]);
+      }
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -339,6 +402,9 @@ class _TeacherCreateLessonScreenState
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final classes = ref.watch(teacherClassesProvider);
+    if (classes.isNotEmpty && !classes.any((c) => c.id == _selectedClassId)) {
+      _selectedClassId = classes.first.id;
+    }
 
     return Scaffold(
       backgroundColor: colorScheme.surface,

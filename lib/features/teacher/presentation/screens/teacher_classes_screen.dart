@@ -14,6 +14,7 @@ import '../../../ai_tutor/data/knowledge_base_repository.dart';
 import '../../../ai_tutor/presentation/providers/ai_tutor_provider.dart';
 import '../providers/teacher_lesson_provider.dart';
 import '../providers/teacher_insights_provider.dart';
+import '../providers/teacher_class_hub_provider.dart';
 import 'teacher_class_detail_screen.dart';
 import 'package:raite/features/hive_mind/presentation/widgets/hive_mind_report_card.dart';
 
@@ -27,8 +28,6 @@ class TeacherClassesScreen extends ConsumerStatefulWidget {
 }
 
 class _TeacherClassesScreenState extends ConsumerState<TeacherClassesScreen> {
-  TeacherClass? _selectedClass;
-
   void _showDeleteClassDialog(TeacherClass cls) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -60,8 +59,9 @@ class _TeacherClassesScreenState extends ConsumerState<TeacherClassesScreen> {
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(ctx);
-              if (_selectedClass?.id == cls.id) {
-                setState(() => _selectedClass = null);
+              final currentSelected = ref.read(selectedTeacherClassProvider);
+              if (currentSelected?.id == cls.id) {
+                ref.read(selectedTeacherClassProvider.notifier).selectClass(null);
               }
               await ref.read(teacherClassesProvider.notifier).deleteClass(cls.id);
               ref.read(teacherLessonsProvider.notifier).removeLessonsForClass(cls.id);
@@ -387,21 +387,20 @@ class _TeacherClassesScreenState extends ConsumerState<TeacherClassesScreen> {
     final colorScheme = theme.colorScheme;
     final classes = ref.watch(teacherClassesProvider);
     final lessons = ref.watch(teacherLessonsProvider);
+    final selectedClass = ref.watch(selectedTeacherClassProvider);
 
     // Keep bottom navigation bar visible by rendering detail screen in-place
-    if (_selectedClass != null) {
-      final matching = classes.where((c) => c.id == _selectedClass!.id);
+    if (selectedClass != null) {
+      final matching = classes.where((c) => c.id == selectedClass.id);
       if (matching.isEmpty) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) setState(() => _selectedClass = null);
+          if (mounted) ref.read(selectedTeacherClassProvider.notifier).selectClass(null);
         });
       } else {
         return TeacherClassDetailScreen(
           teacherClass: matching.first,
           onBack: () {
-            setState(() {
-              _selectedClass = null;
-            });
+            ref.read(selectedTeacherClassProvider.notifier).selectClass(null);
           },
         );
       }
@@ -528,9 +527,7 @@ class _TeacherClassesScreenState extends ConsumerState<TeacherClassesScreen> {
                     clipBehavior: Clip.antiAlias,
                     child: InkWell(
                       onTap: () {
-                        setState(() {
-                          _selectedClass = cls;
-                        });
+                        ref.read(selectedTeacherClassProvider.notifier).selectClass(cls);
                       },
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -706,9 +703,7 @@ class _TeacherClassesScreenState extends ConsumerState<TeacherClassesScreen> {
                                   ),
                                   onSelected: (val) {
                                     if (val == 'open') {
-                                      setState(() {
-                                        _selectedClass = cls;
-                                      });
+                                      ref.read(selectedTeacherClassProvider.notifier).selectClass(cls);
                                     } else if (val == 'copy_code') {
                                       Clipboard.setData(
                                         ClipboardData(text: cls.code),
