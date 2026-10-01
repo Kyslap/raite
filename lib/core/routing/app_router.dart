@@ -6,6 +6,7 @@ import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/sign_up_screen.dart';
 
+import '../../features/teacher/presentation/screens/teacher_navigation_screen.dart';
 import '../../main.dart';
 
 // Temporarily returning a basic screen until we build the features
@@ -48,6 +49,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/home',
         builder: (context, state) => const MainNavigationScreen(),
+      ),
+      GoRoute(
+        path: '/teacher',
+        builder: (context, state) => const TeacherNavigationScreen(),
       ),
     ],
   );
