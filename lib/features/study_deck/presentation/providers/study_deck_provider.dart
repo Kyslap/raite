@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:raite/features/daily_goals/presentation/providers/daily_goals_provider.dart';
+import 'package:raite/features/contributions/presentation/providers/contribution_provider.dart';
 import '../../data/ocr_service.dart';
 import '../../domain/study_models.dart';
 
@@ -279,6 +280,9 @@ class StudyDeckNotifier extends Notifier<StudyDeckState> {
     }).toList();
 
     state = state.copyWith(decks: updatedDecks);
+
+    // Record flashcard reviewed contribution
+    ref.read(contributionProvider.notifier).recordFlashcards(1);
   }
 
   void submitQuizResult(String quizId, int score, int total) {
@@ -299,6 +303,9 @@ class StudyDeckNotifier extends Notifier<StudyDeckState> {
 
     // Credit study minutes to daily goals!
     ref.read(dailyGoalsProvider.notifier).addMinutes(15, reason: 'Completed Quiz ($score/$total)');
+
+    // Record quiz contribution
+    ref.read(contributionProvider.notifier).recordQuizCompleted();
   }
 
   Future<OcrScanResult> scanDocument(File file) async {

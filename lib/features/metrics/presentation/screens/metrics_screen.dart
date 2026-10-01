@@ -6,6 +6,7 @@ import 'package:raite/features/class/presentation/providers/class_provider.dart'
 import 'package:raite/features/class/presentation/providers/student_class_hub_provider.dart';
 import 'package:raite/core/theme/widgets/retro_top_bar.dart';
 import 'package:raite/features/daily_goals/presentation/providers/daily_goals_provider.dart';
+import 'package:raite/features/contributions/presentation/widgets/study_heatmap_widget.dart';
 
 class MetricsScreen extends ConsumerWidget {
   const MetricsScreen({super.key});
@@ -396,6 +397,11 @@ class MetricsScreen extends ConsumerWidget {
                 ],
               ),
             ),
+
+            const SizedBox(height: 28),
+
+            // Study Activity Matrix (GitHub-style contributions)
+            const StudyHeatmapWidget(),
 
             const SizedBox(height: 28),
 

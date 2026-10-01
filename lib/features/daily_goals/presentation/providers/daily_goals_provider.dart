@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/daily_goal_model.dart';
+import 'package:raite/features/contributions/presentation/providers/contribution_provider.dart';
 
 final dailyGoalsProvider =
     NotifierProvider<DailyGoalsNotifier, DailyGoalModel>(DailyGoalsNotifier.new);
@@ -65,6 +66,8 @@ class DailyGoalsNotifier extends Notifier<DailyGoalModel> {
     final newMinutes = state.completedMinutes + minutes;
     state = state.copyWith(completedMinutes: newMinutes);
     _checkGoalStreak();
+    // Record study time contribution
+    ref.read(contributionProvider.notifier).recordFocusMinutes(minutes);
   }
 
   void toggleTask(String taskId) {
@@ -115,6 +118,8 @@ class DailyGoalsNotifier extends Notifier<DailyGoalModel> {
   }
 
   void recordAiTutorInteraction() {
+    // Record AI Tutor query contribution
+    ref.read(contributionProvider.notifier).recordTutorQuery();
     // If AI Tutor task isn't completed, mark it complete; otherwise add 5 study minutes
     final aiTask = state.tasks.firstWhere((t) => t.id == 'task-ai-tutor');
     if (!aiTask.isCompleted) {
@@ -134,6 +139,8 @@ class DailyGoalsNotifier extends Notifier<DailyGoalModel> {
   }
 
   void recordAssignmentWorked(String title) {
+    // Record assignment contribution
+    ref.read(contributionProvider.notifier).recordAssignmentSubmitted();
     final assignTask = state.tasks.firstWhere((t) => t.id == 'task-assignment');
     if (!assignTask.isCompleted) {
       completeTask('task-assignment');

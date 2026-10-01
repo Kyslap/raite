@@ -8,6 +8,7 @@ import 'package:raite/features/class/presentation/providers/student_class_hub_pr
 import 'package:raite/core/theme/widgets/retro_top_bar.dart';
 import 'package:raite/features/daily_goals/presentation/providers/daily_goals_provider.dart';
 import 'package:raite/features/daily_goals/presentation/widgets/daily_goals_sheet.dart';
+import 'package:raite/features/contributions/presentation/widgets/study_heatmap_widget.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -442,6 +443,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
               ],
             ),
+            const SizedBox(height: 24),
+
+            // Study Activity Heatmap
+            const StudyHeatmapWidget(),
+
             const SizedBox(height: 24),
 
             // 3. Enrolled Courses Section

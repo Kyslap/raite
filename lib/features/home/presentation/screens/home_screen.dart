@@ -9,6 +9,7 @@ import 'package:raite/features/class/presentation/providers/class_provider.dart'
 import 'package:raite/features/daily_goals/presentation/providers/daily_goals_provider.dart';
 import 'package:raite/features/daily_goals/presentation/widgets/daily_goals_sheet.dart';
 import 'package:raite/features/hive_mind/presentation/widgets/student_peer_nudge_card.dart';
+import 'package:raite/features/contributions/presentation/widgets/study_heatmap_widget.dart';
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -242,6 +243,10 @@ class HomeScreen extends ConsumerWidget {
                   ),
                 ),
               ),
+              const SizedBox(height: 20),
+
+              // GitHub-Style Study Activity Heatmap
+              const StudyHeatmapWidget(isCompact: true),
               const SizedBox(height: 24),
 
               // Quick Access Action Grid (4-Tile Layout)
