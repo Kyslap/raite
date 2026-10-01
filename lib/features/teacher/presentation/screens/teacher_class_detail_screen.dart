@@ -598,50 +598,58 @@ class _TeacherClassDetailScreenState
                       const SizedBox(height: 2),
                       Row(
                         children: [
-                          Text(
-                            cls.department,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: colorScheme.onSurfaceVariant,
+                          Flexible(
+                            child: Text(
+                              cls.department,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           const SizedBox(width: 8),
                           Text('•', style: TextStyle(color: colorScheme.outline)),
                           const SizedBox(width: 8),
-                          InkWell(
-                            onTap: () {
-                              Clipboard.setData(ClipboardData(text: cls.code));
-                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('📋 Code ${cls.code} copied!'),
-                                  duration: const Duration(milliseconds: 1500),
-                                  behavior: SnackBarBehavior.floating,
-                                ),
-                              );
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: colorScheme.primary.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.key, size: 11, color: colorScheme.primary),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    cls.code,
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold,
-                                      color: colorScheme.primary,
-                                    ),
+                          Flexible(
+                            child: InkWell(
+                              onTap: () {
+                                Clipboard.setData(ClipboardData(text: cls.code));
+                                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('📋 Code ${cls.code} copied!'),
+                                    duration: const Duration(milliseconds: 1500),
+                                    behavior: SnackBarBehavior.floating,
                                   ),
-                                  const SizedBox(width: 4),
-                                  Icon(Icons.copy, size: 10, color: colorScheme.primary),
-                                ],
+                                );
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.primary.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.key, size: 11, color: colorScheme.primary),
+                                    const SizedBox(width: 4),
+                                    Flexible(
+                                      child: Text(
+                                        cls.code,
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold,
+                                          color: colorScheme.primary,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Icon(Icons.copy, size: 10, color: colorScheme.primary),
+                                  ],
+                                ),
                               ),
                             ),
                           ),

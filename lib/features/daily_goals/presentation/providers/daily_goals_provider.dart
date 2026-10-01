@@ -29,7 +29,7 @@ class DailyGoalsNotifier extends Notifier<DailyGoalModel> {
         ),
         const DailyTaskItem(
           id: 'task-ai-tutor',
-          title: 'Ask Nova AI Tutor',
+          title: 'Ask Lai AI Tutor',
           subtitle: 'Clarify a concept or solve a problem with AI',
           rewardMinutes: 10,
           type: DailyTaskType.aiTutor,
@@ -125,7 +125,7 @@ class DailyGoalsNotifier extends Notifier<DailyGoalModel> {
     if (!aiTask.isCompleted) {
       completeTask('task-ai-tutor');
     } else {
-      addMinutes(5, reason: 'Nova AI Tutor Session');
+      addMinutes(5, reason: 'Lai AI Tutor Session');
     }
   }
 

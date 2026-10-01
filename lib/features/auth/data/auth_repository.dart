@@ -31,12 +31,16 @@ class AuthRepository {
         if (user != null) {
           final meta = user.userMetadata ?? {};
           final name = meta['name'] as String? ?? (email.contains('@') ? email.split('@').first : 'Scholar');
+          final role = meta['role'] as String? ?? 'student';
           return UserModel(
             id: user.id,
             email: user.email ?? email.trim(),
             name: name,
+            role: role,
           );
         }
+      } on AuthException catch (e) {
+        throw Exception(e.message);
       } catch (e) {
         throw Exception('Login failed: $e');
       }
@@ -75,8 +79,11 @@ class AuthRepository {
             id: user.id,
             email: user.email ?? email.trim(),
             name: name.trim(),
+            role: role,
           );
         }
+      } on AuthException catch (e) {
+        throw Exception(e.message);
       } catch (e) {
         throw Exception('Sign up failed: $e');
       }
@@ -100,10 +107,12 @@ class AuthRepository {
         final meta = user.userMetadata ?? {};
         final email = user.email ?? '';
         final name = meta['name'] as String? ?? (email.contains('@') ? email.split('@').first : 'Scholar');
+        final role = meta['role'] as String? ?? 'student';
         return UserModel(
           id: user.id,
           email: email,
           name: name,
+          role: role,
         );
       }
     }

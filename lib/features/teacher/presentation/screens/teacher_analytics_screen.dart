@@ -280,7 +280,7 @@ class _TeacherAnalyticsScreenState
             HiveMindReportCard(classId: targetClassId),
             const SizedBox(height: 24),
 
-            // 5. Most Asked Topics to Nova AI
+            // 5. Most Asked Topics to Lai AI
             Text(
               'Top Inquiry Concepts (Confusion Signals)',
               style: theme.textTheme.titleMedium?.copyWith(
@@ -290,7 +290,7 @@ class _TeacherAnalyticsScreenState
             ),
             const SizedBox(height: 6),
             Text(
-              'Frequent topics students asked Nova AI Tutor to clarify this week:',
+              'Frequent topics students asked Lai AI Tutor to clarify this week:',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),

@@ -576,76 +576,81 @@ class _TeacherClassesScreenState extends ConsumerState<TeacherClassesScreen> {
                                       // Mobile-Optimized Join Code Badge with 1-Tap Copy
                                       Row(
                                         children: [
-                                          InkWell(
-                                            onTap: () {
-                                              Clipboard.setData(
-                                                ClipboardData(text: cls.code),
-                                              );
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).hideCurrentSnackBar();
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                    '📋 Code ${cls.code} copied to clipboard!',
-                                                  ),
-                                                  duration: const Duration(
-                                                    milliseconds: 1500,
-                                                  ),
-                                                  behavior:
-                                                      SnackBarBehavior.floating,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(10),
-                                                  ),
-                                                ),
-                                              );
-                                            },
-                                            borderRadius:
-                                                BorderRadius.circular(8),
-                                            child: Container(
-                                              padding: const EdgeInsets.symmetric(
-                                                horizontal: 10,
-                                                vertical: 5,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color: colorScheme.primary
-                                                    .withValues(alpha: 0.1),
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                                border: Border.all(
-                                                  color: colorScheme.primary
-                                                      .withValues(alpha: 0.3),
-                                                ),
-                                              ),
-                                              child: Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  Icon(
-                                                    Icons.key,
-                                                    size: 14,
-                                                    color: colorScheme.primary,
-                                                  ),
-                                                  const SizedBox(width: 6),
-                                                  Text(
-                                                    'CODE: ${cls.code}',
-                                                    style: TextStyle(
-                                                      color: colorScheme.primary,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      fontSize: 12,
-                                                      letterSpacing: 0.5,
+                                          Flexible(
+                                            child: InkWell(
+                                              onTap: () {
+                                                Clipboard.setData(
+                                                  ClipboardData(text: cls.code),
+                                                );
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).hideCurrentSnackBar();
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).showSnackBar(
+                                                  SnackBar(
+                                                    content: Text(
+                                                      '📋 Code ${cls.code} copied to clipboard!',
+                                                    ),
+                                                    duration: const Duration(
+                                                      milliseconds: 1500,
+                                                    ),
+                                                    behavior:
+                                                        SnackBarBehavior.floating,
+                                                    shape: RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(10),
                                                     ),
                                                   ),
-                                                  const SizedBox(width: 6),
-                                                  Icon(
-                                                    Icons.copy,
-                                                    size: 13,
-                                                    color: colorScheme.primary,
+                                                );
+                                              },
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              child: Container(
+                                                padding: const EdgeInsets.symmetric(
+                                                  horizontal: 10,
+                                                  vertical: 5,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: colorScheme.primary
+                                                      .withValues(alpha: 0.1),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                  border: Border.all(
+                                                    color: colorScheme.primary
+                                                        .withValues(alpha: 0.3),
                                                   ),
-                                                ],
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    Icon(
+                                                      Icons.key,
+                                                      size: 14,
+                                                      color: colorScheme.primary,
+                                                    ),
+                                                    const SizedBox(width: 6),
+                                                    Flexible(
+                                                      child: Text(
+                                                        'CODE: ${cls.code}',
+                                                        style: TextStyle(
+                                                          color: colorScheme.primary,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          fontSize: 12,
+                                                          letterSpacing: 0.5,
+                                                        ),
+                                                        overflow: TextOverflow.ellipsis,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 6),
+                                                    Icon(
+                                                      Icons.copy,
+                                                      size: 13,
+                                                      color: colorScheme.primary,
+                                                    ),
+                                                  ],
+                                                ),
                                               ),
                                             ),
                                           ),
@@ -787,13 +792,16 @@ class _TeacherClassesScreenState extends ConsumerState<TeacherClassesScreen> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text(
-                                      'Published Lessons (${classLessons.length})',
-                                      style: theme.textTheme.labelMedium?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: colorScheme.onSurfaceVariant,
+                                    Expanded(
+                                      child: Text(
+                                        'Published Lessons (${classLessons.length})',
+                                        style: theme.textTheme.labelMedium?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: colorScheme.onSurfaceVariant,
+                                        ),
                                       ),
                                     ),
+                                    const SizedBox(width: 8),
                                     InkWell(
                                       onTap: () {
                                         if (widget.onNavigateTab != null) {
@@ -984,12 +992,14 @@ class _TeacherClassesScreenState extends ConsumerState<TeacherClassesScreen> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text(
-                                      'AI Brain Knowledge Base',
-                                      style:
-                                          theme.textTheme.labelMedium?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: colorScheme.onSurfaceVariant,
+                                    Expanded(
+                                      child: Text(
+                                        'AI Brain Knowledge Base',
+                                        style:
+                                            theme.textTheme.labelMedium?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: colorScheme.onSurfaceVariant,
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -1053,21 +1063,27 @@ class _TeacherClassesScreenState extends ConsumerState<TeacherClassesScreen> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Row(
-                                  children: [
-                                    Icon(Icons.dashboard_customize_outlined,
-                                        size: 16, color: colorScheme.primary),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'Open Class Hub (Announcements & Tasks)',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                        color: colorScheme.primary,
+                                Expanded(
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.dashboard_customize_outlined,
+                                          size: 16, color: colorScheme.primary),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          'Open Class Hub (Announcements & Tasks)',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                            color: colorScheme.primary,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
+                                const SizedBox(width: 8),
                                 Icon(Icons.arrow_forward_ios,
                                     size: 12, color: colorScheme.primary),
                               ],

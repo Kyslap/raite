@@ -57,7 +57,7 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('📎 Attached "${file.name}" for Nova to review'),
+              content: Text('📎 Attached "${file.name}" for Lai to review'),
               duration: const Duration(seconds: 2),
               backgroundColor: Theme.of(context).colorScheme.primary,
               behavior: SnackBarBehavior.floating,
@@ -329,7 +329,7 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'Nova AI Tutor',
+                                        'Lai AI Tutor',
                                         style: theme.textTheme.headlineSmall?.copyWith(
                                           color: colorScheme.onSecondaryContainer,
                                           fontWeight: FontWeight.bold,
@@ -536,7 +536,7 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
                             child: TextField(
                               controller: _inputController,
                               decoration: InputDecoration(
-                                hintText: 'Ask Nova anything...',
+                                hintText: 'Ask Lai anything...',
                                 hintStyle: TextStyle(color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6)),
                                 border: InputBorder.none,
                                 isDense: true,
@@ -680,7 +680,7 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Nova has access to the following documents. You can ask specific questions about them:',
+                      'Lai has access to the following documents. You can ask specific questions about them:',
                       style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
                     ),
                     const SizedBox(height: 8),
@@ -840,7 +840,7 @@ class _AiTutorSetupSheetState extends State<_AiTutorSetupSheet> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Adjust how Nova communicates with you to best match your learning style.',
+            'Adjust how Lai communicates with you to best match your learning style.',
             style: theme.textTheme.bodyMedium?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
@@ -1080,7 +1080,7 @@ class _AiMessage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Nova',
+                      'Lai',
                       style: theme.textTheme.titleSmall?.copyWith(
                         color: colorScheme.primary,
                         fontWeight: FontWeight.bold,

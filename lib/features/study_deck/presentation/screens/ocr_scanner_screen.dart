@@ -522,7 +522,7 @@ class _OcrScannerScreenState extends ConsumerState<OcrScannerScreen> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
                   icon: const Icon(Icons.smart_toy_outlined, size: 20),
-                  label: const Text('Ask Nova AI Tutor About These Notes', style: TextStyle(fontWeight: FontWeight.bold)),
+                  label: const Text('Ask Lai AI Tutor About These Notes', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ),
             ],

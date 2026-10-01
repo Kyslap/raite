@@ -83,7 +83,7 @@ class AiTutorRepository {
 
     final systemPrompt =
         '''
-You are Nova, an expert AI tutor. 
+You are Lai, an expert AI tutor. 
 Your current teaching tone is $tone. 
 You must communicate fluently in $language.
 ${topicContext != null ? 'The student is currently asking questions regarding this topic: $topicContext.' : ''}

@@ -2,6 +2,25 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'teacher_lesson_provider.dart';
+
+final teacherTotalAiInquiriesProvider = FutureProvider.autoDispose<int>((ref) async {
+  final classes = ref.watch(teacherClassesProvider);
+  if (classes.isEmpty) return 0;
+  
+  final classIds = classes.map((c) => c.id).toList();
+  final supabase = Supabase.instance.client;
+  
+  try {
+    final response = await supabase
+        .from('ai_chat_logs')
+        .select('id')
+        .inFilter('class_id', classIds);
+    return (response as List).length;
+  } catch (_) {
+    return 0; // Graceful fallback
+  }
+});
 
 final classInsightsProvider = FutureProvider.family<String, String>((ref, classId) async {
   final supabase = Supabase.instance.client;
