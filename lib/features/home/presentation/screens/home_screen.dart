@@ -500,7 +500,23 @@ class HomeScreen extends ConsumerWidget {
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (err, stack) => Text('Error: $err'),
+                error: (err, stack) => Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+                  ),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        Icon(Icons.cloud_off, size: 32, color: colorScheme.outline),
+                        const SizedBox(height: 12),
+                        Text('Unable to load classes', style: theme.textTheme.titleSmall?.copyWith(color: colorScheme.onSurfaceVariant)),
+                      ],
+                    ),
+                  ),
+                ),
               ),
               const SizedBox(height: 32),
             ],
