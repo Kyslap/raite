@@ -59,8 +59,27 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/ai-tutor',
         builder: (context, state) {
-          final topic = state.extra as TopicModel?;
-          return AiTutorScreen(initialTopic: topic);
+          TopicModel? topic;
+          String? pdfUrl;
+          String? pdfTitle;
+          bool showTopicContent = false;
+          
+          if (state.extra is TopicModel) {
+            topic = state.extra as TopicModel;
+          } else if (state.extra is Map<String, dynamic>) {
+            final map = state.extra as Map<String, dynamic>;
+            topic = map['topic'] as TopicModel?;
+            pdfUrl = map['pdfUrl'] as String?;
+            pdfTitle = map['pdfTitle'] as String?;
+            showTopicContent = map['showTopicContent'] as bool? ?? false;
+          }
+          
+          return AiTutorScreen(
+            initialTopic: topic,
+            initialPdfUrl: pdfUrl,
+            initialPdfTitle: pdfTitle,
+            showTopicContent: showTopicContent,
+          );
         },
       ),
       GoRoute(

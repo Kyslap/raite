@@ -1084,7 +1084,10 @@ class _ClassScreenState extends ConsumerState<ClassScreen>
                 const SizedBox(width: 8),
                 ElevatedButton.icon(
                   onPressed: () {
-                    context.push('/ai-tutor', extra: topic);
+                    context.push('/ai-tutor', extra: {
+                      'topic': topic,
+                      'showTopicContent': true,
+                    });
                   },
                   icon: const Icon(Icons.smart_toy, size: 14),
                   label: const Text('AI Tutor', style: TextStyle(fontSize: 11)),
@@ -1208,64 +1211,79 @@ class _ClassScreenState extends ConsumerState<ClassScreen>
                   children: lesson.attachments.map((att) {
                     final isPpt = att.fileType.toLowerCase().contains('ppt');
                     final isPdf = att.fileType.toLowerCase().contains('pdf');
-                    return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: isPpt
-                            ? Colors.orange.withValues(alpha: 0.12)
-                            : isPdf
-                                ? Colors.red.withValues(alpha: 0.12)
-                                : colorScheme.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: isPpt
-                              ? Colors.orange.withValues(alpha: 0.3)
-                              : isPdf
-                                  ? Colors.red.withValues(alpha: 0.3)
-                                  : colorScheme.primary.withValues(alpha: 0.2),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            isPpt
-                                ? Icons.slideshow_rounded
-                                : isPdf
-                                    ? Icons.picture_as_pdf_rounded
-                                    : Icons.attach_file_rounded,
-                            size: 14,
-                            color: isPpt
-                                ? Colors.orange.shade800
-                                : isPdf
-                                    ? Colors.red.shade800
-                                    : colorScheme.primary,
+                    return InkWell(
+                      onTap: () {
+                        context.push('/ai-tutor', extra: {
+                          'topic': TopicModel(
+                            id: lesson.id,
+                            title: lesson.title,
+                            description: lesson.content,
                           ),
-                          const SizedBox(width: 6),
-                          ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 160),
-                            child: Text(
-                              att.name,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: isPpt
-                                    ? Colors.orange.shade900
-                                    : isPdf
-                                        ? Colors.red.shade900
-                                        : colorScheme.primary,
+                          'pdfUrl': isPdf ? att.url : null,
+                          'pdfTitle': att.name,
+                          'showTopicContent': !isPdf,
+                        });
+                      },
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: isPpt
+                              ? Colors.orange.withValues(alpha: 0.12)
+                              : isPdf
+                                  ? Colors.red.withValues(alpha: 0.12)
+                                  : colorScheme.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: isPpt
+                                ? Colors.orange.withValues(alpha: 0.3)
+                                : isPdf
+                                    ? Colors.red.withValues(alpha: 0.3)
+                                    : colorScheme.primary.withValues(alpha: 0.2),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              isPpt
+                                  ? Icons.slideshow_rounded
+                                  : isPdf
+                                      ? Icons.picture_as_pdf_rounded
+                                      : Icons.attach_file_rounded,
+                              size: 14,
+                              color: isPpt
+                                  ? Colors.orange.shade800
+                                  : isPdf
+                                      ? Colors.red.shade800
+                                      : colorScheme.primary,
+                            ),
+                            const SizedBox(width: 6),
+                            ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 160),
+                              child: Text(
+                                att.name,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: isPpt
+                                      ? Colors.orange.shade900
+                                      : isPdf
+                                          ? Colors.red.shade900
+                                          : colorScheme.primary,
+                                ),
                               ),
                             ),
-                          ),
-                          if (att.formattedSize.isNotEmpty) ...[
-                            const SizedBox(width: 4),
-                            Text(
-                              '(${att.formattedSize})',
-                              style: TextStyle(fontSize: 10, color: colorScheme.outline),
-                            ),
+                            if (att.formattedSize.isNotEmpty) ...[
+                              const SizedBox(width: 4),
+                              Text(
+                                '(${att.formattedSize})',
+                                style: TextStyle(fontSize: 10, color: colorScheme.outline),
+                              ),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
                     );
                   }).toList(),

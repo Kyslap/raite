@@ -10,8 +10,17 @@ import '../providers/ai_tutor_provider.dart';
 
 class AiTutorScreen extends ConsumerStatefulWidget {
   final TopicModel? initialTopic;
+  final String? initialPdfUrl;
+  final String? initialPdfTitle;
+  final bool showTopicContent;
 
-  const AiTutorScreen({super.key, this.initialTopic});
+  const AiTutorScreen({
+    super.key, 
+    this.initialTopic,
+    this.initialPdfUrl,
+    this.initialPdfTitle,
+    this.showTopicContent = false,
+  });
 
   @override
   ConsumerState<AiTutorScreen> createState() => _AiTutorScreenState();
@@ -22,6 +31,15 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
   
   String? _activePdfUrl;
   String? _activePdfTitle;
+  bool _showingTopicContent = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _activePdfUrl = widget.initialPdfUrl;
+    _activePdfTitle = widget.initialPdfTitle;
+    _showingTopicContent = widget.showTopicContent;
+  }
 
   // Selected customization state (would normally be managed by Riverpod)
   String _selectedTone = 'Academic';
@@ -142,9 +160,61 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
                     ],
                   ),
                 ),
+              )
+            else if (_showingTopicContent && widget.initialTopic != null && widget.initialTopic!.description.isNotEmpty)
+              Expanded(
+                flex: 4,
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
+                  ),
+                  child: Column(
+                    children: [
+                      Container(
+                        color: colorScheme.surfaceContainerHighest,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        child: Row(
+                          children: [
+                            Icon(Icons.article, size: 16, color: colorScheme.primary),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                widget.initialTopic!.title,
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.onSurface,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.close),
+                              visualDensity: VisualDensity.compact,
+                              onPressed: () => setState(() {
+                                _showingTopicContent = false;
+                              }),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.all(24),
+                          child: Text(
+                            widget.initialTopic!.description,
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              height: 1.6,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             Expanded(
-              flex: _activePdfUrl != null ? 6 : 1,
+              flex: (_activePdfUrl != null || _showingTopicContent) ? 6 : 1,
               child: ListView(
                 padding: const EdgeInsets.all(24.0),
                 children: [
