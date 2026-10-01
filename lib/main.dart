@@ -11,6 +11,7 @@ import 'core/theme/app_theme.dart';
 import 'core/routing/app_router.dart';
 import 'package:go_router/go_router.dart';
 import 'features/auth/presentation/providers/auth_provider.dart';
+import 'features/profile/presentation/screens/profile_screen.dart';
 
 String? initError;
 
@@ -70,7 +71,7 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
     const ClassScreen(),
     const AiTutorListScreen(),
     const MetricsScreen(),
-    const Scaffold(body: Center(child: Text('Profile Screen'))), // Placeholder
+    const ProfileScreen(),
   ];
 
   @override
