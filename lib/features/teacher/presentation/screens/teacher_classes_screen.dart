@@ -1257,7 +1257,17 @@ class _ClassInsightsCard extends ConsumerWidget {
       ),
       error: (err, _) => Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Text('Failed to load insights: $err', style: TextStyle(color: colorScheme.error)),
+        child: Center(
+          child: Column(
+            children: [
+              Icon(Icons.error_outline, color: colorScheme.error.withValues(alpha: 0.7)),
+              const SizedBox(height: 8),
+              Text('Insights unavailable', style: TextStyle(color: colorScheme.error, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 4),
+              Text('Could not generate insights right now.', style: TextStyle(color: colorScheme.outline, fontSize: 12)),
+            ],
+          ),
+        ),
       ),
     );
   }
