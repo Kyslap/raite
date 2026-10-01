@@ -30,7 +30,7 @@ class AiTutorRepository {
     try {
       if (classId != null) {
         final docs = await supabase.from('class_documents').select('title').eq('class_id', classId);
-        if (docs is List && docs.isNotEmpty) {
+        if (docs.isNotEmpty) {
           final titles = docs.map((d) => d['title']).join(', ');
           availableFilesContext = 'The following files have been uploaded by the teacher for this class: $titles. If the student asks about what files are available or asks about a specific file from this list, you know it exists.';
         }
@@ -66,7 +66,7 @@ class AiTutorRepository {
         'query_embedding': embedding,
         'match_threshold': 0.3,
         'match_count': 3,
-        if (classId != null) 'match_class_id': classId,
+        'match_class_id': ?classId,
       });
 
       if (matchResponse is List && matchResponse.isNotEmpty) {

@@ -455,6 +455,7 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
                         child: InkWell(
                           borderRadius: BorderRadius.circular(8),
                           onTap: () async {
+                            final messenger = ScaffoldMessenger.of(context);
                             try {
                               final supabase = Supabase.instance.client;
                               final url = await supabase.storage.from('class_materials').createSignedUrl(m['file_url']!, 60 * 60);
@@ -462,14 +463,10 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
                               if (await canLaunchUrl(uri)) {
                                 await launchUrl(uri);
                               } else {
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not open file.')));
-                                }
+                                messenger.showSnackBar(const SnackBar(content: Text('Could not open file.')));
                               }
                             } catch (e) {
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error opening file: $e')));
-                              }
+                              messenger.showSnackBar(SnackBar(content: Text('Error opening file: $e')));
                             }
                           },
                           child: Container(
@@ -508,7 +505,7 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
         );
       },
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 }

@@ -91,13 +91,13 @@ class _TeacherClassesScreenState extends ConsumerState<TeacherClassesScreen> {
     final colorScheme = theme.colorScheme;
 
     try {
-      final result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf', 'txt', 'md', 'csv'],
       );
 
-      if (result != null && result.files.isNotEmpty && result.files.first.path != null) {
-        File file = File(result.files.first.path!);
+      if (result.isNotEmpty && result.first.path != null) {
+        File file = File(result.first.path!);
 
         if (!context.mounted) return;
         // Show loading dialog
@@ -1163,7 +1163,7 @@ class _ClassMaterialsList extends ConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 }

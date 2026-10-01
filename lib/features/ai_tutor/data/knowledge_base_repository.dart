@@ -48,7 +48,7 @@ class KnowledgeBaseRepository {
       'class_id': classId,
       'title': originalFileName,
       'file_url': originalStoragePath,
-      if (rawTextStoragePath != null) 'raw_text_url': rawTextStoragePath,
+      'raw_text_url': ?rawTextStoragePath,
       'uploaded_by': userId,
     }).select().single();
 
