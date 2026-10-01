@@ -82,15 +82,6 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
     _activePdfUrl = widget.initialPdfUrl;
     _activePdfTitle = widget.initialPdfTitle;
     _showingTopicContent = widget.showTopicContent;
-  }
-
-  // Selected customization state (would normally be managed by Riverpod)
-  String _selectedTone = 'Academic';
-  String _selectedLanguage = 'English';
-
-  @override
-  void initState() {
-    super.initState();
     if (widget.initialTopic != null) {
       Future.microtask(() {
         ref.read(chatMessagesProvider.notifier).loadHistory(
@@ -100,6 +91,10 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
       });
     }
   }
+
+  // Selected customization state (would normally be managed by Riverpod)
+  String _selectedTone = 'Academic';
+  String _selectedLanguage = 'English';
 
   void _showSetupSheet() {
     showModalBottomSheet(
