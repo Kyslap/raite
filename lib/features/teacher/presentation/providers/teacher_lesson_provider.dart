@@ -1,0 +1,329 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../domain/lesson_model.dart';
+
+class TeacherClass {
+  final String id;
+  final String title;
+  final String department;
+  final String code;
+  final int studentCount;
+  final String iconCode;
+
+  const TeacherClass({
+    required this.id,
+    required this.title,
+    required this.department,
+    required this.code,
+    required this.studentCount,
+    this.iconCode = 'school',
+  });
+}
+
+class TeacherClassNotifier extends Notifier<List<TeacherClass>> {
+  SupabaseClient? get _client {
+    try {
+      return Supabase.instance.client;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  List<TeacherClass> build() {
+    _loadFromSupabase();
+    return _initialSeedClasses();
+  }
+
+  static List<TeacherClass> _initialSeedClasses() {
+    return const [
+      TeacherClass(
+        id: 'class-1',
+        title: 'Calculus & Differential Equations',
+        department: 'Department of Mathematics',
+        code: 'MATH-201',
+        studentCount: 34,
+      ),
+      TeacherClass(
+        id: 'class-2',
+        title: 'Data Structures & Algorithms',
+        department: 'Computer Science',
+        code: 'CS-210',
+        studentCount: 42,
+      ),
+      TeacherClass(
+        id: 'class-3',
+        title: 'Astrophysics & Planetary Mechanics',
+        department: 'Physics & Astronomy',
+        code: 'ASTRO-101',
+        studentCount: 28,
+      ),
+    ];
+  }
+
+  Future<void> _loadFromSupabase() async {
+    final client = _client;
+    if (client == null) return;
+    try {
+      final res = await client
+          .from('classes')
+          .select()
+          .order('created_at', ascending: false);
+
+      final loaded = (res as List).map((item) => TeacherClass(
+        id: item['id'].toString(),
+        title: item['title']?.toString() ?? '',
+        department: item['department']?.toString() ?? '',
+        code: item['code']?.toString() ?? '',
+        studentCount: (item['student_count'] as num?)?.toInt() ?? 0,
+      )).toList();
+
+      if (loaded.isNotEmpty) {
+        state = loaded;
+      }
+    } catch (e) {
+      debugPrint('Supabase load classes error: $e');
+    }
+  }
+
+  Future<TeacherClass> addClass({
+    required String title,
+    required String department,
+    String? customCode,
+  }) async {
+    // Generate clean 6-char code if none provided
+    final autoCode = customCode?.trim().toUpperCase().isNotEmpty == true
+        ? customCode!.trim().toUpperCase()
+        : '${department.length >= 3 ? department.substring(0, 3).toUpperCase() : "CLS"}-${(100 + DateTime.now().millisecond % 900)}';
+
+    String classId = 'class-${DateTime.now().millisecondsSinceEpoch}';
+
+    final client = _client;
+    if (client != null) {
+      final instructorName = client.auth.currentUser?.userMetadata?['name'] ?? 'Faculty Instructor';
+      final instructorId = client.auth.currentUser?.id;
+
+      final insertData = {
+        'title': title,
+        'department': department,
+        'code': autoCode,
+        'instructor_name': instructorName,
+        'instructor_id': instructorId,
+        'student_count': 0,
+      };
+
+      final res = await client.from('classes').insert(insertData).select().maybeSingle();
+      if (res != null && res['id'] != null) {
+        classId = res['id'].toString();
+      }
+    }
+
+    final newClass = TeacherClass(
+      id: classId,
+      title: title,
+      department: department,
+      code: autoCode,
+      studentCount: 0,
+    );
+
+    state = [newClass, ...state];
+    return newClass;
+  }
+
+  Future<void> deleteClass(String classId) async {
+    final client = _client;
+    if (client != null) {
+      try {
+        await client.from('classes').delete().eq('id', classId);
+      } catch (e) {
+        debugPrint('Supabase delete class error: $e');
+      }
+    }
+    state = state.where((c) => c.id != classId).toList();
+  }
+}
+
+final teacherClassesProvider =
+    NotifierProvider<TeacherClassNotifier, List<TeacherClass>>(() {
+  return TeacherClassNotifier();
+});
+
+class TeacherLessonNotifier extends Notifier<List<LessonModel>> {
+  SupabaseClient? get _client {
+    try {
+      return Supabase.instance.client;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  void removeLessonsForClass(String classId) {
+    state = state.where((l) => l.classId != classId).toList();
+  }
+
+  @override
+  List<LessonModel> build() {
+    _loadFromSupabase();
+    return _initialSeedLessons();
+  }
+
+  static List<LessonModel> _initialSeedLessons() {
+    return [
+      LessonModel(
+        id: 'lesson-seed-1',
+        classId: 'class-1',
+        className: 'Calculus & Differential Equations',
+        title: 'Techniques of Integration & Taylor Polynomials',
+        content: '## 1. Executive Summary\nDetailed walkthrough of Integration by Parts, trigonometric substitution, and convergence tests for infinite series.\n\n## 2. Practical Applications\nUsed across electrical circuit analysis and orbital decay estimations.',
+        estimatedMinutes: '45 mins',
+        objectives: const [
+          'Master integration by parts using the LIATE hierarchy',
+          'Evaluate improper integrals with infinite discontinuities',
+          'Construct Taylor series approximations up to degree 4',
+        ],
+        quizQuestions: const [
+          'When does integration by parts terminate faster than tabular method?',
+          'What is the radius of convergence for the geometric series 1/(1-x)?',
+        ],
+        attachments: const [],
+        createdAt: DateTime.now().subtract(const Duration(days: 2)),
+      ),
+      LessonModel(
+        id: 'lesson-seed-2',
+        classId: 'class-2',
+        className: 'Data Structures & Algorithms',
+        title: 'Balanced Binary Search Trees & AVL Rotations',
+        content: '## 1. Executive Summary\nAnalysis of worst-case search tree degenerations and self-balancing BST mechanisms.\n\n## 2. AVL Invariants\nHeight factor differential must remain in {-1, 0, 1} across all subtrees.',
+        estimatedMinutes: '60 mins',
+        objectives: const [
+          'Prove O(log n) upper bound for balanced BST search operations',
+          'Execute single and double AVL tree rotations on insert',
+        ],
+        quizQuestions: const [
+          'Under what rebalancing conditions is a Left-Right (LR) rotation necessary?',
+        ],
+        attachments: const [],
+        createdAt: DateTime.now().subtract(const Duration(days: 5)),
+      ),
+    ];
+  }
+
+  Future<void> _loadFromSupabase() async {
+    final client = _client;
+    if (client == null) return;
+    try {
+      final res = await client
+          .from('lessons')
+          .select()
+          .order('created_at', ascending: false);
+
+      final loaded = (res as List).map((l) {
+        final objs = (l['objectives'] as List?)?.map((e) => e.toString()).toList() ?? [];
+        final quizzes = (l['quiz_questions'] as List?)?.map((e) => e.toString()).toList() ?? [];
+        final rawAttachments = l['attachments'];
+        List<LessonAttachment> attList = [];
+        if (rawAttachments is List) {
+          attList = rawAttachments
+              .whereType<Map>()
+              .map((a) => LessonAttachment.fromJson(Map<String, dynamic>.from(a)))
+              .toList();
+        }
+        final created = DateTime.tryParse(l['created_at']?.toString() ?? '') ?? DateTime.now();
+
+        return LessonModel(
+          id: l['id'].toString(),
+          classId: l['class_id']?.toString() ?? '',
+          className: l['class_name']?.toString() ?? '',
+          title: l['title']?.toString() ?? '',
+          content: l['content']?.toString() ?? '',
+          estimatedMinutes: l['estimated_minutes']?.toString() ?? '45 mins',
+          objectives: objs,
+          quizQuestions: quizzes,
+          attachments: attList,
+          createdAt: created,
+        );
+      }).toList();
+
+      if (loaded.isNotEmpty) {
+        state = loaded;
+      }
+    } catch (e) {
+      debugPrint('Supabase load lessons error: $e');
+    }
+  }
+
+  Future<LessonModel> addLesson({
+    required String classId,
+    required String className,
+    required String title,
+    required String content,
+    required String estimatedMinutes,
+    List<String> objectives = const [],
+    List<String> quizQuestions = const [],
+    List<LessonAttachment> attachments = const [],
+  }) async {
+    String lessonId = 'lesson-${DateTime.now().millisecondsSinceEpoch}';
+
+    final client = _client;
+    if (client != null) {
+      try {
+        final insertData = {
+          'class_id': classId.startsWith('class-') ? null : classId,
+          'class_name': className,
+          'title': title,
+          'content': content,
+          'estimated_minutes': estimatedMinutes,
+          'objectives': objectives,
+          'quiz_questions': quizQuestions,
+          'attachments': attachments.map((a) => a.toJson()).toList(),
+        };
+
+        final res = await client.from('lessons').insert(insertData).select().maybeSingle();
+        if (res != null && res['id'] != null) {
+          lessonId = res['id'].toString();
+        }
+      } catch (e) {
+        // Fallback without attachments column if table schema not updated yet
+        try {
+          final fallbackData = {
+            'class_id': classId.startsWith('class-') ? null : classId,
+            'class_name': className,
+            'title': title,
+            'content': content,
+            'estimated_minutes': estimatedMinutes,
+            'objectives': objectives,
+            'quiz_questions': quizQuestions,
+          };
+          final res = await client.from('lessons').insert(fallbackData).select().maybeSingle();
+          if (res != null && res['id'] != null) {
+            lessonId = res['id'].toString();
+          }
+        } catch (inner) {
+          debugPrint('Supabase insert lesson fallback error: $inner');
+        }
+        debugPrint('Supabase insert lesson error: $e');
+      }
+    }
+
+    final newLesson = LessonModel(
+      id: lessonId,
+      classId: classId,
+      className: className,
+      title: title,
+      content: content,
+      estimatedMinutes: estimatedMinutes,
+      objectives: objectives,
+      quizQuestions: quizQuestions,
+      attachments: attachments,
+      createdAt: DateTime.now(),
+    );
+    state = [newLesson, ...state];
+    return newLesson;
+  }
+}
+
+final teacherLessonsProvider =
+    NotifierProvider<TeacherLessonNotifier, List<LessonModel>>(() {
+  return TeacherLessonNotifier();
+});

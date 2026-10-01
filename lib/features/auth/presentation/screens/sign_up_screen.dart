@@ -16,6 +16,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _classCodeController = TextEditingController();
   String _selectedRole = 'student';
   
   @override
@@ -23,14 +24,18 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _classCodeController.dispose();
     super.dispose();
   }
 
   void _signUp() {
+    final cleanCode = _selectedRole == 'student' ? _classCodeController.text.trim() : null;
     ref.read(authStateProvider.notifier).signUp(
-      _nameController.text,
-      _emailController.text,
-      _passwordController.text,
+      name: _nameController.text.trim(),
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+      role: _selectedRole,
+      classCode: cleanCode,
     );
   }
 
@@ -42,12 +47,46 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
     ref.listen(authStateProvider, (previous, next) {
       if (next is AsyncData && next.value != null) {
-        context.go('/home');
+        final code = _classCodeController.text.trim();
+        if (_selectedRole == 'student' && code.isNotEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text('🎉 Account created! Enrolled in class "$code"'),
+                  ),
+                ],
+              ),
+              backgroundColor: colorScheme.primary,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+        if (_selectedRole == 'teacher') {
+          context.go('/teacher');
+        } else {
+          context.go('/home');
+        }
       } else if (next is AsyncError) {
+        String errorMessage = next.error.toString();
+        if (errorMessage.startsWith('Exception: ')) {
+          errorMessage = errorMessage.substring(11);
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(next.error.toString()),
+            content: Row(
+              children: [
+                const Icon(Icons.error_outline, color: Colors.white, size: 20),
+                const SizedBox(width: 8),
+                Expanded(child: Text(errorMessage)),
+              ],
+            ),
             backgroundColor: colorScheme.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
         );
       }
@@ -204,7 +243,54 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                           color: colorScheme.outline,
                         ),
                       ),
-                      const SizedBox(height: 32),
+                      if (_selectedRole == 'student') ...[
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: colorScheme.surface,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: colorScheme.primary.withValues(alpha: 0.25),
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(Icons.key, size: 16, color: colorScheme.primary),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'HAVE A CLASS CODE? (OPTIONAL)',
+                                    style: theme.textTheme.labelSmall?.copyWith(
+                                      color: colorScheme.primary,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              RetroTextField(
+                                label: 'CLASS CODE',
+                                hint: 'e.g. CS101A or teacher code',
+                                controller: _classCodeController,
+                                prefixIcon: Icons.pin_outlined,
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                'Entering your teacher\'s code enrolls you into the class automatically upon registration.',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 28),
                       
                       RetroButton(
                         text: 'Create Account',
@@ -230,10 +316,10 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     const SizedBox(width: 8),
                     InkWell(
                       onTap: () {
-                        context.pop();
+                        context.go('/login');
                       },
                       child: Text(
-                        'Sign In',
+                        'Log In',
                         style: theme.textTheme.titleSmall?.copyWith(
                           color: colorScheme.primary,
                           fontWeight: FontWeight.bold,

@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../domain/user_model.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
@@ -6,16 +7,116 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 });
 
 class AuthRepository {
+  SupabaseClient? get _supabaseClient {
+    try {
+      return Supabase.instance.client;
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<UserModel> login(String email, String password) async {
-    await Future.delayed(const Duration(seconds: 2));
     if (email.isEmpty || password.isEmpty) {
       throw Exception('Email and password cannot be empty');
     }
-    return UserModel(id: '1', email: email, name: 'Retro Student');
+
+    final client = _supabaseClient;
+    if (client != null) {
+      try {
+        final res = await client.auth.signInWithPassword(
+          email: email.trim(),
+          password: password,
+        );
+        final user = res.user;
+        if (user != null) {
+          final meta = user.userMetadata ?? {};
+          final name = meta['name'] as String? ?? (email.contains('@') ? email.split('@').first : 'Scholar');
+          final role = meta['role'] as String? ?? 'student';
+          return UserModel(
+            id: user.id,
+            email: user.email ?? email.trim(),
+            name: name,
+            role: role,
+          );
+        }
+      } on AuthException catch (e) {
+        throw Exception(e.message);
+      } catch (e) {
+        throw Exception('Login failed: $e');
+      }
+    }
+
+    throw Exception('Supabase client not initialized');
   }
 
-  Future<UserModel> signUp(String name, String email, String password) async {
-    await Future.delayed(const Duration(seconds: 2));
-    return UserModel(id: '1', email: email, name: name);
+  Future<UserModel> signUp({
+    required String name,
+    required String email,
+    required String password,
+    String role = 'student',
+    String? classCode,
+  }) async {
+    if (name.isEmpty || email.isEmpty || password.isEmpty) {
+      throw Exception('Name, email, and password cannot be empty');
+    }
+
+    final client = _supabaseClient;
+    if (client != null) {
+      try {
+        final res = await client.auth.signUp(
+          email: email.trim(),
+          password: password,
+          data: {
+            'name': name.trim(),
+            'role': role,
+            if (classCode != null && classCode.isNotEmpty)
+              'initial_class_code': classCode.trim().toUpperCase(),
+          },
+        );
+        final user = res.user;
+        if (user != null) {
+          return UserModel(
+            id: user.id,
+            email: user.email ?? email.trim(),
+            name: name.trim(),
+            role: role,
+          );
+        }
+      } on AuthException catch (e) {
+        throw Exception(e.message);
+      } catch (e) {
+        throw Exception('Sign up failed: $e');
+      }
+    }
+
+    throw Exception('Supabase client not initialized');
+  }
+
+  Future<void> logout() async {
+    final client = _supabaseClient;
+    if (client != null) {
+      await client.auth.signOut();
+    }
+  }
+
+  Future<UserModel?> getCurrentUser() async {
+    final client = _supabaseClient;
+    if (client != null) {
+      final user = client.auth.currentUser;
+      if (user != null) {
+        final meta = user.userMetadata ?? {};
+        final email = user.email ?? '';
+        final name = meta['name'] as String? ?? (email.contains('@') ? email.split('@').first : 'Scholar');
+        final role = meta['role'] as String? ?? 'student';
+        return UserModel(
+          id: user.id,
+          email: email,
+          name: name,
+          role: role,
+        );
+      }
+    }
+    return null;
   }
 }
+

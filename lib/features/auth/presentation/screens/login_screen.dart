@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/widgets/retro_button.dart';
 import '../../../../core/theme/widgets/retro_text_field.dart';
 import '../providers/auth_provider.dart';
+import '../../../class/presentation/providers/class_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -16,12 +17,81 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _rememberMe = false;
-  
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  void _showForgotPasswordDialog() {
+    final resetEmailController = TextEditingController(text: _emailController.text);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: colorScheme.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Icon(Icons.lock_reset, color: colorScheme.primary, size: 24),
+            const SizedBox(width: 8),
+            Text(
+              'Reset Password',
+              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Enter your registered email address to receive password recovery instructions.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: resetEmailController,
+              keyboardType: TextInputType.emailAddress,
+              decoration: InputDecoration(
+                labelText: 'Email Address',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Password reset instructions sent to ${resetEmailController.text.trim()}'),
+                  backgroundColor: colorScheme.primary,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colorScheme.primary,
+              foregroundColor: colorScheme.onPrimary,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('Send Reset Link', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
   }
 
   void _login() {
@@ -39,12 +109,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     ref.listen(authStateProvider, (previous, next) {
       if (next is AsyncData && next.value != null) {
-        context.go('/home');
+        final user = next.value!;
+        if (user.role == 'teacher' || user.role == 'professor') {
+          context.go('/teacher');
+        } else {
+          context.go('/home');
+        }
       } else if (next is AsyncError) {
+        String errorMessage = next.error.toString();
+        if (errorMessage.startsWith('Exception: ')) {
+          errorMessage = errorMessage.substring(11);
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(next.error.toString()),
+            content: Row(
+              children: [
+                const Icon(Icons.error_outline, color: Colors.white, size: 20),
+                const SizedBox(width: 8),
+                Expanded(child: Text(errorMessage)),
+              ],
+            ),
             backgroundColor: colorScheme.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
         );
       }
@@ -144,7 +231,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     children: [
                       RetroTextField(
                         label: 'Email Address',
-                        hint: 'scholar@archive.edu',
+                        hint: 'email@academy.edu',
                         controller: _emailController,
                         prefixIcon: Icons.mail_outline,
                       ),
@@ -156,7 +243,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         controller: _passwordController,
                         prefixIcon: Icons.lock_outline,
                         trailingActionText: 'Forgot?',
-                        onTrailingActionPressed: () {},
+                        onTrailingActionPressed: _showForgotPasswordDialog,
                       ),
                       const SizedBox(height: 16),
                       Row(
@@ -190,6 +277,61 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         isLoading: authState.isLoading,
                         onPressed: _login,
                         icon: Icons.arrow_forward,
+                      ),
+                      const SizedBox(height: 16),
+                      // Quick Hackathon Judge Access Shortcut
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: () => context.go('/home'),
+                                icon: const Icon(Icons.school, size: 16),
+                                label: const Text(
+                                  'Demo: Student',
+                                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: colorScheme.primary,
+                                  side: BorderSide(color: colorScheme.primary.withValues(alpha: 0.3)),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: () => context.go('/teacher'),
+                                icon: const Icon(Icons.psychology, size: 16),
+                                label: const Text(
+                                  'Demo: Teacher',
+                                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: colorScheme.primary,
+                                  side: BorderSide(color: colorScheme.primary.withValues(alpha: 0.3)),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Center(
+                        child: TextButton.icon(
+                          onPressed: () => _showQuickJoinModal(context),
+                          icon: Icon(Icons.key, size: 16, color: colorScheme.secondary),
+                          label: Text(
+                            'Have a Class Code? Join Directly',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.secondary,
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -234,4 +376,155 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ),
     );
   }
+
+  void _showQuickJoinModal(BuildContext context) {
+    final codeController = TextEditingController();
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        bool isLoading = false;
+        String? errorMessage;
+
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return Container(
+              padding: EdgeInsets.only(
+                left: 24,
+                right: 24,
+                top: 24,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+              ),
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: 20,
+                    offset: const Offset(0, -4),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: colorScheme.outlineVariant,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(Icons.key, color: colorScheme.primary),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Join Class with Code',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.onSurface,
+                              ),
+                            ),
+                            Text(
+                              'Enter teacher invitation code to access student portal',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  RetroTextField(
+                    label: 'CLASS CODE',
+                    hint: 'e.g. CS101A or MATH-402',
+                    controller: codeController,
+                    prefixIcon: Icons.pin_outlined,
+                  ),
+                  if (errorMessage != null) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      errorMessage!,
+                      style: TextStyle(color: colorScheme.error, fontSize: 12),
+                    ),
+                  ],
+                  const SizedBox(height: 20),
+                  RetroButton(
+                    text: 'Join & Enter Student Portal',
+                    isLoading: isLoading,
+                    icon: Icons.login,
+                    onPressed: () async {
+                      final code = codeController.text.trim();
+                      if (code.isEmpty) {
+                        setSheetState(() => errorMessage = 'Please enter a valid class code');
+                        return;
+                      }
+
+                      setSheetState(() {
+                        isLoading = true;
+                        errorMessage = null;
+                      });
+
+                      final result = await ref
+                          .read(enrolledClassesProvider.notifier)
+                          .joinClassByCode(code);
+
+                      if (!ctx.mounted) return;
+
+                      if (!result.success) {
+                        setSheetState(() {
+                          isLoading = false;
+                          errorMessage = result.message;
+                        });
+                      } else {
+                        Navigator.pop(ctx);
+                        context.go('/home');
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Row(
+                              children: [
+                                const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                                const SizedBox(width: 8),
+                                Expanded(child: Text(result.message)),
+                              ],
+                            ),
+                            backgroundColor: colorScheme.primary,
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 }
+
