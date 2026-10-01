@@ -21,7 +21,7 @@ Future<void> main() async {
     // Initialize Supabase
     await Supabase.initialize(
       url: dotenv.env['SUPABASE_URL'] ?? '',
-      anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? '',
+      publishableKey: dotenv.env['SUPABASE_ANON_KEY'] ?? '',
     );
   } catch (e, st) {
     initError = 'ERROR: $e\n$st';
@@ -78,9 +78,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         children: _screens,
       ),
       bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           border: Border(
-            top: BorderSide(color: Color(0xFFE5E7EB), width: 1),
+            top: BorderSide(color: Theme.of(context).colorScheme.outlineVariant, width: 1),
           ),
         ),
         child: BottomNavigationBar(

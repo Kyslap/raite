@@ -40,11 +40,11 @@ lib/
 - **All data models must be immutable.** Use `freezed` to generate models.
 - Avoid passing complex, mutable objects around. Use `copyWith` to mutate state.
 
-### UI & Design System (Retro Theme)
+### UI & Design System (Modern Theme)
 - **Colors**: Never hardcode colors in widgets. Always use the central theme (`Theme.of(context).colorScheme`).
-  - Primary (Focus): `#375742` with container `#4F7059`
-  - Secondary/Surface: Warm Beige (`#685D45` / `#F0E1C2`)
-  - Background: Cream (`#FCF9F2`)
+  - Primary (Focus): Indigo `#4F47E5`
+  - Secondary: Light Indigo `#6366F1`
+  - Background/Surface: Light Gray/White `#F8F9FB`
 - **Typography**: Use `Plus Jakarta Sans` defined in the text theme.
 - **Elevation**: Avoid 1px solid borders. Use soft, green-tinted ambient shadows for depth (e.g. `primaryContainer` with 0.08 opacity).
 - **Shapes**: Standard UI elements use `8px` (`0.5rem`) border radius, with `24px` (pill-shaped) for primary action buttons.

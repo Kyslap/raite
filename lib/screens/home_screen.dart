@@ -62,7 +62,7 @@ class HomeScreen extends StatelessWidget {
                         icon: Icons.school,
                       ),
                     );
-                  }).toList()
+                  })
                 else
                   // Fallback dummy data if not logged in or no classes
                   Column(
