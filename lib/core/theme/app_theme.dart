@@ -71,6 +71,27 @@ class AppTheme {
         type: BottomNavigationBarType.fixed,
         elevation: 0,
       ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primary,
+          foregroundColor: onPrimary,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          textStyle: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: primary,
+          side: const BorderSide(color: outlineVariant),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          textStyle: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
     );
   }
 }

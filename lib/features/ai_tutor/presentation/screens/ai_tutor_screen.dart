@@ -565,7 +565,9 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
                                       text: messageToSend,
                                       tone: _selectedTone,
                                       language: _selectedLanguage,
-                                      topicContext: widget.initialTopic?.title,
+                                      topicContext: widget.initialTopic != null
+                                          ? '${widget.initialTopic!.title}${widget.initialTopic!.description.isNotEmpty ? ": ${widget.initialTopic!.description}" : ""}'
+                                          : null,
                                       classId: classId,
                                     );
                                 ref.read(dailyGoalsProvider.notifier).recordAiTutorInteraction();

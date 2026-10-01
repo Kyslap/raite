@@ -129,7 +129,7 @@ class _StudyDeckScreenState extends ConsumerState<StudyDeckScreen>
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: colorScheme.secondaryContainer,
                                     foregroundColor: colorScheme.onSecondaryContainer,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                   ),
                                   icon: const Icon(Icons.camera_alt_outlined, size: 16),
@@ -303,7 +303,7 @@ class _StudyDeckScreenState extends ConsumerState<StudyDeckScreen>
                 style: ElevatedButton.styleFrom(
                   backgroundColor: colorScheme.primary,
                   foregroundColor: colorScheme.onPrimary,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 ),
                 icon: const Icon(Icons.play_arrow_rounded, size: 18),
@@ -410,7 +410,7 @@ class _StudyDeckScreenState extends ConsumerState<StudyDeckScreen>
                 style: ElevatedButton.styleFrom(
                   backgroundColor: colorScheme.secondary,
                   foregroundColor: colorScheme.onSecondary,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 ),
                 icon: const Icon(Icons.timer_outlined, size: 16),

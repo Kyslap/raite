@@ -866,25 +866,45 @@ class _ClassScreenState extends ConsumerState<ClassScreen>
                                   ),
                                 ),
                               ),
-                              Row(
-                                children: [
-                                  Icon(
-                                    isSubmitted ? Icons.check_circle : Icons.schedule,
-                                    size: 14,
-                                    color: isSubmitted ? const Color(0xFF10B981) : Colors.amber.shade900,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    isSubmitted
-                                        ? 'Turned In'
-                                        : 'Due: ${asg.dueDate}',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold,
-                                      color: isSubmitted ? const Color(0xFF10B981) : Colors.amber.shade900,
+                              Flexible(
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      isSubmitted && (submission.status == 'graded' || submission.grade != null)
+                                          ? Icons.verified
+                                          : isSubmitted
+                                              ? Icons.check_circle
+                                              : Icons.schedule,
+                                      size: 14,
+                                      color: isSubmitted && (submission.status == 'graded' || submission.grade != null)
+                                          ? colorScheme.primary
+                                          : isSubmitted
+                                              ? const Color(0xFF10B981)
+                                              : Colors.amber.shade900,
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(width: 4),
+                                    Flexible(
+                                      child: Text(
+                                        isSubmitted && (submission.status == 'graded' || submission.grade != null)
+                                            ? 'Graded: ${submission.grade}'
+                                            : isSubmitted
+                                                ? 'Turned In'
+                                                : 'Due: ${asg.dueDate}',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold,
+                                          color: isSubmitted && (submission.status == 'graded' || submission.grade != null)
+                                              ? colorScheme.primary
+                                              : isSubmitted
+                                                  ? const Color(0xFF10B981)
+                                                  : Colors.amber.shade900,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           ),
@@ -960,6 +980,70 @@ class _ClassScreenState extends ConsumerState<ClassScreen>
                             ),
                           ],
 
+                          // Instructor Grade and Feedback Callout Box
+                          if (isSubmitted && (submission.grade != null || (submission.feedback != null && submission.feedback!.isNotEmpty))) ...[
+                            const SizedBox(height: 12),
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: colorScheme.primaryContainer.withValues(alpha: 0.18),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: colorScheme.primary.withValues(alpha: 0.25),
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(Icons.workspace_premium_rounded, size: 16, color: colorScheme.primary),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'Teacher Evaluation',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold,
+                                          color: colorScheme.primary,
+                                          letterSpacing: 0.3,
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                      if (submission.grade != null)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: colorScheme.primary,
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          child: Text(
+                                            'Score: ${submission.grade}',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.bold,
+                                              color: colorScheme.onPrimary,
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                  if (submission.feedback != null && submission.feedback!.isNotEmpty) ...[
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      '"${submission.feedback!}"',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontStyle: FontStyle.italic,
+                                        color: colorScheme.onSurface,
+                                        height: 1.3,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ],
+
                           const SizedBox(height: 14),
                           const Divider(height: 1),
                           const SizedBox(height: 10),
@@ -968,7 +1052,22 @@ class _ClassScreenState extends ConsumerState<ClassScreen>
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              if (isSubmitted)
+                              if (isSubmitted && (submission.status == 'graded' || submission.grade != null))
+                                Row(
+                                  children: [
+                                    Icon(Icons.check_circle_rounded, size: 14, color: colorScheme.primary),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'Grade Recorded',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: colorScheme.primary,
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              else if (isSubmitted)
                                 TextButton(
                                   onPressed: () {
                                     ref
@@ -993,10 +1092,20 @@ class _ClassScreenState extends ConsumerState<ClassScreen>
                                     ? null
                                     : () => _showSubmitAssignmentSheet(context, asg, classModel),
                                 icon: Icon(
-                                  isSubmitted ? Icons.check : Icons.upload_file,
+                                  isSubmitted && (submission.status == 'graded' || submission.grade != null)
+                                      ? Icons.verified
+                                      : isSubmitted
+                                          ? Icons.check
+                                          : Icons.upload_file,
                                   size: 16,
                                 ),
-                                label: Text(isSubmitted ? 'Completed' : 'Turn In Work'),
+                                label: Text(
+                                  isSubmitted && (submission.status == 'graded' || submission.grade != null)
+                                      ? 'Graded'
+                                      : isSubmitted
+                                          ? 'Turned In'
+                                          : 'Turn In Work',
+                                ),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: isSubmitted
                                       ? colorScheme.surfaceContainerHighest
@@ -1005,7 +1114,7 @@ class _ClassScreenState extends ConsumerState<ClassScreen>
                                       ? colorScheme.outline
                                       : colorScheme.onPrimary,
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
+                                    borderRadius: BorderRadius.circular(24),
                                   ),
                                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                 ),
@@ -1682,7 +1791,7 @@ class _ClassScreenState extends ConsumerState<ClassScreen>
                       backgroundColor: colorScheme.primary,
                       foregroundColor: colorScheme.onPrimary,
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                     ),
                     child: const Text(
                       'Turn In Assignment',
@@ -2240,7 +2349,7 @@ class _ClassScreenState extends ConsumerState<ClassScreen>
                         foregroundColor: colorScheme.onPrimary,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(24),
                         ),
                       ),
                       child: isLoading

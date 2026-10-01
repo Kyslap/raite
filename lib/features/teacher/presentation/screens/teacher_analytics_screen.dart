@@ -277,7 +277,11 @@ class _TeacherAnalyticsScreenState
             const SizedBox(height: 24),
 
             // 4. Hive Mind Cohort Habit Intelligence & Intervention Card
-            HiveMindReportCard(classId: targetClassId),
+            HiveMindReportCard(
+              classId: targetClassId,
+              className: activeClass?.title ?? 'Mathematics & Calculus III',
+              courseCode: activeClass?.code ?? 'MATH-101',
+            ),
             const SizedBox(height: 24),
 
             // 5. Most Asked Topics to Lai AI

@@ -32,7 +32,7 @@ class RetroButton extends StatelessWidget {
           elevation: isPrimary ? 2 : 0,
           shadowColor: colorScheme.primary.withValues(alpha: 0.1),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(isPrimary ? 24 : 12),
             side: isPrimary ? BorderSide.none : BorderSide(color: colorScheme.secondaryContainer, width: 2),
           ),
         ),

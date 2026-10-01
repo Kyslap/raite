@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../data/ai_tutor_repository.dart';
@@ -97,7 +98,7 @@ class ChatMessagesNotifier extends Notifier<Map<String, List<ChatMessage>>> {
         topicId: history,
       };
     } catch (e) {
-      print('Failed to load chat history: $e');
+      debugPrint('Failed to load chat history: $e');
     }
   }
 
@@ -174,7 +175,7 @@ class ChatMessagesNotifier extends Notifier<Map<String, List<ChatMessage>>> {
             'prompt': text,
             'response': accumulatedText,
           }).catchError((e) {
-            print('Failed to log chat: $e');
+            debugPrint('Failed to log chat: $e');
           });
         }
       }

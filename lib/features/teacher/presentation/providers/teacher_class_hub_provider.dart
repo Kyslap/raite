@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/announcement_model.dart';
 import '../../domain/assignment_model.dart';
 import '../../../class/domain/student_submission_model.dart';
+import '../../../class/presentation/providers/student_class_hub_provider.dart';
 import 'teacher_lesson_provider.dart';
 
 class ClassAnnouncementsNotifier extends Notifier<List<AnnouncementModel>> {
@@ -258,6 +259,77 @@ class TeacherSubmissionsNotifier extends Notifier<List<StudentSubmissionModel>> 
         grade: null,
         feedback: null,
       ),
+      // Classmate mock submissions for sample-asg-1
+      StudentSubmissionModel(
+        id: 'sub-sample1-1',
+        assignmentId: 'sample-asg-1',
+        classId: 'math-101',
+        studentId: 'stu-102',
+        studentName: 'Sophia Martinez',
+        studentEmail: 'sophia.m@raite.edu',
+        submittedAt: DateTime.now().subtract(const Duration(hours: 3)),
+        note: 'Completed problem set with references to lecture 4 notes.',
+        attachedFileName: 'Problem_Set_4_SophiaM.pdf',
+        status: 'submitted',
+        grade: null,
+        feedback: null,
+      ),
+      StudentSubmissionModel(
+        id: 'sub-sample1-2',
+        assignmentId: 'sample-asg-1',
+        classId: 'math-101',
+        studentId: 'stu-103',
+        studentName: 'Marcus Vance',
+        studentEmail: 'marcus.v@raite.edu',
+        submittedAt: DateTime.now().subtract(const Duration(hours: 1)),
+        note: 'Full handwritten solutions scanned into PDF.',
+        attachedFileName: 'Problem_Set_4_MarcusVance.pdf',
+        status: 'submitted',
+        grade: null,
+        feedback: null,
+      ),
+      StudentSubmissionModel(
+        id: 'sub-sample1-3',
+        assignmentId: 'sample-asg-1',
+        classId: 'math-101',
+        studentId: 'stu-104',
+        studentName: 'Chloe Bennett',
+        studentEmail: 'chloe.b@raite.edu',
+        submittedAt: DateTime.now().subtract(const Duration(days: 1)),
+        note: '',
+        status: 'missing',
+        grade: null,
+        feedback: null,
+      ),
+      // Submissions for sample-asg-2
+      StudentSubmissionModel(
+        id: 'sub-sample-2',
+        assignmentId: 'sample-asg-2',
+        classId: 'math-101',
+        studentId: 'stu-101',
+        studentName: 'Alex Rivera',
+        studentEmail: 'alex.rivera@raite.edu',
+        submittedAt: DateTime.now().subtract(const Duration(days: 1)),
+        note: 'Completed midterm quiz review problems and practice exam.',
+        attachedFileName: 'Quiz_Worksheet_Alex.pdf',
+        status: 'submitted',
+        grade: null,
+        feedback: null,
+      ),
+      StudentSubmissionModel(
+        id: 'sub-sample2-2',
+        assignmentId: 'sample-asg-2',
+        classId: 'math-101',
+        studentId: 'stu-102',
+        studentName: 'Sophia Martinez',
+        studentEmail: 'sophia.m@raite.edu',
+        submittedAt: DateTime.now().subtract(const Duration(days: 2)),
+        note: 'Quiz responses verified with lecture 8 theorem.',
+        attachedFileName: 'Quiz_Worksheet_Sophia.pdf',
+        status: 'graded',
+        grade: '94',
+        feedback: 'Very thorough mathematical reasoning!',
+      ),
     ];
   }
 
@@ -268,11 +340,14 @@ class TeacherSubmissionsNotifier extends Notifier<List<StudentSubmissionModel>> 
   }) {
     state = state.map((sub) {
       if (sub.id == submissionId) {
-        return sub.copyWith(
+        final updated = sub.copyWith(
           grade: grade,
           feedback: feedback,
           status: 'graded',
         );
+        // Instantly notify student state so Student UI updates in real-time
+        ref.read(studentSubmissionsProvider.notifier).updateGradedSubmission(updated);
+        return updated;
       }
       return sub;
     }).toList();
@@ -281,8 +356,17 @@ class TeacherSubmissionsNotifier extends Notifier<List<StudentSubmissionModel>> 
   void recordSubmission(StudentSubmissionModel sub) {
     state = [
       sub,
-      ...state.where((s) => s.id != sub.id && !(s.assignmentId == sub.assignmentId && s.studentId == sub.studentId)),
+      ...state.where((s) =>
+          s.id != sub.id &&
+          !(s.assignmentId == sub.assignmentId && s.studentId == sub.studentId)),
     ];
+  }
+
+  void removeSubmission({
+    required String assignmentId,
+    required String studentId,
+  }) {
+    state = state.where((s) => !(s.assignmentId == assignmentId && s.studentId == studentId)).toList();
   }
 }
 

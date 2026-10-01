@@ -387,7 +387,7 @@ class TeacherDashboardScreen extends ConsumerWidget {
                     value: inquiriesAsync.when(
                       data: (count) => '$count',
                       loading: () => '...',
-                      error: (_, __) => '0',
+                      error: (err, stack) => '0',
                     ),
                     icon: Icons.forum_outlined,
                     color: const Color(0xFFF59E0B),

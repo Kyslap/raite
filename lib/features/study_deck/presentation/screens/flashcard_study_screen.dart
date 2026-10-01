@@ -220,7 +220,7 @@ class _FlashcardStudyScreenState extends ConsumerState<FlashcardStudyScreen>
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(24),
                       side: const BorderSide(color: Color(0xFFFCA5A5)),
                     ),
                   ),
@@ -238,7 +238,7 @@ class _FlashcardStudyScreenState extends ConsumerState<FlashcardStudyScreen>
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(24),
                       side: const BorderSide(color: Color(0xFFFCD34D)),
                     ),
                   ),
@@ -256,7 +256,7 @@ class _FlashcardStudyScreenState extends ConsumerState<FlashcardStudyScreen>
                     elevation: 2,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(24),
                     ),
                   ),
                   icon: const Icon(Icons.check_rounded, size: 18),
@@ -426,7 +426,7 @@ class _FlashcardStudyScreenState extends ConsumerState<FlashcardStudyScreen>
                     onPressed: _restartSession,
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                     ),
                     icon: const Icon(Icons.refresh),
                     label: const Text('Review Again', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -440,7 +440,7 @@ class _FlashcardStudyScreenState extends ConsumerState<FlashcardStudyScreen>
                       backgroundColor: colorScheme.primary,
                       foregroundColor: colorScheme.onPrimary,
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                     ),
                     icon: const Icon(Icons.done),
                     label: const Text('Finished', style: TextStyle(fontWeight: FontWeight.bold)),

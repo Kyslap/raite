@@ -80,7 +80,7 @@ class _TeacherClassesScreenState extends ConsumerState<TeacherClassesScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: colorScheme.error,
               foregroundColor: colorScheme.onError,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
             ),
             child: const Text('Delete Class', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
@@ -352,7 +352,7 @@ class _TeacherClassesScreenState extends ConsumerState<TeacherClassesScreen> {
                       foregroundColor: colorScheme.onPrimary,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(24),
                       ),
                     ),
                     child: isCreating
@@ -485,7 +485,7 @@ class _TeacherClassesScreenState extends ConsumerState<TeacherClassesScreen> {
                           vertical: 14,
                         ),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(24),
                         ),
                       ),
                     ),
@@ -1038,7 +1038,7 @@ class _TeacherClassesScreenState extends ConsumerState<TeacherClassesScreen> {
                                         vertical: 12,
                                       ),
                                       shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
+                                        borderRadius: BorderRadius.circular(24),
                                       ),
                                     ),
                                   ),
