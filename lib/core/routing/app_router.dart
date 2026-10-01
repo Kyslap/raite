@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/sign_up_screen.dart';
+import '../../features/home/presentation/screens/home_screen.dart';
+import '../../features/class/presentation/screens/class_screen.dart';
 
 // Temporarily returning a basic screen until we build the features
 class PlaceholderScreen extends StatelessWidget {
@@ -45,7 +47,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/home',
-        builder: (context, state) => const PlaceholderScreen(title: 'Home Screen'),
+        builder: (context, state) => const HomeScreen(),
+      ),
+      GoRoute(
+        path: '/class',
+        builder: (context, state) => const ClassScreen(),
       ),
     ],
   );
