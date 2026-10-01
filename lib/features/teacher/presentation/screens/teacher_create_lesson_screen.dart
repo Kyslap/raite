@@ -1,0 +1,522 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/theme/widgets/retro_button.dart';
+import '../../../../core/theme/widgets/retro_text_field.dart';
+import '../providers/teacher_lesson_provider.dart';
+
+class TeacherCreateLessonScreen extends ConsumerStatefulWidget {
+  final VoidCallback? onLessonPublished;
+
+  const TeacherCreateLessonScreen({super.key, this.onLessonPublished});
+
+  @override
+  ConsumerState<TeacherCreateLessonScreen> createState() =>
+      _TeacherCreateLessonScreenState();
+}
+
+class _TeacherCreateLessonScreenState
+    extends ConsumerState<TeacherCreateLessonScreen> {
+  final _titleController = TextEditingController();
+  final _contentController = TextEditingController();
+  final _aiPromptController = TextEditingController();
+  final _objectiveController = TextEditingController();
+
+  String _selectedClassId = 'class-1';
+  String _selectedDuration = '45 mins';
+  bool _isGeneratingAI = false;
+
+  final List<String> _objectives = [
+    'Define the fundamental core principles',
+    'Examine real-world engineering case studies',
+  ];
+
+  final List<String> _quizQuestions = [
+    'Explain the primary distinction between supervised and unsupervised paradigms.',
+  ];
+
+  final List<String> _durationOptions = [
+    '30 mins',
+    '45 mins',
+    '60 mins',
+    '90 mins',
+  ];
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _contentController.dispose();
+    _aiPromptController.dispose();
+    _objectiveController.dispose();
+    super.dispose();
+  }
+
+  void _generateWithAI() async {
+    final prompt = _aiPromptController.text.trim();
+    if (prompt.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a lesson topic for AI generation')),
+      );
+      return;
+    }
+
+    setState(() => _isGeneratingAI = true);
+
+    // Simulate high-impact AI Lesson Generation for hackathon
+    await Future.delayed(const Duration(milliseconds: 1400));
+
+    if (!mounted) return;
+
+    setState(() {
+      _isGeneratingAI = false;
+      _titleController.text = prompt;
+      _contentController.text =
+          '## 1. Executive Summary\n'
+          'In this session, we investigate the underlying mechanics of $prompt. '
+          'Students will learn theoretical foundations, mathematical formulations, '
+          'and practical applications in modern industry.\n\n'
+          '## 2. Core Concepts & Architecture\n'
+          '• Foundational premise and operational boundaries\n'
+          '• Systematic step-by-step pipeline analysis\n'
+          '• Performance optimization trade-offs and error mitigation\n\n'
+          '## 3. Practical Exercise\n'
+          'Follow the guided walkthrough to verify empirical outcomes against baseline models.';
+
+      _objectives.clear();
+      _objectives.addAll([
+        'Master the theoretical foundations of $prompt',
+        'Analyze latency vs accuracy trade-offs in deployment',
+        'Design a prototype test harness demonstrating core axioms',
+      ]);
+
+      _quizQuestions.clear();
+      _quizQuestions.addAll([
+        'What is the principal operational bottleneck in $prompt?',
+        'How would you diagnose convergence failure in this scenario?',
+      ]);
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('✨ AI generated lesson outline, objectives, and quiz!'),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+      ),
+    );
+  }
+
+  void _addObjective() {
+    final text = _objectiveController.text.trim();
+    if (text.isNotEmpty) {
+      setState(() {
+        _objectives.add(text);
+        _objectiveController.clear();
+      });
+    }
+  }
+
+  void _publishLesson() {
+    final title = _titleController.text.trim();
+    final content = _contentController.text.trim();
+
+    if (title.isEmpty || content.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a lesson title and content')),
+      );
+      return;
+    }
+
+    final classes = ref.read(teacherClassesProvider);
+    final targetClass =
+        classes.firstWhere((c) => c.id == _selectedClassId, orElse: () => classes.first);
+
+    ref.read(teacherLessonsProvider.notifier).addLesson(
+          classId: targetClass.id,
+          className: targetClass.title,
+          title: title,
+          content: content,
+          estimatedMinutes: _selectedDuration,
+          objectives: List.from(_objectives),
+          quizQuestions: List.from(_quizQuestions),
+        );
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: const [
+            Icon(Icons.check_circle, color: Color(0xFF10B981), size: 28),
+            SizedBox(width: 10),
+            Text('Lesson Published!'),
+          ],
+        ),
+        content: Text(
+          'Your lesson "$title" has been successfully posted to ${targetClass.title}. '
+          'Enrolled students will now see it on their Class dashboard and can consult Nova AI for questions.',
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              if (widget.onLessonPublished != null) {
+                widget.onLessonPublished!();
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Theme.of(context).colorScheme.onPrimary,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('Back to Dashboard'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final classes = ref.watch(teacherClassesProvider);
+
+    return Scaffold(
+      backgroundColor: colorScheme.surface,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: Text(
+          'Create & Post Lesson',
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: colorScheme.onSurface,
+          ),
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Target Class Selection
+            Text(
+              'SELECT TARGET CLASS',
+              style: theme.textTheme.labelMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onSurfaceVariant,
+                letterSpacing: 0.8,
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 44,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: classes.length,
+                separatorBuilder: (context, index) => const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  final cls = classes[index];
+                  final isSelected = cls.id == _selectedClassId;
+
+                  return ChoiceChip(
+                    label: Text(cls.title),
+                    selected: isSelected,
+                    onSelected: (val) {
+                      if (val) setState(() => _selectedClassId = cls.id);
+                    },
+                    selectedColor: colorScheme.primaryContainer,
+                    labelStyle: TextStyle(
+                      color: isSelected
+                          ? colorScheme.onPrimaryContainer
+                          : colorScheme.onSurface,
+                      fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.normal,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // AI Co-pilot Assist Banner
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: colorScheme.primaryContainer.withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: colorScheme.primary.withValues(alpha: 0.25),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.auto_awesome, color: colorScheme.primary, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        'AI Lesson Generator',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Enter a topic and let AI draft the lesson outline, learning goals, and quiz questions in seconds.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _aiPromptController,
+                          decoration: InputDecoration(
+                            hintText: 'e.g. Attention Mechanism & Transformers',
+                            hintStyle: TextStyle(
+                              color: colorScheme.outline,
+                              fontSize: 13,
+                            ),
+                            filled: true,
+                            fillColor: colorScheme.surface,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 12,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: colorScheme.outlineVariant,
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: colorScheme.outlineVariant,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      ElevatedButton(
+                        onPressed: _isGeneratingAI ? null : _generateWithAI,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: colorScheme.primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: _isGeneratingAI
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: const [
+                                  Icon(Icons.bolt, size: 18),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'Generate',
+                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Lesson Details Form
+            RetroTextField(
+              label: 'LESSON TITLE',
+              hint: 'e.g. Introduction to Quantum Computing',
+              controller: _titleController,
+              prefixIcon: Icons.title,
+            ),
+            const SizedBox(height: 16),
+
+            // Duration selector
+            Text(
+              'ESTIMATED DURATION',
+              style: theme.textTheme.labelMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onSurfaceVariant,
+                letterSpacing: 0.8,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: _durationOptions.map((dur) {
+                final isSelected = dur == _selectedDuration;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: FilterChip(
+                    label: Text(dur),
+                    selected: isSelected,
+                    onSelected: (val) {
+                      if (val) setState(() => _selectedDuration = dur);
+                    },
+                    selectedColor: colorScheme.primaryContainer,
+                    labelStyle: TextStyle(
+                      color: isSelected
+                          ? colorScheme.onPrimaryContainer
+                          : colorScheme.onSurface,
+                      fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.normal,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 20),
+
+            // Lesson Content Body
+            Text(
+              'LESSON CONTENT & NOTES',
+              style: theme.textTheme.labelMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onSurfaceVariant,
+                letterSpacing: 0.8,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: colorScheme.outlineVariant),
+              ),
+              child: TextField(
+                controller: _contentController,
+                maxLines: 8,
+                decoration: const InputDecoration(
+                  hintText: 'Enter comprehensive lecture notes, formulas, and resources...',
+                  contentPadding: EdgeInsets.all(16),
+                  border: InputBorder.none,
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Learning Objectives
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'LEARNING OBJECTIVES',
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurfaceVariant,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+                Text(
+                  '${_objectives.length} Added',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _objectives.length,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 6.0),
+                  child: Row(
+                    children: [
+                      Icon(Icons.check_circle_outline,
+                          size: 18, color: colorScheme.primary),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _objectives[index],
+                          style: theme.textTheme.bodyMedium,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, size: 16),
+                        color: colorScheme.outline,
+                        onPressed: () {
+                          setState(() => _objectives.removeAt(index));
+                        },
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _objectiveController,
+                    decoration: InputDecoration(
+                      hintText: 'Add an objective...',
+                      hintStyle: TextStyle(color: colorScheme.outline, fontSize: 13),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 10,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  onPressed: _addObjective,
+                  icon: const Icon(Icons.add_circle),
+                  color: colorScheme.primary,
+                  iconSize: 32,
+                ),
+              ],
+            ),
+            const SizedBox(height: 32),
+
+            // Publish Button
+            RetroButton(
+              text: 'Publish Lesson to Class',
+              onPressed: _publishLesson,
+              icon: Icons.send_rounded,
+            ),
+            const SizedBox(height: 32),
+          ],
+        ),
+      ),
+    );
+  }
+}

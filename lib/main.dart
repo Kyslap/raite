@@ -8,6 +8,7 @@ import 'features/ai_tutor/presentation/screens/ai_tutor_screen.dart';
 import 'package:raite/screens/metrics_screen.dart';
 import 'core/theme/app_theme.dart';
 import 'core/routing/app_router.dart';
+import 'package:go_router/go_router.dart';
 
 String? initError;
 
@@ -72,10 +73,71 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
+      body: Column(
+        children: [
+          // Hackathon Demo Switcher Banner
+          SafeArea(
+            bottom: false,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              color: colorScheme.surfaceContainerHigh.withValues(alpha: 0.6),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0284C7),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text(
+                      'STUDENT VIEW',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Learner Experience Active',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: () {
+                      context.go('/teacher');
+                    },
+                    icon: const Icon(Icons.swap_horiz, size: 16),
+                    label: const Text(
+                      'Switch to Teacher',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                    style: TextButton.styleFrom(
+                      foregroundColor: colorScheme.primary,
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Expanded(
+            child: IndexedStack(
+              index: _currentIndex,
+              children: _screens,
+            ),
+          ),
+        ],
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
