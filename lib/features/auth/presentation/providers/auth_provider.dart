@@ -52,7 +52,10 @@ class AuthNotifier extends AsyncNotifier<UserModel?> {
     }
   }
 
-  void logout() {
+  Future<void> logout() async {
+    try {
+      await ref.read(authRepositoryProvider).logout();
+    } catch (_) {} // Ignore errors on logout
     state = const AsyncValue.data(null);
   }
 }

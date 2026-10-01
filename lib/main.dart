@@ -10,6 +10,7 @@ import 'package:raite/screens/metrics_screen.dart';
 import 'core/theme/app_theme.dart';
 import 'core/routing/app_router.dart';
 import 'package:go_router/go_router.dart';
+import 'features/auth/presentation/providers/auth_provider.dart';
 
 String? initError;
 
@@ -54,14 +55,14 @@ class SmartLearningApp extends ConsumerWidget {
   }
 }
 
-class MainNavigationScreen extends StatefulWidget {
+class MainNavigationScreen extends ConsumerStatefulWidget {
   const MainNavigationScreen({super.key});
 
   @override
-  State<MainNavigationScreen> createState() => _MainNavigationScreenState();
+  ConsumerState<MainNavigationScreen> createState() => _MainNavigationScreenState();
 }
 
-class _MainNavigationScreenState extends State<MainNavigationScreen> {
+class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = [
@@ -127,6 +128,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                       foregroundColor: colorScheme.primary,
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.logout, color: colorScheme.error, size: 18),
+                    onPressed: () async {
+                      await ref.read(authStateProvider.notifier).logout();
+                      if (context.mounted) context.go('/');
+                    },
+                    tooltip: 'Logout',
                   ),
                 ],
               ),

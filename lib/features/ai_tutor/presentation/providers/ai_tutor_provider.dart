@@ -1,5 +1,18 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../data/ai_tutor_repository.dart';
+
+final classDocumentsProvider = FutureProvider.family<List<Map<String, String>>, String>((ref, classId) async {
+  final supabase = Supabase.instance.client;
+  final docs = await supabase.from('class_documents').select('title, file_url').eq('class_id', classId);
+  if (docs is List) {
+    return docs.map((d) => {
+      'title': d['title'] as String,
+      'file_url': d['file_url'] as String,
+    }).toList();
+  }
+  return [];
+});
 
 // Chat message domain model
 class ChatMessage {
@@ -48,7 +61,8 @@ class ChatMessagesNotifier extends Notifier<Map<String, List<ChatMessage>>> {
     required String text, 
     required String tone, 
     required String language, 
-    String? topicContext
+    String? topicContext,
+    String? classId,
   }) async {
     if (text.trim().isEmpty || isStreaming) return;
     
@@ -85,6 +99,7 @@ class ChatMessagesNotifier extends Notifier<Map<String, List<ChatMessage>>> {
         tone: tone,
         language: language,
         topicContext: topicContext,
+        classId: classId,
       );
 
       String accumulatedText = '';

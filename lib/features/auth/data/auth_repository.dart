@@ -38,18 +38,11 @@ class AuthRepository {
           );
         }
       } catch (e) {
-        // Fallback for resilient hackathon demo if credentials or offline
+        throw Exception('Login failed: $e');
       }
     }
 
-    // Graceful offline/demo fallback
-    await Future.delayed(const Duration(milliseconds: 600));
-    final name = email.contains('@') ? email.split('@').first : 'Retro Scholar';
-    return UserModel(
-      id: 'local-${DateTime.now().millisecondsSinceEpoch}',
-      email: email.trim(),
-      name: name.substring(0, 1).toUpperCase() + name.substring(1),
-    );
+    throw Exception('Supabase client not initialized');
   }
 
   Future<UserModel> signUp({
@@ -84,17 +77,19 @@ class AuthRepository {
             name: name.trim(),
           );
         }
-      } catch (_) {
-        // Fallback gracefully
+      } catch (e) {
+        throw Exception('Sign up failed: $e');
       }
     }
 
-    await Future.delayed(const Duration(milliseconds: 600));
-    return UserModel(
-      id: 'local-${DateTime.now().millisecondsSinceEpoch}',
-      email: email.trim(),
-      name: name.trim(),
-    );
+    throw Exception('Supabase client not initialized');
+  }
+
+  Future<void> logout() async {
+    final client = _supabaseClient;
+    if (client != null) {
+      await client.auth.signOut();
+    }
   }
 }
 
