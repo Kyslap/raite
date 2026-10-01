@@ -8,6 +8,7 @@ import '../../../../core/theme/widgets/retro_top_bar.dart';
 import 'package:raite/features/class/presentation/providers/class_provider.dart';
 import 'package:raite/features/daily_goals/presentation/providers/daily_goals_provider.dart';
 import 'package:raite/features/daily_goals/presentation/widgets/daily_goals_sheet.dart';
+import 'package:raite/features/hive_mind/presentation/widgets/student_peer_nudge_card.dart';
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -299,7 +300,11 @@ class HomeScreen extends ConsumerWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
+
+              // Hive Mind Peer Habit Nudge
+              const StudentPeerNudgeCard(),
+              const SizedBox(height: 12),
 
               // Study Deck Spotlight Banner
               InkWell(

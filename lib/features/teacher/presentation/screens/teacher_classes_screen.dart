@@ -15,6 +15,7 @@ import '../../../ai_tutor/presentation/providers/ai_tutor_provider.dart';
 import '../providers/teacher_lesson_provider.dart';
 import '../providers/teacher_insights_provider.dart';
 import 'teacher_class_detail_screen.dart';
+import 'package:raite/features/hive_mind/presentation/widgets/hive_mind_report_card.dart';
 
 class TeacherClassesScreen extends ConsumerStatefulWidget {
   final Function(int)? onNavigateTab;
@@ -1079,6 +1080,15 @@ class _TeacherClassesScreenState extends ConsumerState<TeacherClassesScreen> {
                           ),
                           const Divider(height: 1),
                           _ClassInsightsCard(classId: cls.id),
+                          const Divider(height: 1),
+                          Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: HiveMindReportCard(
+                              classId: cls.id,
+                              className: cls.title,
+                              courseCode: cls.code,
+                            ),
+                          ),
                         ],
                       ),
                     ),
