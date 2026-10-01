@@ -71,10 +71,22 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           context.go('/home');
         }
       } else if (next is AsyncError) {
+        String errorMessage = next.error.toString();
+        if (errorMessage.startsWith('Exception: ')) {
+          errorMessage = errorMessage.substring(11);
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(next.error.toString()),
+            content: Row(
+              children: [
+                const Icon(Icons.error_outline, color: Colors.white, size: 20),
+                const SizedBox(width: 8),
+                Expanded(child: Text(errorMessage)),
+              ],
+            ),
             backgroundColor: colorScheme.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
         );
       }
@@ -304,10 +316,10 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     const SizedBox(width: 8),
                     InkWell(
                       onTap: () {
-                        context.pop();
+                        context.go('/login');
                       },
                       child: Text(
-                        'Sign In',
+                        'Log In',
                         style: theme.textTheme.titleSmall?.copyWith(
                           color: colorScheme.primary,
                           fontWeight: FontWeight.bold,
