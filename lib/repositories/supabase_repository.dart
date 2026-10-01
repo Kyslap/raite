@@ -1,7 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SupabaseRepository {
-  final SupabaseClient _client = Supabase.instance.client;
+  SupabaseClient get _client => Supabase.instance.client;
 
   // Since we don't have auth fully wired up with a real user yet, 
   // we'll get the current user ID if logged in.

@@ -9,21 +9,29 @@ import 'package:raite/screens/metrics_screen.dart';
 import 'core/theme/app_theme.dart';
 import 'core/routing/app_router.dart';
 
+String? initError;
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Load environment variables
-  await dotenv.load(fileName: ".env");
+  try {
+    // Load environment variables
+    await dotenv.load(fileName: ".env");
 
-  // Initialize Supabase
-  await Supabase.initialize(
-    url: dotenv.env['SUPABASE_URL'] ?? '',
-    anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? '',
-  );
+    // Initialize Supabase
+    await Supabase.initialize(
+      url: dotenv.env['SUPABASE_URL'] ?? '',
+      anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? '',
+    );
+  } catch (e, st) {
+    initError = 'ERROR: $e\n$st';
+  }
 
   runApp(
-    const ProviderScope(
-      child: SmartLearningApp(),
+    ProviderScope(
+      child: initError != null 
+          ? MaterialApp(home: Scaffold(body: Center(child: Text(initError!))))
+          : const SmartLearningApp(),
     ),
   );
 }
