@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import '../../../../features/class/domain/topic_model.dart';
 import '../providers/ai_tutor_provider.dart';
 
@@ -18,6 +19,9 @@ class AiTutorScreen extends ConsumerStatefulWidget {
 
 class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
   final TextEditingController _inputController = TextEditingController();
+  
+  String? _activePdfUrl;
+  String? _activePdfTitle;
 
   // Selected customization state (would normally be managed by Riverpod)
   String _selectedTone = 'Academic';
@@ -92,7 +96,55 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
       body: SafeArea(
         child: Column(
           children: [
+            if (_activePdfUrl != null)
+              Expanded(
+                flex: 4,
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
+                  ),
+                  child: Column(
+                    children: [
+                      Container(
+                        color: colorScheme.surfaceContainerHighest,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        child: Row(
+                          children: [
+                            Icon(Icons.picture_as_pdf, size: 16, color: colorScheme.primary),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                _activePdfTitle ?? 'Document',
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.onSurface,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.close),
+                              visualDensity: VisualDensity.compact,
+                              onPressed: () => setState(() {
+                                _activePdfUrl = null;
+                                _activePdfTitle = null;
+                              }),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: SfPdfViewer.network(
+                          _activePdfUrl!,
+                          canShowScrollHead: false,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             Expanded(
+              flex: _activePdfUrl != null ? 6 : 1,
               child: ListView(
                 padding: const EdgeInsets.all(24.0),
                 children: [
@@ -459,11 +511,19 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
                             try {
                               final supabase = Supabase.instance.client;
                               final url = await supabase.storage.from('class_materials').createSignedUrl(m['file_url']!, 60 * 60);
-                              final uri = Uri.parse(url);
-                              if (await canLaunchUrl(uri)) {
-                                await launchUrl(uri);
+                              final fileUrlLower = m['file_url']!.toLowerCase();
+                              if (fileUrlLower.endsWith('.pdf')) {
+                                setState(() {
+                                  _activePdfUrl = url;
+                                  _activePdfTitle = m['title'] ?? 'Document';
+                                });
                               } else {
-                                messenger.showSnackBar(const SnackBar(content: Text('Could not open file.')));
+                                final uri = Uri.parse(url);
+                                if (await canLaunchUrl(uri)) {
+                                  await launchUrl(uri);
+                                } else {
+                                  messenger.showSnackBar(const SnackBar(content: Text('Could not open file.')));
+                                }
                               }
                             } catch (e) {
                               messenger.showSnackBar(SnackBar(content: Text('Error opening file: $e')));
