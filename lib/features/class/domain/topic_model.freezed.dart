@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$TopicModel {
 
- String get id; String get title; String get description;
+ String get id; String get classId; String get title; String get description;
 /// Create a copy of TopicModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,20 +30,20 @@ $TopicModelCopyWith<TopicModel> get copyWith => _$TopicModelCopyWithImpl<TopicMo
 @override
 bool operator ==(Object other) {
   final _this = this as TopicModel;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TopicModel&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.title, _this.title) || other.title == _this.title)&&(identical(other.description, _this.description) || other.description == _this.description));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TopicModel&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.classId, _this.classId) || other.classId == _this.classId)&&(identical(other.title, _this.title) || other.title == _this.title)&&(identical(other.description, _this.description) || other.description == _this.description));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as TopicModel;
-  return Object.hash(runtimeType,_this.id,_this.title,_this.description);
+  return Object.hash(runtimeType,_this.id,_this.classId,_this.title,_this.description);
 }
 
 @override
 String toString() {
   final _this = this as TopicModel;
-  return 'TopicModel(id: ${_this.id}, title: ${_this.title}, description: ${_this.description})';
+  return 'TopicModel(id: ${_this.id}, classId: ${_this.classId}, title: ${_this.title}, description: ${_this.description})';
 }
 
 
@@ -54,7 +54,7 @@ abstract mixin class $TopicModelCopyWith<$Res>  {
   factory $TopicModelCopyWith(TopicModel value, $Res Function(TopicModel) _then) = _$TopicModelCopyWithImpl;
 @useResult
 $Res call({
- String id, String title, String description
+ String id, String classId, String title, String description
 });
 
 
@@ -71,9 +71,10 @@ class _$TopicModelCopyWithImpl<$Res>
 
 /// Create a copy of TopicModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? description = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? classId = null,Object? title = null,Object? description = null,}) {
   return _then(TopicModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,classId: null == classId ? _self.classId : classId // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String,
@@ -161,10 +162,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String title,  String description)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String classId,  String title,  String description)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TopicModel() when $default != null:
-return $default(_that.id,_that.title,_that.description);case _:
+return $default(_that.id,_that.classId,_that.title,_that.description);case _:
   return orElse();
 
 }
@@ -182,10 +183,10 @@ return $default(_that.id,_that.title,_that.description);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String title,  String description)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String classId,  String title,  String description)  $default,) {final _that = this;
 switch (_that) {
 case _TopicModel():
-return $default(_that.id,_that.title,_that.description);case _:
+return $default(_that.id,_that.classId,_that.title,_that.description);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -202,10 +203,10 @@ return $default(_that.id,_that.title,_that.description);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String title,  String description)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String classId,  String title,  String description)?  $default,) {final _that = this;
 switch (_that) {
 case _TopicModel() when $default != null:
-return $default(_that.id,_that.title,_that.description);case _:
+return $default(_that.id,_that.classId,_that.title,_that.description);case _:
   return null;
 
 }
@@ -217,10 +218,11 @@ return $default(_that.id,_that.title,_that.description);case _:
 @JsonSerializable()
 
 class _TopicModel implements TopicModel {
-  const _TopicModel({required this.id, required this.title, required this.description});
+  const _TopicModel({required this.id, required this.classId, required this.title, required this.description});
   factory _TopicModel.fromJson(Map<String, dynamic> json) => _$TopicModelFromJson(json);
 
 @override final  String id;
+@override final  String classId;
 @override final  String title;
 @override final  String description;
 
@@ -237,18 +239,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _TopicModel&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _TopicModel&&(identical(other.id, id) || other.id == id)&&(identical(other.classId, classId) || other.classId == classId)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,title,description);
+    return Object.hash(runtimeType,id,classId,title,description);
 }
 
 @override
 String toString() {
-    return 'TopicModel(id: $id, title: $title, description: $description)';
+    return 'TopicModel(id: $id, classId: $classId, title: $title, description: $description)';
 }
 
 
@@ -259,7 +261,7 @@ abstract mixin class _$TopicModelCopyWith<$Res> implements $TopicModelCopyWith<$
   factory _$TopicModelCopyWith(_TopicModel value, $Res Function(_TopicModel) _then) = __$TopicModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String title, String description
+ String id, String classId, String title, String description
 });
 
 
@@ -276,9 +278,10 @@ class __$TopicModelCopyWithImpl<$Res>
 
 /// Create a copy of TopicModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? description = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? classId = null,Object? title = null,Object? description = null,}) {
   return _then(_TopicModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,classId: null == classId ? _self.classId : classId // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String,

@@ -1168,6 +1168,7 @@ class _ClassScreenState extends ConsumerState<ClassScreen>
                         extra: {
                           'topic': TopicModel(
                             id: lesson.id,
+                            classId: classModel.id,
                             title: lesson.title,
                             description: lesson.content,
                           ),
@@ -1221,6 +1222,7 @@ class _ClassScreenState extends ConsumerState<ClassScreen>
                         context.push('/ai-tutor', extra: {
                           'topic': TopicModel(
                             id: lesson.id,
+                            classId: classModel.id,
                             title: lesson.title,
                             description: lesson.content,
                           ),

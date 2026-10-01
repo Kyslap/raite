@@ -357,6 +357,7 @@ class AiTutorListScreen extends ConsumerWidget {
                   children: classes.map((c) {
                     final classTopic = TopicModel(
                       id: c.id,
+                      classId: c.id,
                       title: c.name,
                       description: 'General AI Tutor for ${c.name}',
                     );

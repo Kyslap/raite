@@ -83,6 +83,14 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
     _activePdfUrl = widget.initialPdfUrl;
     _activePdfTitle = widget.initialPdfTitle;
     _showingTopicContent = widget.showTopicContent;
+    if (widget.initialTopic != null) {
+      Future.microtask(() {
+        ref.read(chatMessagesProvider.notifier).loadHistory(
+          widget.initialTopic!.id,
+          widget.initialTopic!.id,
+        );
+      });
+    }
   }
 
   // Selected customization state (would normally be managed by Riverpod)
@@ -389,7 +397,7 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
                   const SizedBox(height: 24),
 
                   if (widget.initialTopic != null)
-                    _buildClassMaterials(widget.initialTopic!.id, colorScheme, theme),
+                    _buildClassMaterials(widget.initialTopic!.classId, colorScheme, theme),
 
                   // Suggested Prompts
                   Text(
@@ -554,13 +562,14 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
                                     ? '[Attached File: $_attachedFileName]\n${text.isEmpty ? "Please review and explain this material." : text}'
                                     : text;
                                 final topicId = widget.initialTopic?.id ?? 'global';
+                                final classId = widget.initialTopic?.classId;
                                 ref.read(chatMessagesProvider.notifier).sendMessage(
                                       topicId: topicId,
                                       text: messageToSend,
                                       tone: _selectedTone,
                                       language: _selectedLanguage,
                                       topicContext: widget.initialTopic?.title,
-                                      classId: topicId,
+                                      classId: classId,
                                     );
                                 ref.read(dailyGoalsProvider.notifier).recordAiTutorInteraction();
                                 _inputController.clear();
@@ -721,12 +730,15 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
                               children: [
                                 Icon(Icons.insert_drive_file, size: 14, color: colorScheme.primary),
                                 const SizedBox(width: 6),
-                                Text(
-                                  m['title'] ?? 'Unknown File',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: colorScheme.primary,
+                                Flexible(
+                                  child: Text(
+                                    m['title'] ?? 'Unknown File',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: colorScheme.primary,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                                 const SizedBox(width: 4),
@@ -1144,11 +1156,13 @@ class _StepBreakdown extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Text(
-                title,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurface,
-                  fontWeight: FontWeight.bold,
+              Expanded(
+                child: Text(
+                  title,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurface,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],

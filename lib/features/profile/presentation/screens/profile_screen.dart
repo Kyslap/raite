@@ -584,6 +584,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 color: colorScheme.surfaceContainerLow,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+              ),
               clipBehavior: Clip.antiAlias,
               child: Material(
                 color: Colors.transparent,
@@ -663,9 +664,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
             ),
           ),
-            const SizedBox(height: 24),
+          const SizedBox(height: 24),
 
-            // 5. Account Settings & Sign Out
+          // 5. Account Settings & Sign Out
             Text(
               'ACCOUNT & SECURITY',
               style: theme.textTheme.labelMedium?.copyWith(

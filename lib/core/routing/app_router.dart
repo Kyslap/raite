@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../features/auth/presentation/providers/auth_provider.dart';
+
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/sign_up_screen.dart';
@@ -33,8 +35,29 @@ class PlaceholderScreen extends StatelessWidget {
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
+  final authState = ref.watch(authStateProvider);
+
   return GoRouter(
     initialLocation: '/',
+    redirect: (context, state) {
+      if (authState.isLoading) {
+        return null; // Stay where we are while loading
+      }
+      
+      final isAuthenticated = authState.value != null;
+      final isGoingToLoginOrSignup = state.matchedLocation == '/login' || state.matchedLocation == '/signup';
+      final isAtSplash = state.matchedLocation == '/';
+      
+      if (!isAuthenticated && !isGoingToLoginOrSignup && !isAtSplash) {
+        return '/';
+      }
+      
+      if (isAuthenticated && (isGoingToLoginOrSignup || isAtSplash)) {
+        return '/home';
+      }
+      
+      return null;
+    },
     routes: [
       GoRoute(
         path: '/',

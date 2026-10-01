@@ -10,8 +10,8 @@ final authStateProvider = AsyncNotifierProvider<AuthNotifier, UserModel?>(() {
 
 class AuthNotifier extends AsyncNotifier<UserModel?> {
   @override
-  FutureOr<UserModel?> build() {
-    return null;
+  FutureOr<UserModel?> build() async {
+    return await ref.read(authRepositoryProvider).getCurrentUser();
   }
 
   Future<void> login(String email, String password) async {

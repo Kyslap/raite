@@ -6,6 +6,8 @@ import '../../../../main.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../../core/theme/widgets/retro_top_bar.dart';
 import 'package:raite/features/class/presentation/providers/class_provider.dart';
+import 'package:raite/features/auth/presentation/providers/auth_provider.dart';
+import 'package:raite/features/home/presentation/providers/user_stats_provider.dart';
 import 'package:raite/features/teacher/presentation/providers/teacher_class_hub_provider.dart';
 import 'package:raite/features/daily_goals/presentation/providers/daily_goals_provider.dart';
 import 'package:raite/features/daily_goals/presentation/widgets/daily_goals_sheet.dart';
@@ -57,11 +59,25 @@ class HomeScreen extends ConsumerWidget {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        Text(
-                          '$displayName 👋',
-                          style: theme.textTheme.headlineMedium?.copyWith(
-                            color: colorScheme.onSurface,
-                            fontWeight: FontWeight.bold,
+                        ref.watch(authStateProvider).when(
+                          data: (user) => Text(
+                            '${user?.name ?? 'Student'} 👋',
+                            style: theme.textTheme.headlineMedium?.copyWith(
+                              color: colorScheme.onSurface,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          loading: () => const SizedBox(
+                            height: 32,
+                            width: 150,
+                            child: CircularProgressIndicator(),
+                          ),
+                          error: (_, __) => Text(
+                            'Student 👋',
+                            style: theme.textTheme.headlineMedium?.copyWith(
+                              color: colorScheme.onSurface,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ],
@@ -227,40 +243,9 @@ class HomeScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-              ),
               const SizedBox(height: 24),
 
-              // Quick Access Action Grid
-              Row(
-                children: [
-                  Expanded(
-                    child: _QuickAccessTile(
-                      icon: Icons.smart_toy_outlined,
-                      title: 'AI Tutor',
-                      subtitle: 'Ask anything',
-                      iconBgColor: colorScheme.primary,
-                      iconColor: colorScheme.onPrimary,
-                      onTap: () {
-                        ref.read(studentBottomNavIndexProvider.notifier).setIndex(2);
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _QuickAccessTile(
-                      icon: Icons.bar_chart_outlined,
-                      title: 'Metrics',
-                      subtitle: 'View analytics',
-                      iconBgColor: colorScheme.secondary,
-                      iconColor: colorScheme.onSecondary,
-                      onTap: () {
-                        ref.read(studentBottomNavIndexProvider.notifier).setIndex(3);
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 32),
+
 
               // Current Enrolled Classes
               Row(
@@ -395,87 +380,6 @@ class HomeScreen extends ConsumerWidget {
                 error: (err, stack) => Text('Error: $err'),
               ),
               const SizedBox(height: 32),
-
-              // Upcoming Activities
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Upcoming Activities',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: colorScheme.onSurface,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    'Assignments',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Builder(
-                builder: (context) {
-                  final assignments = ref.watch(classAssignmentsProvider);
-                  if (assignments.isEmpty) {
-                    return Container(
-                      padding: const EdgeInsets.all(18),
-                      decoration: BoxDecoration(
-                        color: colorScheme.surfaceContainerLow,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: colorScheme.outlineVariant.withValues(alpha: 0.4),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF10B981).withValues(alpha: 0.15),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(Icons.check_circle_outline, color: Color(0xFF10B981), size: 20),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              'All caught up! No pending homework due today.',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: colorScheme.onSurfaceVariant,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-
-                  return Column(
-                    children: assignments.take(3).map((asg) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12.0),
-                      child: _ActivityCard(
-                        icon: Icons.assignment_outlined,
-                        iconBgColor: colorScheme.primaryContainer.withValues(alpha: 0.3),
-                        iconColor: colorScheme.primary,
-                        title: asg.title,
-                        subtitle: 'Due: ${asg.dueDate} • ${asg.category} (${asg.points} pts)',
-                        actionLabel: 'Open',
-                        isPrimaryAction: true,
-                        onTap: () {
-                          context.push('/class/${asg.classId}');
-                        },
-                      ),
-                    )).toList(),
-                  );
-                },
-              ),
-              
-              const SizedBox(height: 16),
             ],
           ),
         ),
@@ -846,86 +750,6 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-class _QuickAccessTile extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final Color iconBgColor;
-  final Color iconColor;
-  final VoidCallback onTap;
-
-  const _QuickAccessTile({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.iconBgColor,
-    required this.iconColor,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: colorScheme.surfaceContainer,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: colorScheme.onSurface.withValues(alpha: 0.05),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: iconBgColor,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: iconColor),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      color: colorScheme.onSurface,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Text(
-                    subtitle,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 class _EnrolledClassCard extends StatelessWidget {
   final IconData icon;
@@ -1028,109 +852,6 @@ class _EnrolledClassCard extends StatelessWidget {
           ),
         ],
       ),
-      ),
-    );
-  }
-}
-
-class _ActivityCard extends StatelessWidget {
-  final IconData icon;
-  final Color iconBgColor;
-  final Color iconColor;
-  final String title;
-  final String subtitle;
-  final String actionLabel;
-  final bool isPrimaryAction;
-  final VoidCallback? onTap;
-
-  const _ActivityCard({
-    required this.icon,
-    required this.iconBgColor,
-    required this.iconColor,
-    required this.title,
-    required this.subtitle,
-    required this.actionLabel,
-    required this.isPrimaryAction,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: colorScheme.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: colorScheme.onSurface.withValues(alpha: 0.05),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: iconBgColor,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(icon, color: iconColor, size: 20),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      color: colorScheme.onSurface,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Text(
-                    subtitle,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            ElevatedButton(
-              onPressed: onTap,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: isPrimaryAction ? colorScheme.primary : colorScheme.surfaceContainer,
-                foregroundColor: isPrimaryAction ? colorScheme.onPrimary : colorScheme.onSurface,
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                minimumSize: const Size(0, 36),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-              child: Text(
-                actionLabel,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
