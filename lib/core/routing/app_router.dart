@@ -5,8 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/sign_up_screen.dart';
-import '../../features/home/presentation/screens/home_screen.dart';
-import '../../features/class/presentation/screens/class_screen.dart';
 
 import '../../features/teacher/presentation/screens/teacher_navigation_screen.dart';
 import '../../main.dart';
