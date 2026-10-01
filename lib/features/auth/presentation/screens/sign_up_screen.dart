@@ -42,7 +42,11 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
     ref.listen(authStateProvider, (previous, next) {
       if (next is AsyncData && next.value != null) {
-        context.go('/home');
+        if (_selectedRole == 'teacher') {
+          context.go('/teacher');
+        } else {
+          context.go('/home');
+        }
       } else if (next is AsyncError) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

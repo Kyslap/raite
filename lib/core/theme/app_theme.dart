@@ -55,6 +55,14 @@ class AppTheme {
         centerTitle: true,
         iconTheme: IconThemeData(color: primary),
       ),
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: surface,
+        selectedItemColor: primary,
+        unselectedItemColor: outline,
+        selectedLabelStyle: TextStyle(fontWeight: FontWeight.w600),
+        type: BottomNavigationBarType.fixed,
+        elevation: 0,
+      ),
     );
   }
 }
