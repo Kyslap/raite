@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:raite/theme.dart';
+import 'package:raite/repositories/supabase_repository.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -24,57 +25,91 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildWelcomeSection(),
-            const SizedBox(height: 20),
-            _buildGoalCard(),
-            const SizedBox(height: 20),
-            _buildQuickActions(),
-            const SizedBox(height: 24),
-            _buildSectionHeader('Enrolled Classes', 'View All'),
-            const SizedBox(height: 12),
-            _buildClassCard(
-              title: 'Advanced Mathematics',
-              subtitle: 'Dr. Aris Thorne • Chapter 4: Calculus',
-              progress: 0.82,
-              progressText: '82%',
-              icon: Icons.functions,
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        // Fetch enrolled classes from Supabase
+        future: supabaseRepo.getEnrolledClasses(),
+        builder: (context, snapshot) {
+          final bool isLoading = snapshot.connectionState == ConnectionState.waiting;
+          final List<Map<String, dynamic>> enrolledData = snapshot.data ?? [];
+          
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildWelcomeSection(),
+                const SizedBox(height: 20),
+                _buildGoalCard(),
+                const SizedBox(height: 20),
+                _buildQuickActions(),
+                const SizedBox(height: 24),
+                _buildSectionHeader('Enrolled Classes', 'View All'),
+                const SizedBox(height: 12),
+                
+                // Show loading indicator, dynamic data, OR fallback to dummy data if none exists
+                if (isLoading)
+                  const Center(child: CircularProgressIndicator())
+                else if (enrolledData.isNotEmpty)
+                  ...enrolledData.map((e) {
+                    final classInfo = e['classes'] as Map<String, dynamic>;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12.0),
+                      child: _buildClassCard(
+                        title: classInfo['title'] ?? 'Unknown',
+                        subtitle: '${classInfo['instructor_name']} • ${classInfo['department']}',
+                        progress: (e['progress_percentage'] ?? 0) / 100.0,
+                        progressText: '${e['progress_percentage'] ?? 0}%',
+                        icon: Icons.school,
+                      ),
+                    );
+                  }).toList()
+                else
+                  // Fallback dummy data if not logged in or no classes
+                  Column(
+                    children: [
+                      _buildClassCard(
+                        title: 'Advanced Mathematics',
+                        subtitle: 'Dr. Aris Thorne • Chapter 4: Calculus',
+                        progress: 0.82,
+                        progressText: '82%',
+                        icon: Icons.functions,
+                      ),
+                      const SizedBox(height: 12),
+                      _buildClassCard(
+                        title: 'Computer Science 101',
+                        subtitle: 'Prof. Sarah Jenkins • Module 3: Data Structures',
+                        progress: 0.64,
+                        progressText: '64%',
+                        icon: Icons.computer,
+                      ),
+                    ],
+                  ),
+
+                const SizedBox(height: 24),
+                _buildSectionHeader('Upcoming Activities', 'Today'),
+                const SizedBox(height: 12),
+                _buildActivityCard(
+                  title: 'Math Problem Set #4',
+                  subtitle: 'Due in 3 hours • Advanced Math',
+                  icon: Icons.assignment_outlined,
+                  iconColor: AppColors.warning,
+                  buttonText: 'Start',
+                  isPrimaryAction: true,
+                ),
+                const SizedBox(height: 12),
+                _buildActivityCard(
+                  title: 'Coding Lab Review',
+                  subtitle: '4:00 PM • CS 101',
+                  icon: Icons.people_outline,
+                  iconColor: AppColors.success,
+                  buttonText: 'Join',
+                  isPrimaryAction: false,
+                ),
+                const SizedBox(height: 20),
+              ],
             ),
-            const SizedBox(height: 12),
-            _buildClassCard(
-              title: 'Computer Science 101',
-              subtitle: 'Prof. Sarah Jenkins • Module 3: Data Structures',
-              progress: 0.64,
-              progressText: '64%',
-              icon: Icons.computer,
-            ),
-            const SizedBox(height: 24),
-            _buildSectionHeader('Upcoming Activities', 'Today'),
-            const SizedBox(height: 12),
-            _buildActivityCard(
-              title: 'Math Problem Set #4',
-              subtitle: 'Due in 3 hours • Advanced Math',
-              icon: Icons.assignment_outlined,
-              iconColor: AppColors.warning,
-              buttonText: 'Start',
-              isPrimaryAction: true,
-            ),
-            const SizedBox(height: 12),
-            _buildActivityCard(
-              title: 'Coding Lab Review',
-              subtitle: '4:00 PM • CS 101',
-              icon: Icons.people_outline,
-              iconColor: AppColors.success,
-              buttonText: 'Join',
-              isPrimaryAction: false,
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
+          );
+        }
       ),
     );
   }
