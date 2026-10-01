@@ -8,6 +8,7 @@ import '../../domain/assignment_model.dart';
 import '../../domain/lesson_model.dart';
 import '../providers/teacher_lesson_provider.dart';
 import '../providers/teacher_class_hub_provider.dart';
+import 'teacher_grading_screen.dart';
 
 class TeacherClassDetailScreen extends ConsumerStatefulWidget {
   final TeacherClass teacherClass;
@@ -1001,98 +1002,139 @@ class _TeacherClassDetailScreenState
               itemBuilder: (context, index) {
                 final asg = assignments[index];
 
-                return Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerLow,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: colorScheme.outlineVariant.withValues(alpha: 0.6),
+                return InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => TeacherGradingScreen(
+                          assignment: asg,
+                          teacherClass: widget.teacherClass,
+                        ),
+                      ),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(14),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerLow,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: colorScheme.outlineVariant.withValues(alpha: 0.6),
+                      ),
                     ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: colorScheme.primaryContainer,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              asg.category.toUpperCase(),
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: colorScheme.onPrimaryContainer,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: colorScheme.primaryContainer,
+                                borderRadius: BorderRadius.circular(8),
                               ),
-                            ),
-                          ),
-                          Row(
-                            children: [
-                              Text(
-                                '${asg.points} pts',
+                              child: Text(
+                                asg.category.toUpperCase(),
                                 style: TextStyle(
+                                  fontSize: 10,
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 12,
-                                  color: colorScheme.primary,
+                                  color: colorScheme.onPrimaryContainer,
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              IconButton(
-                                icon: const Icon(Icons.delete_outline, size: 18),
-                                color: colorScheme.outline,
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                                onPressed: () {
-                                  ref.read(classAssignmentsProvider.notifier).deleteAssignment(asg.id);
-                                },
-                              ),
-                            ],
+                            ),
+                            Row(
+                              children: [
+                                Text(
+                                  '${asg.points} pts',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                    color: colorScheme.primary,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                IconButton(
+                                  icon: const Icon(Icons.delete_outline, size: 18),
+                                  color: colorScheme.outline,
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                  onPressed: () {
+                                    ref.read(classAssignmentsProvider.notifier).deleteAssignment(asg.id);
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          asg.title,
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onSurface,
+                          ),
+                        ),
+                        if (asg.instructions.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            asg.instructions,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
                           ),
                         ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        asg.title,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.onSurface,
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Icon(Icons.schedule, size: 14, color: colorScheme.outline),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Due: ${asg.dueDate}',
+                              style: TextStyle(fontSize: 11, color: colorScheme.outline, fontWeight: FontWeight.w500),
+                            ),
+                          ],
                         ),
-                      ),
-                      if (asg.instructions.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          asg.instructions,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+                        const SizedBox(height: 12),
+                        const Divider(height: 1),
+                        const SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(Icons.assignment_turned_in_outlined, size: 15, color: colorScheme.primary),
+                                const SizedBox(width: 6),
+                                Text(
+                                  '${asg.submissionsCount}/${widget.teacherClass.studentCount} Turn-ins',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: colorScheme.primary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                Text(
+                                  'Grade & Review',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: colorScheme.primary,
+                                  ),
+                                ),
+                                const SizedBox(width: 2),
+                                Icon(Icons.chevron_right, size: 16, color: colorScheme.primary),
+                              ],
+                            ),
+                          ],
                         ),
                       ],
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Icon(Icons.schedule, size: 14, color: colorScheme.outline),
-                          const SizedBox(width: 6),
-                          Text(
-                            'Due: ${asg.dueDate}',
-                            style: TextStyle(fontSize: 11, color: colorScheme.outline, fontWeight: FontWeight.w500),
-                          ),
-                          const Spacer(),
-                          Text(
-                            '${asg.submissionsCount}/${widget.teacherClass.studentCount} Turn-ins',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: colorScheme.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                    ),
                   ),
                 );
               },

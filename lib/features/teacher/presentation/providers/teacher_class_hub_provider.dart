@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/announcement_model.dart';
 import '../../domain/assignment_model.dart';
+import '../../../class/domain/student_submission_model.dart';
 
 class ClassAnnouncementsNotifier extends Notifier<List<AnnouncementModel>> {
   SupabaseClient? get _client {
@@ -195,4 +196,96 @@ class ClassAssignmentsNotifier extends Notifier<List<AssignmentModel>> {
 final classAssignmentsProvider =
     NotifierProvider<ClassAssignmentsNotifier, List<AssignmentModel>>(() {
   return ClassAssignmentsNotifier();
+});
+
+class TeacherSubmissionsNotifier extends Notifier<List<StudentSubmissionModel>> {
+  @override
+  List<StudentSubmissionModel> build() {
+    return [
+      StudentSubmissionModel(
+        id: 'sub-1',
+        assignmentId: 'asg-demo-1',
+        classId: 'math-101',
+        studentId: 'stu-101',
+        studentName: 'Alex Rivera',
+        studentEmail: 'alex.rivera@raite.edu',
+        submittedAt: DateTime.now().subtract(const Duration(hours: 14)),
+        note: 'Completed all problems and double checked convergence tests in section 4.',
+        attachedFileName: 'Problem_Set_1_AlexRivera.pdf',
+        status: 'graded',
+        grade: '96',
+        feedback: 'Outstanding work on the Taylor series approximations!',
+      ),
+      StudentSubmissionModel(
+        id: 'sub-2',
+        assignmentId: 'asg-demo-1',
+        classId: 'math-101',
+        studentId: 'stu-102',
+        studentName: 'Sophia Martinez',
+        studentEmail: 'sophia.m@raite.edu',
+        submittedAt: DateTime.now().subtract(const Duration(hours: 5)),
+        note: 'Here is my assignment. Verified proofs with peer review.',
+        attachedFileName: 'Calculus_Worksheet_SophiaM.pdf',
+        status: 'submitted',
+        grade: null,
+        feedback: null,
+      ),
+      StudentSubmissionModel(
+        id: 'sub-3',
+        assignmentId: 'asg-demo-1',
+        classId: 'math-101',
+        studentId: 'stu-103',
+        studentName: 'Marcus Vance',
+        studentEmail: 'marcus.v@raite.edu',
+        submittedAt: DateTime.now().subtract(const Duration(hours: 2)),
+        note: 'Attached the derivation formulas and summary notes.',
+        attachedFileName: 'Derivatives_Lab_Vance.pdf',
+        status: 'submitted',
+        grade: null,
+        feedback: null,
+      ),
+      StudentSubmissionModel(
+        id: 'sub-4',
+        assignmentId: 'asg-demo-1',
+        classId: 'math-101',
+        studentId: 'stu-104',
+        studentName: 'Chloe Bennett',
+        studentEmail: 'chloe.b@raite.edu',
+        submittedAt: DateTime.now().subtract(const Duration(days: 1)),
+        note: '',
+        status: 'missing',
+        grade: null,
+        feedback: null,
+      ),
+    ];
+  }
+
+  void gradeSubmission({
+    required String submissionId,
+    required String grade,
+    String? feedback,
+  }) {
+    state = state.map((sub) {
+      if (sub.id == submissionId) {
+        return sub.copyWith(
+          grade: grade,
+          feedback: feedback,
+          status: 'graded',
+        );
+      }
+      return sub;
+    }).toList();
+  }
+
+  void recordSubmission(StudentSubmissionModel sub) {
+    state = [
+      sub,
+      ...state.where((s) => s.id != sub.id && !(s.assignmentId == sub.assignmentId && s.studentId == sub.studentId)),
+    ];
+  }
+}
+
+final teacherSubmissionsProvider =
+    NotifierProvider<TeacherSubmissionsNotifier, List<StudentSubmissionModel>>(() {
+  return TeacherSubmissionsNotifier();
 });

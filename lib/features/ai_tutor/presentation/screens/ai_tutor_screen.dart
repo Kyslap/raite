@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -33,6 +35,46 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
   String? _activePdfUrl;
   String? _activePdfTitle;
   bool _showingTopicContent = false;
+  String? _attachedFileName;
+  String? _attachedFilePath;
+
+  Future<void> _pickAttachment() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'png', 'jpg', 'jpeg', 'txt', 'md'],
+      );
+      if (result != null && result.files.isNotEmpty && result.files.first.path != null) {
+        final file = result.files.first;
+        final isPdf = file.extension?.toLowerCase() == 'pdf';
+        setState(() {
+          _attachedFileName = file.name;
+          _attachedFilePath = file.path;
+          if (isPdf) {
+            _activePdfUrl = file.path;
+            _activePdfTitle = file.name;
+          }
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('📎 Attached "${file.name}" for Nova to review'),
+              duration: const Duration(seconds: 2),
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not pick file: $e')),
+        );
+      }
+    }
+  }
 
   @override
   void initState() {
@@ -104,10 +146,18 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
           ),
           Padding(
             padding: const EdgeInsets.only(right: 16.0, left: 8.0),
-            child: CircleAvatar(
-              radius: 16,
-              backgroundColor: colorScheme.primary,
-              child: Icon(Icons.person, size: 18, color: colorScheme.onPrimary),
+            child: InkWell(
+              onTap: () {
+                if (context.canPop()) {
+                  context.pop();
+                }
+              },
+              borderRadius: BorderRadius.circular(16),
+              child: CircleAvatar(
+                radius: 16,
+                backgroundColor: colorScheme.primary,
+                child: Icon(Icons.person, size: 18, color: colorScheme.onPrimary),
+              ),
             ),
           ),
         ],
@@ -153,10 +203,15 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
                         ),
                       ),
                       Expanded(
-                        child: SfPdfViewer.network(
-                          _activePdfUrl!,
-                          canShowScrollHead: false,
-                        ),
+                        child: _activePdfUrl!.startsWith('http')
+                            ? SfPdfViewer.network(
+                                _activePdfUrl!,
+                                canShowScrollHead: false,
+                              )
+                            : SfPdfViewer.file(
+                                File(_activePdfUrl!),
+                                canShowScrollHead: false,
+                              ),
                       ),
                     ],
                   ),
@@ -416,54 +471,106 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
               ),
               child: SafeArea(
                 top: false,
-                child: Row(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    IconButton(
-                      icon: Icon(Icons.add_photo_alternate, color: colorScheme.onSurfaceVariant),
-                      onPressed: () {},
-                    ),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    if (_attachedFileName != null)
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainerLow,
-                          borderRadius: BorderRadius.circular(24),
+                          color: colorScheme.primaryContainer.withValues(alpha: 0.35),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3)),
                         ),
-                        child: TextField(
-                          controller: _inputController,
-                          decoration: InputDecoration(
-                            hintText: 'Ask Nova anything...',
-                            hintStyle: TextStyle(color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6)),
-                            border: InputBorder.none,
-                            isDense: true,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.attachment_rounded, size: 16, color: colorScheme.primary),
+                            const SizedBox(width: 6),
+                            ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 220),
+                              child: Text(
+                                _attachedFileName!,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            InkWell(
+                              onTap: () {
+                                setState(() {
+                                  _attachedFileName = null;
+                                  _attachedFilePath = null;
+                                });
+                              },
+                              child: Icon(Icons.close, size: 16, color: colorScheme.primary),
+                            ),
+                          ],
+                        ),
+                      ),
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.add_photo_alternate, color: colorScheme.primary),
+                          tooltip: 'Attach Image or Document',
+                          onPressed: _pickAttachment,
+                        ),
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: colorScheme.surfaceContainerLow,
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            child: TextField(
+                              controller: _inputController,
+                              decoration: InputDecoration(
+                                hintText: 'Ask Nova anything...',
+                                hintStyle: TextStyle(color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6)),
+                                border: InputBorder.none,
+                                isDense: true,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: colorScheme.primary,
-                        shape: BoxShape.circle,
-                      ),
-                      child: IconButton(
-                        icon: Icon(Icons.send, color: colorScheme.onPrimary, size: 20),
-                        onPressed: () {
-                          final text = _inputController.text;
-                          if (text.isNotEmpty) {
-                            final topicId = widget.initialTopic?.id ?? 'global';
-                            ref.read(chatMessagesProvider.notifier).sendMessage(
-                                  topicId: topicId,
-                                  text: text,
-                                  tone: _selectedTone,
-                                  language: _selectedLanguage,
-                                  topicContext: widget.initialTopic?.title,
-                                  classId: topicId, // The topic ID is actually the class ID when launched from AiTutorListScreen
-                                );
-                            _inputController.clear();
-                          }
-                        },
-                      ),
+                        const SizedBox(width: 8),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: colorScheme.primary,
+                            shape: BoxShape.circle,
+                          ),
+                          child: IconButton(
+                            icon: Icon(Icons.send, color: colorScheme.onPrimary, size: 20),
+                            onPressed: () {
+                              final text = _inputController.text.trim();
+                              if (text.isNotEmpty || _attachedFileName != null) {
+                                final messageToSend = _attachedFileName != null
+                                    ? '[Attached File: $_attachedFileName]\n${text.isEmpty ? "Please review and explain this material." : text}'
+                                    : text;
+                                final topicId = widget.initialTopic?.id ?? 'global';
+                                ref.read(chatMessagesProvider.notifier).sendMessage(
+                                      topicId: topicId,
+                                      text: messageToSend,
+                                      tone: _selectedTone,
+                                      language: _selectedLanguage,
+                                      topicContext: widget.initialTopic?.title,
+                                      classId: topicId,
+                                    );
+                                _inputController.clear();
+                                setState(() {
+                                  _attachedFileName = null;
+                                  _attachedFilePath = null;
+                                });
+                              }
+                            },
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

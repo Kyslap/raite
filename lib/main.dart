@@ -6,7 +6,7 @@ import 'features/home/presentation/screens/home_screen.dart';
 import 'features/class/presentation/screens/class_screen.dart';
 
 import 'features/ai_tutor/presentation/screens/ai_tutor_list_screen.dart';
-import 'package:raite/screens/metrics_screen.dart';
+import 'features/metrics/presentation/screens/metrics_screen.dart';
 import 'core/theme/app_theme.dart';
 import 'core/routing/app_router.dart';
 import 'package:go_router/go_router.dart';
@@ -56,6 +56,18 @@ class SmartLearningApp extends ConsumerWidget {
   }
 }
 
+class StudentNavIndexNotifier extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void setIndex(int index) => state = index;
+}
+
+final studentBottomNavIndexProvider =
+    NotifierProvider<StudentNavIndexNotifier, int>(() {
+  return StudentNavIndexNotifier();
+});
+
 class MainNavigationScreen extends ConsumerStatefulWidget {
   const MainNavigationScreen({super.key});
 
@@ -64,8 +76,6 @@ class MainNavigationScreen extends ConsumerStatefulWidget {
 }
 
 class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
-  int _currentIndex = 0;
-
   final List<Widget> _screens = [
     const HomeScreen(),
     const ClassScreen(),
@@ -144,7 +154,7 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
           ),
           Expanded(
             child: IndexedStack(
-              index: _currentIndex,
+              index: ref.watch(studentBottomNavIndexProvider),
               children: _screens,
             ),
           ),
@@ -157,11 +167,9 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
           ),
         ),
         child: BottomNavigationBar(
-          currentIndex: _currentIndex,
+          currentIndex: ref.watch(studentBottomNavIndexProvider),
           onTap: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
+            ref.read(studentBottomNavIndexProvider.notifier).setIndex(index);
           },
           items: const [
             BottomNavigationBarItem(

@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../main.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../teacher/presentation/providers/teacher_class_hub_provider.dart';
 import 'package:raite/features/class/presentation/providers/class_provider.dart';
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -9,6 +13,14 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+
+    // Current user data
+    final authUser = ref.watch(authStateProvider).value;
+    final supabaseUser = Supabase.instance.client.auth.currentUser;
+    final displayName = authUser?.name ??
+        (supabaseUser?.userMetadata?['name'] as String?) ??
+        (supabaseUser?.email?.split('@').first.toUpperCase()) ??
+        'Alex Rivera';
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -25,14 +37,28 @@ class HomeScreen extends ConsumerWidget {
         actions: [
           IconButton(
             icon: Icon(Icons.notifications_none, color: colorScheme.onSurfaceVariant),
-            onPressed: () {},
+            tooltip: 'Notifications',
+            onPressed: () => _showNotificationsSheet(context, ref),
           ),
           Padding(
             padding: const EdgeInsets.only(right: 16.0, left: 8.0),
-            child: CircleAvatar(
-              radius: 16,
-              backgroundColor: colorScheme.primary,
-              child: Icon(Icons.person, size: 18, color: colorScheme.onPrimary),
+            child: InkWell(
+              onTap: () {
+                ref.read(studentBottomNavIndexProvider.notifier).setIndex(4);
+              },
+              borderRadius: BorderRadius.circular(16),
+              child: CircleAvatar(
+                radius: 16,
+                backgroundColor: colorScheme.primary,
+                child: Text(
+                  displayName.isNotEmpty ? displayName[0].toUpperCase() : 'S',
+                  style: TextStyle(
+                    color: colorScheme.onPrimary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
             ),
           ),
         ],
@@ -60,7 +86,7 @@ class HomeScreen extends ConsumerWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Alex Rivera 👋',
+                          '$displayName 👋',
                           style: theme.textTheme.headlineMedium?.copyWith(
                             color: colorScheme.onSurface,
                             fontWeight: FontWeight.bold,
@@ -178,7 +204,9 @@ class HomeScreen extends ConsumerWidget {
                               ),
                             ),
                             InkWell(
-                              onTap: () {},
+                              onTap: () {
+                                ref.read(studentBottomNavIndexProvider.notifier).setIndex(2);
+                              },
                               child: Text(
                                 'Resume Session',
                                 style: theme.textTheme.labelLarge?.copyWith(
@@ -207,7 +235,9 @@ class HomeScreen extends ConsumerWidget {
                       subtitle: 'Ask anything',
                       iconBgColor: colorScheme.primary,
                       iconColor: colorScheme.onPrimary,
-                      onTap: () {},
+                      onTap: () {
+                        ref.read(studentBottomNavIndexProvider.notifier).setIndex(2);
+                      },
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -218,7 +248,9 @@ class HomeScreen extends ConsumerWidget {
                       subtitle: 'View analytics',
                       iconBgColor: colorScheme.secondary,
                       iconColor: colorScheme.onSecondary,
-                      onTap: () {},
+                      onTap: () {
+                        ref.read(studentBottomNavIndexProvider.notifier).setIndex(3);
+                      },
                     ),
                   ),
                 ],
@@ -267,7 +299,9 @@ class HomeScreen extends ConsumerWidget {
                       ),
                       const SizedBox(width: 10),
                       InkWell(
-                        onTap: () {},
+                        onTap: () {
+                          ref.read(studentBottomNavIndexProvider.notifier).setIndex(1);
+                        },
                         child: Text(
                           'View All',
                           style: theme.textTheme.labelMedium?.copyWith(
@@ -369,7 +403,7 @@ class HomeScreen extends ConsumerWidget {
                     ),
                   ),
                   Text(
-                    'Today',
+                    'Assignments',
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
@@ -377,24 +411,63 @@ class HomeScreen extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: 16),
-              _ActivityCard(
-                icon: Icons.assignment_outlined,
-                iconBgColor: colorScheme.tertiaryContainer.withValues(alpha: 0.3),
-                iconColor: colorScheme.tertiary,
-                title: 'Math Problem Set #4',
-                subtitle: 'Due in 3 hours • Advanced Math',
-                actionLabel: 'Start',
-                isPrimaryAction: true,
-              ),
-              const SizedBox(height: 16),
-              _ActivityCard(
-                icon: Icons.groups_outlined,
-                iconBgColor: colorScheme.secondaryContainer.withValues(alpha: 0.5),
-                iconColor: colorScheme.secondary,
-                title: 'Coding Lab Review',
-                subtitle: '4:00 PM • CS 101',
-                actionLabel: 'Join',
-                isPrimaryAction: false,
+              Builder(
+                builder: (context) {
+                  final assignments = ref.watch(classAssignmentsProvider);
+                  if (assignments.isEmpty) {
+                    return Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: colorScheme.surfaceContainerLow,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.check_circle_outline, color: Color(0xFF10B981), size: 20),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'All caught up! No pending homework due today.',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: colorScheme.onSurfaceVariant,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return Column(
+                    children: assignments.take(3).map((asg) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12.0),
+                      child: _ActivityCard(
+                        icon: Icons.assignment_outlined,
+                        iconBgColor: colorScheme.primaryContainer.withValues(alpha: 0.3),
+                        iconColor: colorScheme.primary,
+                        title: asg.title,
+                        subtitle: 'Due: ${asg.dueDate} • ${asg.category} (${asg.points} pts)',
+                        actionLabel: 'Open',
+                        isPrimaryAction: true,
+                        onTap: () {
+                          context.push('/class/${asg.classId}');
+                        },
+                      ),
+                    )).toList(),
+                  );
+                },
               ),
               
               const SizedBox(height: 16),
@@ -568,6 +641,202 @@ class HomeScreen extends ConsumerWidget {
           },
         );
       },
+    );
+  }
+
+  void _showNotificationsSheet(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final announcements = ref.watch(classAnnouncementsProvider);
+    final assignments = ref.watch(classAssignmentsProvider);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        height: MediaQuery.of(context).size.height * 0.75,
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: colorScheme.primaryContainer,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.notifications_active, color: colorScheme.primary, size: 20),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Class Alerts & Notifications',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: announcements.isEmpty && assignments.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.notifications_none, size: 48, color: colorScheme.outline),
+                          const SizedBox(height: 12),
+                          Text(
+                            'No new notifications right now.',
+                            style: TextStyle(color: colorScheme.onSurfaceVariant),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView(
+                      padding: const EdgeInsets.all(16),
+                      children: [
+                        if (announcements.isNotEmpty) ...[
+                          Text(
+                            'RECENT ANNOUNCEMENTS',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              letterSpacing: 1.0,
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.primary,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          ...announcements.take(4).map((ann) => Container(
+                                margin: const EdgeInsets.only(bottom: 10),
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.surfaceContainerLow,
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                    color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+                                  ),
+                                ),
+                                child: InkWell(
+                                  onTap: () {
+                                    Navigator.pop(ctx);
+                                    context.push('/class/${ann.classId}');
+                                  },
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Icon(Icons.campaign, color: colorScheme.primary, size: 20),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              ann.title,
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 13,
+                                                color: colorScheme.onSurface,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              ann.content,
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                color: colorScheme.onSurfaceVariant,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )),
+                        ],
+                        if (assignments.isNotEmpty) ...[
+                          const SizedBox(height: 16),
+                          Text(
+                            'UPCOMING ASSIGNMENTS',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              letterSpacing: 1.0,
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.primary,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          ...assignments.take(3).map((asg) => Container(
+                                margin: const EdgeInsets.only(bottom: 10),
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.surfaceContainerLow,
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                    color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+                                  ),
+                                ),
+                                child: InkWell(
+                                  onTap: () {
+                                    Navigator.pop(ctx);
+                                    context.push('/class/${asg.classId}');
+                                  },
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.assignment, color: colorScheme.tertiary, size: 20),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              asg.title,
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 13,
+                                                color: colorScheme.onSurface,
+                                              ),
+                                            ),
+                                            Text(
+                                              'Due: ${asg.dueDate} • ${asg.points} pts',
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                color: colorScheme.onSurfaceVariant,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Icon(Icons.chevron_right, size: 16, color: colorScheme.outline),
+                                    ],
+                                  ),
+                                ),
+                              )),
+                        ],
+                      ],
+                    ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -767,6 +1036,7 @@ class _ActivityCard extends StatelessWidget {
   final String subtitle;
   final String actionLabel;
   final bool isPrimaryAction;
+  final VoidCallback? onTap;
 
   const _ActivityCard({
     required this.icon,
@@ -776,6 +1046,7 @@ class _ActivityCard extends StatelessWidget {
     required this.subtitle,
     required this.actionLabel,
     required this.isPrimaryAction,
+    this.onTap,
   });
 
   @override
@@ -783,74 +1054,78 @@ class _ActivityCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.onSurface.withValues(alpha: 0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: iconBgColor,
-              borderRadius: BorderRadius.circular(8),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: colorScheme.onSurface.withValues(alpha: 0.05),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
             ),
-            child: Icon(icon, color: iconColor, size: 20),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    color: colorScheme.onSurface,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  subtitle,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: iconBgColor,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, color: iconColor, size: 20),
             ),
-          ),
-          const SizedBox(width: 8),
-          ElevatedButton(
-            onPressed: () {},
-            style: ElevatedButton.styleFrom(
-              backgroundColor: isPrimaryAction ? colorScheme.primary : colorScheme.surfaceContainer,
-              foregroundColor: isPrimaryAction ? colorScheme.onPrimary : colorScheme.onSurface,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              minimumSize: const Size(0, 36),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: colorScheme.onSurface,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    subtitle,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
             ),
-            child: Text(
-              actionLabel,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+            const SizedBox(width: 8),
+            ElevatedButton(
+              onPressed: onTap,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isPrimaryAction ? colorScheme.primary : colorScheme.surfaceContainer,
+                foregroundColor: isPrimaryAction ? colorScheme.onPrimary : colorScheme.onSurface,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                minimumSize: const Size(0, 36),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              child: Text(
+                actionLabel,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
