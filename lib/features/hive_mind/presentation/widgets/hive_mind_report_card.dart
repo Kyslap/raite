@@ -79,13 +79,16 @@ class HiveMindReportCard extends ConsumerWidget {
                     children: [
                       Row(
                         children: [
-                          Text(
-                            'HIVE MIND INTELLIGENCE',
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: colorScheme.primary,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1.2,
-                              fontSize: 10,
+                          Flexible(
+                            child: Text(
+                              'HIVE MIND INTELLIGENCE',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: colorScheme.primary,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.2,
+                                fontSize: 10,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -175,34 +178,41 @@ class HiveMindReportCard extends ConsumerWidget {
                       children: [
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _CohortSummaryBadge(
-                              label: 'Top Performers',
-                              count: report.topCohortCount,
-                              color: const Color(0xFF16A34A),
-                              description: 'Avg 92% Mastery',
+                            Expanded(
+                              child: _CohortSummaryBadge(
+                                label: 'Top Performers',
+                                count: report.topCohortCount,
+                                color: const Color(0xFF16A34A),
+                                description: 'Avg 92% Mastery',
+                              ),
                             ),
                             Container(
                               height: 24,
                               width: 1,
                               color: colorScheme.outlineVariant.withValues(alpha: 0.5),
                             ),
-                            _CohortSummaryBadge(
-                              label: 'Core Cohort',
-                              count: report.totalStudents - report.topCohortCount - report.atRiskCohortCount,
-                              color: colorScheme.primary,
-                              description: 'Avg 78% Mastery',
+                            Expanded(
+                              child: _CohortSummaryBadge(
+                                label: 'Core Cohort',
+                                count: report.totalStudents - report.topCohortCount - report.atRiskCohortCount,
+                                color: colorScheme.primary,
+                                description: 'Avg 78% Mastery',
+                              ),
                             ),
                             Container(
                               height: 24,
                               width: 1,
                               color: colorScheme.outlineVariant.withValues(alpha: 0.5),
                             ),
-                            _CohortSummaryBadge(
-                              label: 'At-Risk / Needs Support',
-                              count: report.atRiskCohortCount,
-                              color: const Color(0xFFDC2626),
-                              description: 'Avg 58% Mastery',
+                            Expanded(
+                              child: _CohortSummaryBadge(
+                                label: 'At-Risk / Needs Support',
+                                count: report.atRiskCohortCount,
+                                color: const Color(0xFFDC2626),
+                                description: 'Avg 58% Mastery',
+                              ),
                             ),
                           ],
                         ),
@@ -249,14 +259,17 @@ class HiveMindReportCard extends ConsumerWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'RECOMMENDED TEACHER INTERVENTIONS',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: colorScheme.primary,
-                          letterSpacing: 1.0,
-                          fontWeight: FontWeight.bold,
+                      Expanded(
+                        child: Text(
+                          'RECOMMENDED TEACHER INTERVENTIONS',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: colorScheme.primary,
+                            letterSpacing: 1.0,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
+                      const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
@@ -357,6 +370,7 @@ class _CohortSummaryBadge extends StatelessWidget {
       children: [
         Row(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
               width: 8,
@@ -367,10 +381,13 @@ class _CohortSummaryBadge extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 6),
-            Text(
-              '$count Students',
-              style: theme.textTheme.labelMedium?.copyWith(
-                fontWeight: FontWeight.bold,
+            Flexible(
+              child: Text(
+                '$count Students',
+                style: theme.textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
               ),
             ),
           ],
@@ -378,6 +395,7 @@ class _CohortSummaryBadge extends StatelessWidget {
         const SizedBox(height: 2),
         Text(
           label,
+          textAlign: TextAlign.center,
           style: theme.textTheme.bodySmall?.copyWith(
             fontSize: 10,
             color: theme.colorScheme.onSurfaceVariant,
@@ -385,6 +403,7 @@ class _CohortSummaryBadge extends StatelessWidget {
         ),
         Text(
           description,
+          textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 9,
             fontWeight: FontWeight.w600,

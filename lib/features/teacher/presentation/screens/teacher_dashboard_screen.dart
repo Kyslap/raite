@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/teacher_lesson_provider.dart';
+import '../providers/teacher_insights_provider.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 
 class TeacherDashboardScreen extends ConsumerWidget {
   final Function(int)? onNavigateTab;
@@ -182,6 +184,9 @@ class TeacherDashboardScreen extends ConsumerWidget {
     final colorScheme = theme.colorScheme;
     final classes = ref.watch(teacherClassesProvider);
     final lessons = ref.watch(teacherLessonsProvider);
+    final authState = ref.watch(authStateProvider);
+    final user = authState.value;
+    final inquiriesAsync = ref.watch(teacherTotalAiInquiriesProvider);
 
     final totalStudents = classes.fold<int>(0, (sum, c) => sum + c.studentCount);
 
@@ -206,14 +211,14 @@ class TeacherDashboardScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Professor Vance',
+                  'Professor ${user?.name ?? 'Teacher'}',
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: colorScheme.onSurface,
                   ),
                 ),
                 Text(
-                  'Educator Portal • Department of STEM',
+                  'Educator Portal',
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -378,7 +383,11 @@ class TeacherDashboardScreen extends ConsumerWidget {
                 Expanded(
                   child: _StatCard(
                     title: 'AI Inquiries',
-                    value: '428',
+                    value: inquiriesAsync.when(
+                      data: (count) => '$count',
+                      loading: () => '...',
+                      error: (_, __) => '0',
+                    ),
                     icon: Icons.forum_outlined,
                     color: const Color(0xFFF59E0B),
                   ),

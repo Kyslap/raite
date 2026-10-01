@@ -552,28 +552,27 @@ class _TeacherCreateLessonScreenState
               ),
             ),
             const SizedBox(height: 8),
-            Row(
+            Wrap(
+              spacing: 8.0,
+              runSpacing: 8.0,
               children: _durationOptions.map((dur) {
                 final isSelected = dur == _selectedDuration;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: FilterChip(
-                    label: Text(dur),
-                    selected: isSelected,
-                    onSelected: (val) {
-                      if (val) setState(() => _selectedDuration = dur);
-                    },
-                    selectedColor: colorScheme.primaryContainer,
-                    labelStyle: TextStyle(
-                      color: isSelected
-                          ? colorScheme.onPrimaryContainer
-                          : colorScheme.onSurface,
-                      fontWeight:
-                          isSelected ? FontWeight.bold : FontWeight.normal,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+                return FilterChip(
+                  label: Text(dur),
+                  selected: isSelected,
+                  onSelected: (val) {
+                    if (val) setState(() => _selectedDuration = dur);
+                  },
+                  selectedColor: colorScheme.primaryContainer,
+                  labelStyle: TextStyle(
+                    color: isSelected
+                        ? colorScheme.onPrimaryContainer
+                        : colorScheme.onSurface,
+                    fontWeight:
+                        isSelected ? FontWeight.bold : FontWeight.normal,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 );
               }).toList(),
@@ -622,20 +621,26 @@ class _TeacherCreateLessonScreenState
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          Icon(Icons.attachment_rounded, color: colorScheme.primary, size: 20),
-                          const SizedBox(width: 8),
-                          Text(
-                            'LEARNING MATERIALS & SLIDES',
-                            style: theme.textTheme.labelMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: colorScheme.onSurface,
-                              letterSpacing: 0.8,
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Icon(Icons.attachment_rounded, color: colorScheme.primary, size: 20),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'LEARNING MATERIALS & SLIDES',
+                                style: theme.textTheme.labelMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.onSurface,
+                                  letterSpacing: 0.8,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
+                      const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
@@ -807,7 +812,8 @@ class _TeacherCreateLessonScreenState
                                       ),
                                     ),
                                     const SizedBox(height: 2),
-                                    Row(
+                                    Wrap(
+                                      crossAxisAlignment: WrapCrossAlignment.center,
                                       children: [
                                         Text(
                                           typeLabel,
@@ -866,14 +872,17 @@ class _TeacherCreateLessonScreenState
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'LEARNING OBJECTIVES',
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurfaceVariant,
-                    letterSpacing: 0.8,
+                Expanded(
+                  child: Text(
+                    'LEARNING OBJECTIVES',
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurfaceVariant,
+                      letterSpacing: 0.8,
+                    ),
                   ),
                 ),
+                const SizedBox(width: 8),
                 Text(
                   '${_objectives.length} Added',
                   style: theme.textTheme.labelSmall?.copyWith(
