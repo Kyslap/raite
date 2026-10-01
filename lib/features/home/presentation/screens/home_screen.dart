@@ -236,17 +236,49 @@ class HomeScreen extends ConsumerWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  InkWell(
-                    onTap: () {},
-                    child: Text(
-                      'View All',
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        color: colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                        decoration: TextDecoration.underline,
-                        decorationColor: colorScheme.primary,
+                  Row(
+                    children: [
+                      InkWell(
+                        onTap: () => _showJoinClassDialog(context, ref),
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: colorScheme.primaryContainer.withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.add, size: 14, color: colorScheme.primary),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Join with Code',
+                                style: TextStyle(
+                                  color: colorScheme.primary,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 10),
+                      InkWell(
+                        onTap: () {},
+                        child: Text(
+                          'View All',
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                            decoration: TextDecoration.underline,
+                            decorationColor: colorScheme.primary,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -341,6 +373,172 @@ class HomeScreen extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+
+  void _showJoinClassDialog(BuildContext context, WidgetRef ref) {
+    final codeController = TextEditingController();
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        bool isLoading = false;
+        String? errorMessage;
+
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return Container(
+              padding: EdgeInsets.only(
+                left: 24,
+                right: 24,
+                top: 24,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+              ),
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: colorScheme.primaryContainer,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(Icons.key, color: colorScheme.primary, size: 20),
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              'Join Class with Code',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => Navigator.pop(ctx),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Ask your instructor for the 6-character class code (e.g. MATH-402, AI-101, PHY-204) and enter it below:',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: codeController,
+                      textCapitalization: TextCapitalization.characters,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 2.0,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: 'e.g. CS-101',
+                        hintStyle: TextStyle(
+                          fontSize: 16,
+                          letterSpacing: 1.0,
+                          color: colorScheme.outline,
+                        ),
+                        filled: true,
+                        fillColor: colorScheme.surfaceContainerLow,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        errorText: errorMessage,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: isLoading
+                          ? null
+                          : () async {
+                              final code = codeController.text.trim();
+                              if (code.isEmpty) {
+                                setSheetState(() {
+                                  errorMessage = 'Please enter a code';
+                                });
+                                return;
+                              }
+
+                              setSheetState(() {
+                                isLoading = true;
+                                errorMessage = null;
+                              });
+
+                              final result = await ref
+                                  .read(enrolledClassesProvider.notifier)
+                                  .joinClassByCode(code);
+
+                              if (!context.mounted) return;
+
+                              setSheetState(() {
+                                isLoading = false;
+                              });
+
+                              if (result.success) {
+                                Navigator.pop(ctx);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('🎉 ${result.message}'),
+                                    backgroundColor: colorScheme.primary,
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                              } else {
+                                setSheetState(() {
+                                  errorMessage = result.message;
+                                });
+                              }
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: colorScheme.primary,
+                        foregroundColor: colorScheme.onPrimary,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      child: isLoading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text(
+                              'Join Class',
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

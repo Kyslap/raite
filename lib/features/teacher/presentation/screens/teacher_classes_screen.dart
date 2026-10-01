@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/teacher_lesson_provider.dart';
 
@@ -6,6 +7,153 @@ class TeacherClassesScreen extends ConsumerWidget {
   final Function(int)? onNavigateTab;
 
   const TeacherClassesScreen({super.key, this.onNavigateTab});
+
+  void _showCreateClassSheet(BuildContext context, WidgetRef ref) {
+    final titleController = TextEditingController();
+    final deptController = TextEditingController();
+    final codeController = TextEditingController();
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setSheetState) {
+          return Container(
+            padding: EdgeInsets.only(
+              left: 24,
+              right: 24,
+              top: 24,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+            ),
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: colorScheme.primaryContainer,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(Icons.school, color: colorScheme.primary, size: 20),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            'Create New Class',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: titleController,
+                    decoration: InputDecoration(
+                      labelText: 'Class Title',
+                      hintText: 'e.g. Intro to Astrophysics',
+                      filled: true,
+                      fillColor: colorScheme.surfaceContainerLow,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: deptController,
+                    decoration: InputDecoration(
+                      labelText: 'Department / Track',
+                      hintText: 'e.g. Physics & Astronomy',
+                      filled: true,
+                      fillColor: colorScheme.surfaceContainerLow,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: codeController,
+                    textCapitalization: TextCapitalization.characters,
+                    decoration: InputDecoration(
+                      labelText: 'Custom Join Code (Optional)',
+                      hintText: 'e.g. ASTRO-101 (or leave blank to auto-generate)',
+                      filled: true,
+                      fillColor: colorScheme.surfaceContainerLow,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      prefixIcon: const Icon(Icons.key, size: 18),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () {
+                      final title = titleController.text.trim();
+                      final dept = deptController.text.trim();
+                      final customCode = codeController.text.trim();
+
+                      if (title.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Please enter a class title')),
+                        );
+                        return;
+                      }
+
+                      final newCls = ref
+                          .read(teacherClassesProvider.notifier)
+                          .addClass(
+                            title: title,
+                            department: dept.isNotEmpty ? dept : 'General Studies',
+                            customCode: customCode.isNotEmpty ? customCode : null,
+                          );
+
+                      Navigator.pop(ctx);
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('🎉 Class created! Join code: ${newCls.code}'),
+                          backgroundColor: colorScheme.primary,
+                          action: SnackBarAction(
+                            label: 'Copy Code',
+                            textColor: Colors.white,
+                            onPressed: () {
+                              Clipboard.setData(ClipboardData(text: newCls.code));
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: const Text('Create Class & Generate Code', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -28,12 +176,9 @@ class TeacherClassesScreen extends ConsumerWidget {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.add_circle_outline, color: colorScheme.primary),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Class creation modal coming soon!')),
-              );
-            },
+            icon: Icon(Icons.add_circle, color: colorScheme.primary, size: 28),
+            tooltip: 'Create New Class',
+            onPressed: () => _showCreateClassSheet(context, ref),
           ),
           const SizedBox(width: 8),
         ],
@@ -68,6 +213,7 @@ class TeacherClassesScreen extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
                         width: 52,
@@ -100,6 +246,71 @@ class TeacherClassesScreen extends ConsumerWidget {
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: colorScheme.onSurfaceVariant,
                               ),
+                            ),
+                            const SizedBox(height: 10),
+
+                            // Mobile-Optimized Join Code Badge with 1-Tap Copy
+                            Row(
+                              children: [
+                                InkWell(
+                                  onTap: () {
+                                    Clipboard.setData(ClipboardData(text: cls.code));
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('📋 Code ${cls.code} copied to clipboard!'),
+                                        duration: const Duration(seconds: 2),
+                                        behavior: SnackBarBehavior.floating,
+                                      ),
+                                    );
+                                  },
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                    decoration: BoxDecoration(
+                                      color: colorScheme.primary.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3)),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.key, size: 14, color: colorScheme.primary),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          'CODE: ${cls.code}',
+                                          style: TextStyle(
+                                            color: colorScheme.primary,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 12,
+                                            letterSpacing: 0.5,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Icon(Icons.copy, size: 13, color: colorScheme.primary),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                IconButton(
+                                  icon: const Icon(Icons.share_outlined, size: 18),
+                                  tooltip: 'Share Invite',
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                  onPressed: () {
+                                    final shareMsg =
+                                        'Join my class "${cls.title}" on Raite using code: ${cls.code}';
+                                    Clipboard.setData(ClipboardData(text: shareMsg));
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Invite message copied: "$shareMsg"'),
+                                        duration: const Duration(seconds: 3),
+                                        behavior: SnackBarBehavior.floating,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
                             ),
                           ],
                         ),

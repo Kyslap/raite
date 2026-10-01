@@ -20,9 +20,10 @@ class _ClassScreenState extends ConsumerState<ClassScreen> {
     final colorScheme = theme.colorScheme;
     
     // Fetch dynamic class data
+    final enrolledList = ref.watch(enrolledClassesProvider).value ?? [];
     final classModel = widget.classId != null 
         ? ref.watch(classDetailProvider(widget.classId!))
-        : null;
+        : (enrolledList.isNotEmpty ? enrolledList.first : null);
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -44,8 +45,13 @@ class _ClassScreenState extends ConsumerState<ClassScreen> {
           ),
         ),
         actions: [
+          IconButton(
+            icon: Icon(Icons.key, color: colorScheme.primary),
+            tooltip: 'Join Class with Code',
+            onPressed: () => _showJoinClassDialog(context),
+          ),
           Padding(
-            padding: const EdgeInsets.only(right: 16.0),
+            padding: const EdgeInsets.only(right: 16.0, left: 4.0),
             child: CircleAvatar(
               radius: 16,
               backgroundColor: colorScheme.primary,
@@ -375,6 +381,172 @@ class _ClassScreenState extends ConsumerState<ClassScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  void _showJoinClassDialog(BuildContext context) {
+    final codeController = TextEditingController();
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        bool isLoading = false;
+        String? errorMessage;
+
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return Container(
+              padding: EdgeInsets.only(
+                left: 24,
+                right: 24,
+                top: 24,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+              ),
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: colorScheme.primaryContainer,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(Icons.key, color: colorScheme.primary, size: 20),
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              'Join Class with Code',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => Navigator.pop(ctx),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Ask your instructor for the 6-character class code (e.g. MATH-402, AI-101, PHY-204) and enter it below:',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: codeController,
+                      textCapitalization: TextCapitalization.characters,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 2.0,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: 'e.g. CS-101',
+                        hintStyle: TextStyle(
+                          fontSize: 16,
+                          letterSpacing: 1.0,
+                          color: colorScheme.outline,
+                        ),
+                        filled: true,
+                        fillColor: colorScheme.surfaceContainerLow,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        errorText: errorMessage,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: isLoading
+                          ? null
+                          : () async {
+                              final code = codeController.text.trim();
+                              if (code.isEmpty) {
+                                setSheetState(() {
+                                  errorMessage = 'Please enter a code';
+                                });
+                                return;
+                              }
+
+                              setSheetState(() {
+                                isLoading = true;
+                                errorMessage = null;
+                              });
+
+                              final result = await ref
+                                  .read(enrolledClassesProvider.notifier)
+                                  .joinClassByCode(code);
+
+                              if (!context.mounted) return;
+
+                              setSheetState(() {
+                                isLoading = false;
+                              });
+
+                              if (result.success) {
+                                Navigator.pop(ctx);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('🎉 ${result.message}'),
+                                    backgroundColor: colorScheme.primary,
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                              } else {
+                                setSheetState(() {
+                                  errorMessage = result.message;
+                                });
+                              }
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: colorScheme.primary,
+                        foregroundColor: colorScheme.onPrimary,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      child: isLoading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text(
+                              'Join Class',
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

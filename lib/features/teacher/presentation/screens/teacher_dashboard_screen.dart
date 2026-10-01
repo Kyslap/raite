@@ -285,11 +285,32 @@ class TeacherDashboardScreen extends ConsumerWidget {
                               ),
                             ),
                             const SizedBox(height: 4),
-                            Text(
-                              '${cls.department} • ${cls.studentCount} Students',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
+                            Wrap(
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              spacing: 8,
+                              children: [
+                                Text(
+                                  '${cls.department} • ${cls.studentCount} Students',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.primary.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    cls.code,
+                                    style: TextStyle(
+                                      color: colorScheme.primary,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),

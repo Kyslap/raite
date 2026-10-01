@@ -5,6 +5,7 @@ class TeacherClass {
   final String id;
   final String title;
   final String department;
+  final String code;
   final int studentCount;
   final String iconCode;
 
@@ -12,32 +13,66 @@ class TeacherClass {
     required this.id,
     required this.title,
     required this.department,
+    required this.code,
     required this.studentCount,
     this.iconCode = 'school',
   });
 }
 
-final teacherClassesProvider = Provider<List<TeacherClass>>((ref) {
-  return const [
-    TeacherClass(
-      id: 'class-1',
-      title: 'AI & Neural Networks 101',
-      department: 'Computer Science',
-      studentCount: 38,
-    ),
-    TeacherClass(
-      id: 'class-2',
-      title: 'Advanced Applied Calculus',
-      department: 'Mathematics',
-      studentCount: 42,
-    ),
-    TeacherClass(
-      id: 'class-3',
-      title: 'Classical & Quantum Dynamics',
-      department: 'Physics',
-      studentCount: 29,
-    ),
-  ];
+class TeacherClassNotifier extends Notifier<List<TeacherClass>> {
+  @override
+  List<TeacherClass> build() {
+    return const [
+      TeacherClass(
+        id: 'class-1',
+        title: 'AI & Neural Networks 101',
+        department: 'Computer Science',
+        code: 'AI-101',
+        studentCount: 38,
+      ),
+      TeacherClass(
+        id: 'class-2',
+        title: 'Advanced Applied Calculus',
+        department: 'Mathematics',
+        code: 'MATH-402',
+        studentCount: 42,
+      ),
+      TeacherClass(
+        id: 'class-3',
+        title: 'Classical & Quantum Dynamics',
+        department: 'Physics',
+        code: 'PHY-204',
+        studentCount: 29,
+      ),
+    ];
+  }
+
+  TeacherClass addClass({
+    required String title,
+    required String department,
+    String? customCode,
+  }) {
+    // Generate clean 6-char code if none provided
+    final autoCode = customCode?.trim().toUpperCase().isNotEmpty == true
+        ? customCode!.trim().toUpperCase()
+        : '${department.length >= 3 ? department.substring(0, 3).toUpperCase() : "CLS"}-${(100 + DateTime.now().millisecond % 900)}';
+
+    final newClass = TeacherClass(
+      id: 'class-${DateTime.now().millisecondsSinceEpoch}',
+      title: title,
+      department: department,
+      code: autoCode,
+      studentCount: 0,
+    );
+
+    state = [newClass, ...state];
+    return newClass;
+  }
+}
+
+final teacherClassesProvider =
+    NotifierProvider<TeacherClassNotifier, List<TeacherClass>>(() {
+  return TeacherClassNotifier();
 });
 
 class TeacherLessonNotifier extends Notifier<List<LessonModel>> {
