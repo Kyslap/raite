@@ -408,7 +408,7 @@ class RetroTopAppBar extends ConsumerWidget implements PreferredSizeWidget {
           ),
 
         // Custom extra actions if supplied
-        if (customActions != null) ...customActions!,
+        ...?customActions,
 
         // 2. Notification Bell with Unread Indicator
         if (showNotifications)

@@ -6,9 +6,6 @@ import '../../../../main.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../../core/theme/widgets/retro_top_bar.dart';
 import 'package:raite/features/class/presentation/providers/class_provider.dart';
-import 'package:raite/features/auth/presentation/providers/auth_provider.dart';
-import 'package:raite/features/home/presentation/providers/user_stats_provider.dart';
-import 'package:raite/features/teacher/presentation/providers/teacher_class_hub_provider.dart';
 import 'package:raite/features/daily_goals/presentation/providers/daily_goals_provider.dart';
 import 'package:raite/features/daily_goals/presentation/widgets/daily_goals_sheet.dart';
 class HomeScreen extends ConsumerWidget {
@@ -61,7 +58,7 @@ class HomeScreen extends ConsumerWidget {
                         const SizedBox(height: 4),
                         ref.watch(authStateProvider).when(
                           data: (user) => Text(
-                            '${user?.name ?? 'Student'} 👋',
+                            '${user?.name ?? displayName} 👋',
                             style: theme.textTheme.headlineMedium?.copyWith(
                               color: colorScheme.onSurface,
                               fontWeight: FontWeight.bold,
@@ -72,8 +69,8 @@ class HomeScreen extends ConsumerWidget {
                             width: 150,
                             child: CircularProgressIndicator(),
                           ),
-                          error: (_, __) => Text(
-                            'Student 👋',
+                          error: (_, _) => Text(
+                            '$displayName 👋',
                             style: theme.textTheme.headlineMedium?.copyWith(
                               color: colorScheme.onSurface,
                               fontWeight: FontWeight.bold,
@@ -243,9 +240,135 @@ class HomeScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
+              ),
               const SizedBox(height: 24),
 
+              // Quick Access Action Grid (4-Tile Layout)
+              Row(
+                children: [
+                  Expanded(
+                    child: _QuickAccessTile(
+                      icon: Icons.smart_toy_outlined,
+                      title: 'AI Tutor',
+                      subtitle: 'Ask anything',
+                      iconBgColor: colorScheme.primary,
+                      iconColor: colorScheme.onPrimary,
+                      onTap: () {
+                        ref.read(studentBottomNavIndexProvider.notifier).setIndex(2);
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _QuickAccessTile(
+                      icon: Icons.style_outlined,
+                      title: 'Study Deck',
+                      subtitle: 'Cards & Quizzes',
+                      iconBgColor: colorScheme.tertiary,
+                      iconColor: colorScheme.onTertiary,
+                      onTap: () => context.push('/study-deck'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _QuickAccessTile(
+                      icon: Icons.document_scanner_rounded,
+                      title: 'OCR Scanner',
+                      subtitle: 'Scan Handouts',
+                      iconBgColor: const Color(0xFF2D5A27),
+                      iconColor: Colors.white,
+                      onTap: () => context.push('/ocr-scanner'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _QuickAccessTile(
+                      icon: Icons.bar_chart_outlined,
+                      title: 'Metrics',
+                      subtitle: 'View analytics',
+                      iconBgColor: colorScheme.secondary,
+                      iconColor: colorScheme.onSecondary,
+                      onTap: () {
+                        ref.read(studentBottomNavIndexProvider.notifier).setIndex(3);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
 
+              // Study Deck Spotlight Banner
+              InkWell(
+                onTap: () => context.push('/study-deck'),
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.6),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: colorScheme.primary.withValues(alpha: 0.04),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary.withValues(alpha: 0.12),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.psychology_outlined, color: colorScheme.primary, size: 28),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'ACTIVE RECALL & QUIZZES',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 1.0,
+                                    color: colorScheme.primary,
+                                  ),
+                                ),
+                                const Icon(Icons.arrow_forward_ios_rounded, size: 12),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            const Text(
+                              'Test Your Course Mastery',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Interactive 3D flashcards, timed quizzes, or OCR scan physical notes.',
+                              style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 28),
 
               // Current Enrolled Classes
               Row(
@@ -553,201 +676,6 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  void _showNotificationsSheet(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final announcements = ref.watch(classAnnouncementsProvider);
-    final assignments = ref.watch(classAssignmentsProvider);
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        height: MediaQuery.of(context).size.height * 0.75,
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: colorScheme.primaryContainer,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(Icons.notifications_active, color: colorScheme.primary, size: 20),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Class Alerts & Notifications',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(ctx),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: announcements.isEmpty && assignments.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.notifications_none, size: 48, color: colorScheme.outline),
-                          const SizedBox(height: 12),
-                          Text(
-                            'No new notifications right now.',
-                            style: TextStyle(color: colorScheme.onSurfaceVariant),
-                          ),
-                        ],
-                      ),
-                    )
-                  : ListView(
-                      padding: const EdgeInsets.all(16),
-                      children: [
-                        if (announcements.isNotEmpty) ...[
-                          Text(
-                            'RECENT ANNOUNCEMENTS',
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              letterSpacing: 1.0,
-                              fontWeight: FontWeight.bold,
-                              color: colorScheme.primary,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          ...announcements.take(4).map((ann) => Container(
-                                margin: const EdgeInsets.only(bottom: 10),
-                                padding: const EdgeInsets.all(14),
-                                decoration: BoxDecoration(
-                                  color: colorScheme.surfaceContainerLow,
-                                  borderRadius: BorderRadius.circular(14),
-                                  border: Border.all(
-                                    color: colorScheme.outlineVariant.withValues(alpha: 0.4),
-                                  ),
-                                ),
-                                child: InkWell(
-                                  onTap: () {
-                                    Navigator.pop(ctx);
-                                    context.push('/class/${ann.classId}');
-                                  },
-                                  child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Icon(Icons.campaign, color: colorScheme.primary, size: 20),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              ann.title,
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 13,
-                                                color: colorScheme.onSurface,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              ann.content,
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: TextStyle(
-                                                fontSize: 11,
-                                                color: colorScheme.onSurfaceVariant,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              )),
-                        ],
-                        if (assignments.isNotEmpty) ...[
-                          const SizedBox(height: 16),
-                          Text(
-                            'UPCOMING ASSIGNMENTS',
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              letterSpacing: 1.0,
-                              fontWeight: FontWeight.bold,
-                              color: colorScheme.primary,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          ...assignments.take(3).map((asg) => Container(
-                                margin: const EdgeInsets.only(bottom: 10),
-                                padding: const EdgeInsets.all(14),
-                                decoration: BoxDecoration(
-                                  color: colorScheme.surfaceContainerLow,
-                                  borderRadius: BorderRadius.circular(14),
-                                  border: Border.all(
-                                    color: colorScheme.outlineVariant.withValues(alpha: 0.4),
-                                  ),
-                                ),
-                                child: InkWell(
-                                  onTap: () {
-                                    Navigator.pop(ctx);
-                                    context.push('/class/${asg.classId}');
-                                  },
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.assignment, color: colorScheme.tertiary, size: 20),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              asg.title,
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 13,
-                                                color: colorScheme.onSurface,
-                                              ),
-                                            ),
-                                            Text(
-                                              'Due: ${asg.dueDate} • ${asg.points} pts',
-                                              style: TextStyle(
-                                                fontSize: 11,
-                                                color: colorScheme.onSurfaceVariant,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      Icon(Icons.chevron_right, size: 16, color: colorScheme.outline),
-                                    ],
-                                  ),
-                                ),
-                              )),
-                        ],
-                      ],
-                    ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 
@@ -852,6 +780,92 @@ class _EnrolledClassCard extends StatelessWidget {
           ),
         ],
       ),
+      ),
+    );
+  }
+}
+
+class _QuickAccessTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color iconBgColor;
+  final Color iconColor;
+  final VoidCallback onTap;
+
+  const _QuickAccessTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.iconBgColor,
+    required this.iconColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: colorScheme.onSurface.withValues(alpha: 0.03),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: iconBgColor.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: iconBgColor, size: 22),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      fontSize: 11,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

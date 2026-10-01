@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:raite/main.dart';
-import '../domain/daily_goal_model.dart';
+import '../../domain/daily_goal_model.dart';
 import '../providers/daily_goals_provider.dart';
 import 'study_timer_dialog.dart';
 

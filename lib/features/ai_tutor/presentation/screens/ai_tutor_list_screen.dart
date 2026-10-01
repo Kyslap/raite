@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:raite/main.dart';
-import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../class/presentation/providers/class_provider.dart';
 import '../../../class/domain/topic_model.dart';
 import '../../../../core/theme/widgets/retro_top_bar.dart';
@@ -170,8 +168,6 @@ class AiTutorListScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final classesState = ref.watch(enrolledClassesProvider);
-    final authUser = ref.watch(authStateProvider).value;
-    final displayName = authUser?.name ?? 'Student';
 
     return Scaffold(
       backgroundColor: colorScheme.surface,

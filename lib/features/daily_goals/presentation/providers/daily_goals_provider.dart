@@ -1,12 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/daily_goal_model.dart';
 
-final dailyGoalsProvider = StateNotifierProvider<DailyGoalsNotifier, DailyGoalModel>((ref) {
-  return DailyGoalsNotifier();
-});
+final dailyGoalsProvider =
+    NotifierProvider<DailyGoalsNotifier, DailyGoalModel>(DailyGoalsNotifier.new);
 
-class DailyGoalsNotifier extends StateNotifier<DailyGoalModel> {
-  DailyGoalsNotifier() : super(_initialGoal());
+class DailyGoalsNotifier extends Notifier<DailyGoalModel> {
+  @override
+  DailyGoalModel build() {
+    return _initialGoal();
+  }
 
   static DailyGoalModel _initialGoal() {
     return DailyGoalModel(

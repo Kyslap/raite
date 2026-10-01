@@ -37,7 +37,6 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
   String? _activePdfTitle;
   bool _showingTopicContent = false;
   String? _attachedFileName;
-  String? _attachedFilePath;
 
   Future<void> _pickAttachment() async {
     try {
@@ -50,7 +49,6 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
         final isPdf = file.extension?.toLowerCase() == 'pdf';
         setState(() {
           _attachedFileName = file.name;
-          _attachedFilePath = file.path;
           if (isPdf) {
             _activePdfUrl = file.path;
             _activePdfTitle = file.name;
@@ -514,7 +512,6 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
                               onTap: () {
                                 setState(() {
                                   _attachedFileName = null;
-                                  _attachedFilePath = null;
                                 });
                               },
                               child: Icon(Icons.close, size: 16, color: colorScheme.primary),
@@ -575,7 +572,6 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
                                 _inputController.clear();
                                 setState(() {
                                   _attachedFileName = null;
-                                  _attachedFilePath = null;
                                 });
                               }
                             },
