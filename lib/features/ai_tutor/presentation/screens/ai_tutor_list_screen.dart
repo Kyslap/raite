@@ -183,7 +183,7 @@ class AiTutorListScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // General Nova AI Tutor Card (Always accessible!)
+            // General Lai AI Tutor Card (Always accessible!)
             InkWell(
               onTap: () {
                 context.push('/ai-tutor');
@@ -228,7 +228,7 @@ class AiTutorListScreen extends ConsumerWidget {
                           Row(
                             children: [
                               const Text(
-                                'Nova AI Tutor',
+                                'Lai AI Tutor',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,

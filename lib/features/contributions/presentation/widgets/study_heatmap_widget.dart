@@ -390,7 +390,7 @@ class _HeatmapGrid extends StatelessWidget {
                 _BreakdownItem(
                   icon: Icons.psychology_outlined,
                   title: '${day.tutorQueries} AI Tutor Inquiries',
-                  subtitle: 'Deep concept clarification with Nova AI',
+                  subtitle: 'Deep concept clarification with Lai AI',
                 ),
               if (day.focusMinutes > 0)
                 _BreakdownItem(

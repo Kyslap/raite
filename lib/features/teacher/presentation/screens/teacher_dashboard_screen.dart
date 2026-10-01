@@ -87,7 +87,7 @@ class TeacherDashboardScreen extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text(
-                                'Nova RAG Vector Index Ready',
+                                'Lai RAG Vector Index Ready',
                                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                               ),
                               const SizedBox(height: 2),
@@ -739,7 +739,7 @@ class TeacherDashboardScreen extends ConsumerWidget {
                         ),
                         const SizedBox(height: 4),
                         const Text(
-                          '7 students asked Nova AI multiple follow-up questions regarding "Vector Curl in Stokes Theorem". Recommended: Share supplementary review notes.',
+                          '7 students asked Lai AI multiple follow-up questions regarding "Vector Curl in Stokes Theorem". Recommended: Share supplementary review notes.',
                           style: TextStyle(
                             fontSize: 12,
                             color: Color(0xFFB91C1C),

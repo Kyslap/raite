@@ -30,9 +30,9 @@ Teachers have full control over course creation, material distribution, and clas
 - **Assignments & Announcements**: Students receive class-wide announcements, check upcoming assignment deadlines, and track submission statuses.
 - **In-App PDF Viewer**: Securely renders course documents and lecture slides directly within the app alongside the AI Tutor.
 
-### 4. AI Tutor (Nova) & RAG Knowledge Base
-Students can learn with **Nova**, a personalized AI tutor grounded directly in the teacher's uploaded course materials:
-- **Persistent Chat History**: All conversations with Nova are stored in the `ai_chat_logs` table, allowing students to resume study sessions across devices.
+### 4. AI Tutor (Lai) & RAG Knowledge Base
+Students can learn with **Lai**, a personalized AI tutor grounded directly in the teacher's uploaded course materials:
+- **Persistent Chat History**: All conversations with Lai are stored in the `ai_chat_logs` table, allowing students to resume study sessions across devices.
 - **RAG Edge Function (`process_document`)**:
   - Automatically splits uploaded documents into clean text chunks without noisy PDF artifacts.
   - Generates 768-dimensional vector embeddings using Google's **Gemini Embedding API** (`gemini-embedding-2` with Matryoshka Representation Learning).
@@ -57,7 +57,7 @@ An active-recall study suite that transforms static documents into interactive s
 
 ### 6. Interactive Daily Goals & Focus Timer
 - **Customizable Targets**: Students set daily study targets (e.g. 45 mins) and track progress via an animated retro circular indicator.
-- **Dynamic Task Checklist**: Auto-tracks course reading, Nova AI chats, assignment progress, and focused study intervals.
+- **Dynamic Task Checklist**: Auto-tracks course reading, Lai AI chats, assignment progress, and focused study intervals.
 - **Streak Protection**: Maintains daily learning streaks and rewards milestone achievements.
 - **Offline & Manual Logging**: Allows students to log offline reading or textbook study time.
 
@@ -75,7 +75,7 @@ Encourages daily learning consistency through visual accountability:
 - **Unified Activity Accounting**: Automatically records and increments daily points across:
   - Flashcard reviews
   - Quizzes completed
-  - Nova AI tutor inquiries
+  - Lai AI tutor inquiries
   - Focus timer minutes
   - Assignment submissions
 - **Interactive Day Inspector**: Tapping any square opens a detailed bottom sheet displaying the exact breakdown of study activities completed on that date.

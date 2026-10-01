@@ -312,7 +312,7 @@ class _TeacherCreateLessonScreenState
         ),
         content: Text(
           'Your lesson "$title" has been successfully posted to ${targetClass.title}${_attachments.isNotEmpty ? " with ${_attachments.length} attached learning material(s)" : ""}. '
-          'Enrolled students will now see it on their Class dashboard and can consult Nova AI for questions.',
+          'Enrolled students will now see it on their Class dashboard and can consult Lai AI for questions.',
         ),
         actions: [
           ElevatedButton(

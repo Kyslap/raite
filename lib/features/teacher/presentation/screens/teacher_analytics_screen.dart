@@ -92,7 +92,7 @@ class TeacherAnalyticsScreen extends ConsumerWidget {
 
             // AI Topic Inquiries Heatmap
             Text(
-              'Most Asked Topics to Nova AI',
+              'Most Asked Topics to Lai AI',
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: colorScheme.onSurface,
