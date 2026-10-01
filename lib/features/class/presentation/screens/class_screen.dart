@@ -1164,11 +1164,14 @@ class _ClassScreenState extends ConsumerState<ClassScreen>
                     onPressed: () {
                       context.push(
                         '/ai-tutor',
-                        extra: TopicModel(
-                          id: lesson.id,
-                          title: lesson.title,
-                          description: lesson.content,
-                        ),
+                        extra: {
+                          'topic': TopicModel(
+                            id: lesson.id,
+                            title: lesson.title,
+                            description: lesson.content,
+                          ),
+                          'showTopicContent': true,
+                        },
                       );
                     },
                     icon: const Icon(Icons.smart_toy, size: 14),

@@ -64,14 +64,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           String? pdfTitle;
           bool showTopicContent = false;
           
-          if (state.extra is TopicModel) {
-            topic = state.extra as TopicModel;
-          } else if (state.extra is Map<String, dynamic>) {
-            final map = state.extra as Map<String, dynamic>;
-            topic = map['topic'] as TopicModel?;
-            pdfUrl = map['pdfUrl'] as String?;
-            pdfTitle = map['pdfTitle'] as String?;
-            showTopicContent = map['showTopicContent'] as bool? ?? false;
+          final extra = state.extra;
+          if (extra is TopicModel) {
+            topic = extra;
+          } else if (extra is Map) {
+            topic = extra['topic'] as TopicModel?;
+            pdfUrl = extra['pdfUrl'] as String?;
+            pdfTitle = extra['pdfTitle'] as String?;
+            showTopicContent = extra['showTopicContent'] as bool? ?? false;
           }
           
           return AiTutorScreen(
