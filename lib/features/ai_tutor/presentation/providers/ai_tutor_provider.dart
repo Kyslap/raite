@@ -27,20 +27,32 @@ class ChatMessage {
 
 final aiTutorRepositoryProvider = Provider((ref) => AiTutorRepository());
 
-final chatMessagesProvider = NotifierProvider<ChatMessagesNotifier, List<ChatMessage>>(() {
+final chatMessagesProvider = NotifierProvider<ChatMessagesNotifier, Map<String, List<ChatMessage>>>(() {
   return ChatMessagesNotifier();
 });
 
-class ChatMessagesNotifier extends Notifier<List<ChatMessage>> {
+class ChatMessagesNotifier extends Notifier<Map<String, List<ChatMessage>>> {
   bool isStreaming = false;
 
   @override
-  List<ChatMessage> build() {
-    return [];
+  Map<String, List<ChatMessage>> build() {
+    return {};
   }
 
-  Future<void> sendMessage(String text, {required String tone, required String language, String? topicContext}) async {
+  List<ChatMessage> getMessages(String topicId) {
+    return state[topicId] ?? [];
+  }
+
+  Future<void> sendMessage({
+    required String topicId,
+    required String text, 
+    required String tone, 
+    required String language, 
+    String? topicContext
+  }) async {
     if (text.trim().isEmpty || isStreaming) return;
+    
+    final currentMessages = getMessages(topicId);
     
     // Add User message
     final userMsg = ChatMessage(
@@ -59,7 +71,11 @@ class ChatMessagesNotifier extends Notifier<List<ChatMessage>> {
       timestamp: DateTime.now(),
     );
 
-    state = [...state, userMsg, initialAiMsg];
+    // Update state for this topic
+    state = {
+      ...state,
+      topicId: [...currentMessages, userMsg, initialAiMsg]
+    };
     isStreaming = true;
 
     try {
@@ -75,17 +91,26 @@ class ChatMessagesNotifier extends Notifier<List<ChatMessage>> {
       await for (final chunk in stream) {
         accumulatedText += chunk;
         
+        final topicMessages = state[topicId] ?? [];
+        
         // Update the last message in the state
-        state = [
-          ...state.sublist(0, state.length - 1),
-          state.last.copyWith(text: accumulatedText),
-        ];
+        state = {
+          ...state,
+          topicId: [
+            ...topicMessages.sublist(0, topicMessages.length - 1),
+            topicMessages.last.copyWith(text: accumulatedText),
+          ]
+        };
       }
     } catch (e) {
-       state = [
-          ...state.sublist(0, state.length - 1),
-          state.last.copyWith(text: "Error connecting to AI Tutor: \n${e.toString()}"),
-       ];
+       final topicMessages = state[topicId] ?? [];
+       state = {
+          ...state,
+          topicId: [
+            ...topicMessages.sublist(0, topicMessages.length - 1),
+            topicMessages.last.copyWith(text: "Error connecting to AI Tutor: \n${e.toString()}"),
+          ]
+       };
     } finally {
       isStreaming = false;
     }

@@ -55,7 +55,8 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final messages = ref.watch(chatMessagesProvider);
+    final topicId = widget.initialTopic?.id ?? 'global';
+    final messages = ref.watch(chatMessagesProvider)[topicId] ?? [];
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -322,8 +323,10 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
                         onPressed: () {
                           final text = _inputController.text;
                           if (text.isNotEmpty) {
+                            final topicId = widget.initialTopic?.id ?? 'global';
                             ref.read(chatMessagesProvider.notifier).sendMessage(
-                                  text,
+                                  topicId: topicId,
+                                  text: text,
                                   tone: _selectedTone,
                                   language: _selectedLanguage,
                                   topicContext: widget.initialTopic?.title,
