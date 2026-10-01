@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -1055,22 +1056,54 @@ class _StepBreakdown extends StatelessWidget {
                     color: colorScheme.onSurfaceVariant,
                   ),
                 ),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainer,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    code,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.primary,
-                      fontFamily: 'monospace',
-                      fontWeight: FontWeight.bold,
+                if (code.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Theme(
+                    data: theme.copyWith(dividerColor: Colors.transparent),
+                    child: ExpansionTile(
+                      initiallyExpanded: false,
+                      tilePadding: const EdgeInsets.symmetric(horizontal: 12),
+                      collapsedBackgroundColor: colorScheme.surfaceContainer,
+                      backgroundColor: colorScheme.surfaceContainer,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      title: Text(
+                        'View Code',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                      trailing: IconButton(
+                        icon: Icon(Icons.copy, size: 16, color: colorScheme.primary),
+                        onPressed: () {
+                          Clipboard.setData(ClipboardData(text: code));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Code copied to clipboard', style: TextStyle(fontSize: 12))),
+                          );
+                        },
+                      ),
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: colorScheme.surfaceContainerHigh,
+                            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(8)),
+                          ),
+                          child: Text(
+                            code,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurface,
+                              fontFamily: 'monospace',
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
+                ],
               ],
             ),
           ),
