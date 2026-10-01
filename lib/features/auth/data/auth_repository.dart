@@ -91,5 +91,23 @@ class AuthRepository {
       await client.auth.signOut();
     }
   }
+
+  Future<UserModel?> getCurrentUser() async {
+    final client = _supabaseClient;
+    if (client != null) {
+      final user = client.auth.currentUser;
+      if (user != null) {
+        final meta = user.userMetadata ?? {};
+        final email = user.email ?? '';
+        final name = meta['name'] as String? ?? (email.contains('@') ? email.split('@').first : 'Scholar');
+        return UserModel(
+          id: user.id,
+          email: email,
+          name: name,
+        );
+      }
+    }
+    return null;
+  }
 }
 

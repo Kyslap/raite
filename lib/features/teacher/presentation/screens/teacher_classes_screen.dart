@@ -9,9 +9,11 @@ import 'package:raite/features/auth/presentation/providers/auth_provider.dart';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import '../../../ai_tutor/data/knowledge_base_repository.dart';
 import '../../../ai_tutor/presentation/providers/ai_tutor_provider.dart';
 import '../providers/teacher_lesson_provider.dart';
+import '../providers/teacher_insights_provider.dart';
 
 class TeacherClassesScreen extends ConsumerWidget {
   final Function(int)? onNavigateTab;
@@ -733,6 +735,8 @@ class TeacherClassesScreen extends ConsumerWidget {
                           ],
                         ),
                       ),
+                      const Divider(height: 1),
+                      _ClassInsightsCard(classId: cls.id),
                     ],
                   ),
                 );
@@ -820,6 +824,97 @@ class _ClassMaterialsList extends ConsumerWidget {
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+}
+
+class _ClassInsightsCard extends ConsumerWidget {
+  final String classId;
+  const _ClassInsightsCard({required this.classId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final insightsAsync = ref.watch(classInsightsProvider(classId));
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return insightsAsync.when(
+      data: (insights) {
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF0E1C2).withValues(alpha: 0.3), // Light warm tone
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: const Color(0xFFD8C4B6),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.insights, color: colorScheme.primary, size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    'AI Class Insights',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              MarkdownBody(
+                data: insights,
+                styleSheet: MarkdownStyleSheet(
+                  p: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurface,
+                    height: 1.5,
+                  ),
+                  strong: const TextStyle(fontWeight: FontWeight.bold),
+                  listBullet: TextStyle(color: colorScheme.primary),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Center(
+                child: TextButton.icon(
+                  onPressed: () {
+                    // Force a refresh of the insights
+                    ref.invalidate(classInsightsProvider(classId));
+                  },
+                  icon: const Icon(Icons.refresh, size: 16),
+                  label: const Text('Refresh Insights', style: TextStyle(fontSize: 12)),
+                  style: TextButton.styleFrom(
+                    foregroundColor: colorScheme.primary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+      loading: () => Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Center(
+          child: Column(
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              Text(
+                'Analyzing student questions...',
+                style: TextStyle(color: colorScheme.outline, fontSize: 12),
+              ),
+            ],
+          ),
+        ),
+      ),
+      error: (err, _) => Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Text('Failed to load insights: $err', style: TextStyle(color: colorScheme.error)),
+      ),
     );
   }
 }

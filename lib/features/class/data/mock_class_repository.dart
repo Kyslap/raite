@@ -35,6 +35,7 @@ class MockClassRepository {
               topics: [
                 TopicModel(
                   id: 't-${c['id']}',
+                  classId: c['id'].toString(),
                   title: 'Curriculum & Study Materials',
                   description: '${c['department'] ?? 'Course'} syllabus overview',
                 ),

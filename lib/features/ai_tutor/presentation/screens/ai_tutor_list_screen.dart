@@ -39,6 +39,7 @@ class AiTutorListScreen extends ConsumerWidget {
                     // We pass a mock TopicModel that represents the Class to start a chat about the whole class
                     final classTopic = TopicModel(
                       id: c.id,
+                      classId: c.id,
                       title: c.name,
                       description: 'General AI Tutor for ${c.name}',
                     );

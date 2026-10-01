@@ -87,6 +87,7 @@ class EnrolledClassesNotifier extends AsyncNotifier<List<ClassModel>> {
           topics = (lessonsRes as List)
               .map((l) => TopicModel(
                     id: l['id'].toString(),
+                    classId: classId,
                     title: l['title']?.toString() ?? 'Topic',
                     description: l['content']?.toString() ?? '',
                   ))
@@ -97,6 +98,7 @@ class EnrolledClassesNotifier extends AsyncNotifier<List<ClassModel>> {
           topics = [
             TopicModel(
               id: 'topic-$classId',
+              classId: classId,
               title: 'Introduction & Foundations',
               description: '${res['department'] ?? 'Course'} curriculum and syllabus',
             ),
@@ -149,6 +151,7 @@ class EnrolledClassesNotifier extends AsyncNotifier<List<ClassModel>> {
               ? classLessons
                   .map((l) => TopicModel(
                         id: l.id,
+                        classId: tc.id,
                         title: l.title,
                         description: l.content,
                       ))
@@ -156,6 +159,7 @@ class EnrolledClassesNotifier extends AsyncNotifier<List<ClassModel>> {
               : [
                   TopicModel(
                     id: 'topic-${DateTime.now().millisecondsSinceEpoch}',
+                    classId: tc.id,
                     title: 'Course Introduction & Fundamentals',
                     description: '${tc.department} core curriculum and syllabus overview',
                   ),

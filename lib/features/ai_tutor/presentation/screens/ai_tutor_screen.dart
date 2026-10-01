@@ -23,6 +23,19 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
   String _selectedTone = 'Academic';
   String _selectedLanguage = 'English';
 
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialTopic != null) {
+      Future.microtask(() {
+        ref.read(chatMessagesProvider.notifier).loadHistory(
+          widget.initialTopic!.id,
+          widget.initialTopic!.id,
+        );
+      });
+    }
+  }
+
   void _showSetupSheet() {
     showModalBottomSheet(
       context: context,
@@ -210,7 +223,7 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
                   const SizedBox(height: 24),
 
                   if (widget.initialTopic != null)
-                    _buildClassMaterials(widget.initialTopic!.id, colorScheme, theme),
+                    _buildClassMaterials(widget.initialTopic!.classId, colorScheme, theme),
 
                   // Suggested Prompts
                   Text(
@@ -329,13 +342,14 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
                           final text = _inputController.text;
                           if (text.isNotEmpty) {
                             final topicId = widget.initialTopic?.id ?? 'global';
+                            final classId = widget.initialTopic?.classId;
                             ref.read(chatMessagesProvider.notifier).sendMessage(
                                   topicId: topicId,
                                   text: text,
                                   tone: _selectedTone,
                                   language: _selectedLanguage,
                                   topicContext: widget.initialTopic?.title,
-                                  classId: topicId, // The topic ID is actually the class ID when launched from AiTutorListScreen
+                                  classId: classId, // Pass the actual class ID
                                 );
                             _inputController.clear();
                           }
@@ -484,12 +498,15 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
                               children: [
                                 Icon(Icons.insert_drive_file, size: 14, color: colorScheme.primary),
                                 const SizedBox(width: 6),
-                                Text(
-                                  m['title'] ?? 'Unknown File',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: colorScheme.primary,
+                                Flexible(
+                                  child: Text(
+                                    m['title'] ?? 'Unknown File',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: colorScheme.primary,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                                 const SizedBox(width: 4),
@@ -907,11 +924,13 @@ class _StepBreakdown extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Text(
-                title,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurface,
-                  fontWeight: FontWeight.bold,
+              Expanded(
+                child: Text(
+                  title,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurface,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],
@@ -929,18 +948,21 @@ class _StepBreakdown extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainer,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    code,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.primary,
-                      fontFamily: 'monospace',
-                      fontWeight: FontWeight.bold,
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainer,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      code,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.primary,
+                        fontFamily: 'monospace',
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),

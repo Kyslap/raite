@@ -19,6 +19,9 @@ Teachers have full control over course creation and content management.
   - Uses a **dual-upload architecture**. When a teacher uploads a `.pdf`, the client extracts the raw text. 
   - Both the original pristine `.pdf` (for human viewing) and the extracted `.txt` (for AI parsing) are uploaded to Supabase Storage.
   - Teachers have a dedicated section in their dashboard to view and download all their uploaded materials securely via Signed URLs.
+- **AI Class Insights**: 
+  - A dynamic dashboard widget that synthesizes real-time analytics for the teacher. 
+  - It pulls recent student chat logs from the `ai_chat_logs` table and uses Gemini to generate a warm, markdown-formatted report outlining common student questions, potential pain points, and actionable teaching tips.
 
 ### 3. Student Dashboard
 - **Class Enrollment**: Students can use a Class Join Code to enroll in a class, giving them access to its lessons and knowledge base.
@@ -27,6 +30,7 @@ Teachers have full control over course creation and content management.
 
 ### 4. AI Tutor (Nova) & RAG Knowledge Base
 The most advanced feature of the platform. Students can chat with "Nova", an AI tutor that knows exactly what the teacher uploaded.
+- **Persistent Chat History**: All conversations with Nova are securely saved to the `ai_chat_logs` table (including the user's prompt and AI's response), allowing students to pick up their study sessions right where they left off.
 - **Edge Function (Backend Processing)**: 
   - When a teacher uploads a document, a Supabase Edge Function (`process_document`) is triggered.
   - It fetches the text from the `raw_text_url` if available (falling back to `file_url`) to cleanly split the text into chunks without messy PDF metadata.

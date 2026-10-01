@@ -56,6 +56,54 @@ class ChatMessagesNotifier extends Notifier<Map<String, List<ChatMessage>>> {
     return state[topicId] ?? [];
   }
 
+  Future<void> loadHistory(String classId, String topicId) async {
+    if (state[topicId] != null && state[topicId]!.isNotEmpty) return;
+    
+    final supabase = Supabase.instance.client;
+    final userId = supabase.auth.currentUser?.id;
+    if (userId == null) return;
+
+    try {
+      final logs = await supabase
+          .from('ai_chat_logs')
+          .select()
+          .eq('class_id', classId)
+          .eq('student_id', userId)
+          .order('created_at', ascending: true);
+
+      List<ChatMessage> history = [];
+      for (final log in logs) {
+        final prompt = log['prompt'] as String?;
+        final response = log['response'] as String?;
+        final createdAt = DateTime.parse(log['created_at'].toString());
+        
+        if (prompt != null && prompt.isNotEmpty) {
+          history.add(ChatMessage(
+            id: 'u-${log['id']}',
+            isUser: true,
+            text: prompt,
+            timestamp: createdAt,
+          ));
+        }
+        if (response != null && response.isNotEmpty) {
+          history.add(ChatMessage(
+            id: 'a-${log['id']}',
+            isUser: false,
+            text: response,
+            timestamp: createdAt,
+          ));
+        }
+      }
+      
+      state = {
+        ...state,
+        topicId: history,
+      };
+    } catch (e) {
+      print('Failed to load chat history: $e');
+    }
+  }
+
   Future<void> sendMessage({
     required String topicId,
     required String text, 
@@ -117,6 +165,23 @@ class ChatMessagesNotifier extends Notifier<Map<String, List<ChatMessage>>> {
           ]
         };
       }
+      
+      // Save to Supabase
+      if (classId != null) {
+        final supabase = Supabase.instance.client;
+        final userId = supabase.auth.currentUser?.id;
+        if (userId != null) {
+          await supabase.from('ai_chat_logs').insert({
+            'class_id': classId,
+            'student_id': userId,
+            'prompt': text,
+            'response': accumulatedText,
+          }).catchError((e) {
+            print('Failed to log chat: $e');
+          });
+        }
+      }
+      
     } catch (e) {
        final topicMessages = state[topicId] ?? [];
        state = {
