@@ -12,6 +12,7 @@ import '../../../teacher/domain/lesson_model.dart';
 import '../../../teacher/presentation/providers/teacher_class_hub_provider.dart';
 import '../../../teacher/presentation/providers/teacher_lesson_provider.dart';
 import 'package:raite/core/theme/widgets/retro_top_bar.dart';
+import 'package:raite/features/daily_goals/presentation/providers/daily_goals_provider.dart';
 
 class ClassScreen extends ConsumerStatefulWidget {
   final String? classId;
@@ -1161,6 +1162,7 @@ class _ClassScreenState extends ConsumerState<ClassScreen>
                   ),
                   ElevatedButton.icon(
                     onPressed: () {
+                      ref.read(dailyGoalsProvider.notifier).recordLessonStudied(lesson.title);
                       context.push(
                         '/ai-tutor',
                         extra: {
@@ -1215,6 +1217,7 @@ class _ClassScreenState extends ConsumerState<ClassScreen>
                     final isPdf = att.fileType.toLowerCase().contains('pdf');
                     return InkWell(
                       onTap: () {
+                        ref.read(dailyGoalsProvider.notifier).recordLessonStudied(lesson.title);
                         context.push('/ai-tutor', extra: {
                           'topic': TopicModel(
                             id: lesson.id,
@@ -1608,6 +1611,7 @@ class _ClassScreenState extends ConsumerState<ClassScreen>
                             note: noteController.text.trim(),
                             attachedFileName: selectedDemoFile ?? 'Solution_Submission.pdf',
                           );
+                      ref.read(dailyGoalsProvider.notifier).recordAssignmentWorked(assignment.title);
 
                       Navigator.pop(ctx);
                       ScaffoldMessenger.of(context).showSnackBar(

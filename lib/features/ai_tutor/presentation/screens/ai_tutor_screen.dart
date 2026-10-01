@@ -10,6 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import '../../../../features/class/domain/topic_model.dart';
 import '../providers/ai_tutor_provider.dart';
+import 'package:raite/features/daily_goals/presentation/providers/daily_goals_provider.dart';
 
 class AiTutorScreen extends ConsumerStatefulWidget {
   final TopicModel? initialTopic;
@@ -561,6 +562,7 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
                                       topicContext: widget.initialTopic?.title,
                                       classId: topicId,
                                     );
+                                ref.read(dailyGoalsProvider.notifier).recordAiTutorInteraction();
                                 _inputController.clear();
                                 setState(() {
                                   _attachedFileName = null;

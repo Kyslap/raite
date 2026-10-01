@@ -8,6 +8,8 @@ import 'package:raite/features/class/presentation/providers/class_provider.dart'
 import 'package:raite/features/class/presentation/providers/student_class_hub_provider.dart';
 import 'package:raite/features/teacher/presentation/providers/teacher_class_hub_provider.dart';
 import 'package:raite/core/theme/widgets/retro_top_bar.dart';
+import 'package:raite/features/daily_goals/presentation/providers/daily_goals_provider.dart';
+import 'package:raite/features/daily_goals/presentation/widgets/daily_goals_sheet.dart';
 
 class MetricsScreen extends ConsumerWidget {
   const MetricsScreen({super.key});
@@ -358,6 +360,7 @@ class MetricsScreen extends ConsumerWidget {
     final colorScheme = theme.colorScheme;
     final authUser = ref.watch(authStateProvider).value;
     final displayName = authUser?.name ?? 'Student';
+    final dailyGoal = ref.watch(dailyGoalsProvider);
 
     // Watch dynamic live enrolled classes & submissions
     final enrolledClassesAsync = ref.watch(enrolledClassesProvider);
@@ -445,17 +448,17 @@ class MetricsScreen extends ConsumerWidget {
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.baseline,
                           textBaseline: TextBaseline.alphabetic,
-                          children: const [
+                          children: [
                             Text(
-                              '3',
-                              style: TextStyle(
+                              '${dailyGoal.streakDays}',
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 36,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            SizedBox(width: 8),
-                            Text(
+                            const SizedBox(width: 8),
+                            const Text(
                               'days straight!',
                               style: TextStyle(
                                 color: Colors.white,
@@ -466,9 +469,11 @@ class MetricsScreen extends ConsumerWidget {
                           ],
                         ),
                         const SizedBox(height: 6),
-                        const Text(
-                          'You are actively retaining knowledge. Complete 1 more topic today to maintain momentum!',
-                          style: TextStyle(
+                        Text(
+                          dailyGoal.isGoalMet
+                              ? '🎉 Daily goal met (${dailyGoal.completedMinutes}m)! Tap streak badge to view goals.'
+                              : '${dailyGoal.completedMinutes}/${dailyGoal.targetMinutes} mins completed today. Tap streak badge to view daily goals.',
+                          style: const TextStyle(
                             color: Colors.white70,
                             fontSize: 12,
                             height: 1.4,
@@ -823,8 +828,8 @@ class MetricsScreen extends ConsumerWidget {
                     icon: Icons.local_fire_department,
                     iconColor: const Color(0xFFF97316),
                     iconBg: const Color(0xFFF97316).withValues(alpha: 0.15),
-                    title: '3-Day Streak',
-                    subtitle: 'Continuous study habit',
+                    title: '${dailyGoal.streakDays}-Day Streak',
+                    subtitle: '${dailyGoal.completedMinutes}/${dailyGoal.targetMinutes}m goal',
                     isUnlocked: true,
                     colorScheme: colorScheme,
                     theme: theme,

@@ -7,6 +7,8 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../../core/theme/widgets/retro_top_bar.dart';
 import 'package:raite/features/class/presentation/providers/class_provider.dart';
 import 'package:raite/features/teacher/presentation/providers/teacher_class_hub_provider.dart';
+import 'package:raite/features/daily_goals/presentation/providers/daily_goals_provider.dart';
+import 'package:raite/features/daily_goals/presentation/widgets/daily_goals_sheet.dart';
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -17,6 +19,7 @@ class HomeScreen extends ConsumerWidget {
 
     // Current user data
     final authUser = ref.watch(authStateProvider).value;
+    final dailyGoal = ref.watch(dailyGoalsProvider);
     final supabaseUser = Supabase.instance.client.auth.currentUser;
     final displayName = authUser?.name ??
         (supabaseUser?.userMetadata?['name'] as String?) ??
@@ -64,132 +67,165 @@ class HomeScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainer,
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: colorScheme.onSurface.withValues(alpha: 0.05),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.local_fire_department, size: 20, color: colorScheme.tertiary),
-                        const SizedBox(width: 6),
-                        Text(
-                          '14 Days',
-                          style: theme.textTheme.labelLarge?.copyWith(
-                            color: colorScheme.onSurface,
-                            fontWeight: FontWeight.bold,
+                  GestureDetector(
+                    onTap: () => DailyGoalsSheet.show(context),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: colorScheme.surfaceContainer,
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: colorScheme.onSurface.withValues(alpha: 0.05),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.local_fire_department, size: 20, color: Color(0xFFF97316)),
+                          const SizedBox(width: 6),
+                          Text(
+                            '${dailyGoal.streakDays} Days',
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              color: colorScheme.onSurface,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 24),
 
-              // Daily Learning Streak Card
-              Container(
-                clipBehavior: Clip.antiAlias,
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: colorScheme.onSurface.withValues(alpha: 0.05),
-                      blurRadius: 16,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Stack(
-                  children: [
-                    Positioned(
-                      right: -30,
-                      bottom: -30,
-                      child: Container(
-                        width: 120,
-                        height: 120,
-                        decoration: BoxDecoration(
-                          color: colorScheme.primary.withValues(alpha: 0.2),
-                          shape: BoxShape.circle,
+              // Daily Learning Streak Card (Interactive)
+              GestureDetector(
+                onTap: () => DailyGoalsSheet.show(context),
+                child: Container(
+                  clipBehavior: Clip.antiAlias,
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: colorScheme.onSurface.withValues(alpha: 0.05),
+                        blurRadius: 16,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Stack(
+                    children: [
+                      Positioned(
+                        right: -30,
+                        bottom: -30,
+                        child: Container(
+                          width: 120,
+                          height: 120,
+                          decoration: BoxDecoration(
+                            color: colorScheme.primary.withValues(alpha: 0.2),
+                            shape: BoxShape.circle,
+                          ),
                         ),
                       ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'DAILY GOAL PROGRESS',
-                                  style: theme.textTheme.labelMedium?.copyWith(
-                                    color: colorScheme.onPrimaryContainer,
-                                    letterSpacing: 1.0,
-                                    fontWeight: FontWeight.bold,
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(
+                                        'DAILY GOAL PROGRESS',
+                                        style: theme.textTheme.labelMedium?.copyWith(
+                                          color: colorScheme.onPrimaryContainer,
+                                          letterSpacing: 1.0,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withValues(alpha: 0.25),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Text(
+                                          '${dailyGoal.completedTasksCount}/${dailyGoal.tasks.length} Done',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                            color: colorScheme.onPrimaryContainer,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '45 / 60 mins',
-                                  style: theme.textTheme.headlineSmall?.copyWith(
-                                    color: colorScheme.onPrimaryContainer,
-                                    fontWeight: FontWeight.bold,
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '${dailyGoal.completedMinutes} / ${dailyGoal.targetMinutes} mins',
+                                    style: theme.textTheme.headlineSmall?.copyWith(
+                                      color: colorScheme.onPrimaryContainer,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                            Icon(Icons.military_tech, size: 36, color: colorScheme.onPrimaryContainer),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        LinearProgressIndicator(
-                          value: 0.75,
-                          backgroundColor: colorScheme.primary.withValues(alpha: 0.3),
-                          color: colorScheme.secondaryContainer,
-                          minHeight: 12,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              '15 mins left to maintain streak',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onPrimaryContainer,
+                                ],
                               ),
+                              Icon(
+                                dailyGoal.isGoalMet ? Icons.verified : Icons.military_tech,
+                                size: 36,
+                                color: dailyGoal.isGoalMet ? const Color(0xFF4ADE80) : colorScheme.onPrimaryContainer,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(6),
+                            child: LinearProgressIndicator(
+                              value: dailyGoal.progress,
+                              backgroundColor: colorScheme.primary.withValues(alpha: 0.3),
+                              color: dailyGoal.isGoalMet ? const Color(0xFF4ADE80) : colorScheme.secondaryContainer,
+                              minHeight: 12,
                             ),
-                            InkWell(
-                              onTap: () {
-                                ref.read(studentBottomNavIndexProvider.notifier).setIndex(2);
-                              },
-                              child: Text(
-                                'Resume Session',
-                                style: theme.textTheme.labelLarge?.copyWith(
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                dailyGoal.isGoalMet
+                                    ? '🎉 Goal achieved! Streak protected'
+                                    : '${dailyGoal.minutesLeft} mins left to maintain streak',
+                                style: theme.textTheme.bodySmall?.copyWith(
                                   color: colorScheme.onPrimaryContainer,
-                                  fontWeight: FontWeight.bold,
-                                  decoration: TextDecoration.underline,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
+                              InkWell(
+                                onTap: () => DailyGoalsSheet.show(context),
+                                child: Text(
+                                  dailyGoal.isGoalMet ? 'View Goals' : 'Resume Session',
+                                  style: theme.textTheme.labelLarge?.copyWith(
+                                    color: colorScheme.onPrimaryContainer,
+                                    fontWeight: FontWeight.bold,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 24),

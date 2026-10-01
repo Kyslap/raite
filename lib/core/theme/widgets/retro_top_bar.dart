@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:raite/main.dart';
-import '../../../features/auth/presentation/providers/auth_provider.dart';
-import '../../../features/teacher/presentation/providers/teacher_class_hub_provider.dart';
+import 'package:raite/features/auth/presentation/providers/auth_provider.dart';
+import 'package:raite/features/teacher/presentation/providers/teacher_class_hub_provider.dart';
+import 'package:raite/features/daily_goals/presentation/providers/daily_goals_provider.dart';
+import 'package:raite/features/daily_goals/presentation/widgets/daily_goals_sheet.dart';
+import 'package:raite/features/daily_goals/presentation/widgets/study_timer_dialog.dart';
 
 /// Unified Retro Top Bar for the student experience across all screens.
 /// Features academic title branding, live flame streak counter, notifications badge,
@@ -225,60 +228,89 @@ class RetroTopAppBar extends ConsumerWidget implements PreferredSizeWidget {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF97316).withValues(alpha: 0.15),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.local_fire_department_rounded,
-                color: Color(0xFFF97316),
-                size: 44,
-              ),
+      builder: (ctx) => Consumer(
+        builder: (ctx, ref, _) {
+          final goal = ref.watch(dailyGoalsProvider);
+          return Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             ),
-            const SizedBox(height: 16),
-            Text(
-              '3-Day Learning Streak! 🔥',
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: colorScheme.onSurface,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'You have consistently engaged with your coursework for 3 consecutive days. Complete 15 minutes of study today to extend your streak!',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-                height: 1.4,
-              ),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(ctx),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: colorScheme.primary,
-                  foregroundColor: colorScheme.onPrimary,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF97316).withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.local_fire_department_rounded,
+                    color: Color(0xFFF97316),
+                    size: 44,
+                  ),
                 ),
-                child: const Text('Keep Learning', style: TextStyle(fontWeight: FontWeight.bold)),
-              ),
+                const SizedBox(height: 16),
+                Text(
+                  '${goal.streakDays}-Day Learning Streak! 🔥',
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  goal.isGoalMet
+                      ? 'Incredible dedication! You reached today\'s goal of ${goal.targetMinutes} minutes. Your learning streak is protected!'
+                      : 'You have actively studied for ${goal.streakDays} consecutive days. Complete ${goal.minutesLeft} minutes more today to protect your streak!',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          StudyTimerDialog.show(context);
+                        },
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: colorScheme.primary,
+                          side: BorderSide(color: colorScheme.primary.withValues(alpha: 0.5)),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                        child: const Text('Focus Timer', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          DailyGoalsSheet.show(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: colorScheme.primary,
+                          foregroundColor: colorScheme.onPrimary,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                        child: const Text('Daily Goals', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -292,6 +324,7 @@ class RetroTopAppBar extends ConsumerWidget implements PreferredSizeWidget {
 
     final announcements = ref.watch(classAnnouncementsProvider);
     final assignments = ref.watch(classAssignmentsProvider);
+    final dailyGoal = ref.watch(dailyGoalsProvider);
     final hasUnreadAlerts = announcements.isNotEmpty || assignments.isNotEmpty;
 
     return AppBar(
@@ -340,7 +373,7 @@ class RetroTopAppBar extends ConsumerWidget implements PreferredSizeWidget {
           Padding(
             padding: const EdgeInsets.only(right: 6.0),
             child: InkWell(
-              onTap: () => showStreakSheet(context),
+              onTap: () => DailyGoalsSheet.show(context),
               borderRadius: BorderRadius.circular(20),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -351,18 +384,18 @@ class RetroTopAppBar extends ConsumerWidget implements PreferredSizeWidget {
                     color: const Color(0xFFF97316).withValues(alpha: 0.3),
                   ),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.local_fire_department_rounded,
                       color: Color(0xFFF97316),
                       size: 16,
                     ),
-                    SizedBox(width: 4),
+                    const SizedBox(width: 4),
                     Text(
-                      '3 Days',
-                      style: TextStyle(
+                      '${dailyGoal.streakDays} Days',
+                      style: const TextStyle(
                         color: Color(0xFFC2410C),
                         fontWeight: FontWeight.bold,
                         fontSize: 11,
