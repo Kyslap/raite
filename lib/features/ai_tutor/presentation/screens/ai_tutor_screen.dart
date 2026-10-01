@@ -40,12 +40,12 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
 
   Future<void> _pickAttachment() async {
     try {
-      final result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf', 'png', 'jpg', 'jpeg', 'txt', 'md'],
       );
-      if (result != null && result.files.isNotEmpty && result.files.first.path != null) {
-        final file = result.files.first;
+      if (result.isNotEmpty && result.first.path != null) {
+        final file = result.first;
         final isPdf = file.extension?.toLowerCase() == 'pdf';
         setState(() {
           _attachedFileName = file.name;

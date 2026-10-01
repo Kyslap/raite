@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:raite/main.dart';
-import '../../auth/presentation/providers/auth_provider.dart';
-import '../../class/domain/class_model.dart';
-import '../../class/presentation/providers/class_provider.dart';
-import '../../class/presentation/providers/student_class_hub_provider.dart';
-import '../../teacher/presentation/providers/teacher_class_hub_provider.dart';
+import 'package:raite/features/auth/presentation/providers/auth_provider.dart';
+import 'package:raite/features/class/domain/class_model.dart';
+import 'package:raite/features/class/presentation/providers/class_provider.dart';
+import 'package:raite/features/class/presentation/providers/student_class_hub_provider.dart';
+import 'package:raite/features/teacher/presentation/providers/teacher_class_hub_provider.dart';
+import 'package:raite/core/theme/widgets/retro_top_bar.dart';
 
 class MetricsScreen extends ConsumerWidget {
   const MetricsScreen({super.key});
@@ -379,57 +380,12 @@ class MetricsScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'STUDY METRICS',
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: colorScheme.secondary,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.5,
-              ),
-            ),
-            Text(
-              'Learning Analytics',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: colorScheme.onSurface,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.notifications_none_outlined, color: colorScheme.onSurface),
-            tooltip: 'Notifications',
-            onPressed: () => _showNotificationsSheet(context, ref),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0, left: 4.0),
-            child: InkWell(
-              onTap: () {
-                ref.read(studentBottomNavIndexProvider.notifier).setIndex(4);
-              },
-              borderRadius: BorderRadius.circular(16),
-              child: CircleAvatar(
-                radius: 16,
-                backgroundColor: colorScheme.primary,
-                child: Text(
-                  displayName.isNotEmpty ? displayName[0].toUpperCase() : 'S',
-                  style: TextStyle(
-                    color: colorScheme.onPrimary,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
+      appBar: const RetroTopAppBar(
+        subtitle: 'Study Metrics',
+        title: 'Learning Analytics',
+        showStreak: true,
+        showNotifications: true,
+        showProfileAvatar: true,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),

@@ -11,6 +11,7 @@ import '../../../teacher/domain/assignment_model.dart';
 import '../../../teacher/domain/lesson_model.dart';
 import '../../../teacher/presentation/providers/teacher_class_hub_provider.dart';
 import '../../../teacher/presentation/providers/teacher_lesson_provider.dart';
+import 'package:raite/core/theme/widgets/retro_top_bar.dart';
 
 class ClassScreen extends ConsumerStatefulWidget {
   final String? classId;
@@ -92,11 +93,10 @@ class _ClassScreenState extends ConsumerState<ClassScreen>
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        backgroundColor: colorScheme.surface,
-        elevation: 0,
+      appBar: RetroTopAppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new, color: colorScheme.onSurface, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new, color: colorScheme.onSurface, size: 18),
+          tooltip: 'Back',
           onPressed: () {
             if (widget.classId != null && context.canPop()) {
               context.pop();
@@ -105,7 +105,7 @@ class _ClassScreenState extends ConsumerState<ClassScreen>
             }
           },
         ),
-        title: enrolledList.length > 1
+        titleWidget: enrolledList.length > 1
             ? DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
                   value: enrolledList.any((c) => c.id == currentClass!.id)
@@ -144,21 +144,16 @@ class _ClassScreenState extends ConsumerState<ClassScreen>
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
-        actions: [
+        customActions: [
           IconButton(
             icon: Icon(Icons.add_circle_outline, color: colorScheme.primary),
             tooltip: 'Join Another Class with Code',
             onPressed: () => _showJoinClassDialog(context),
           ),
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0, left: 4.0),
-            child: CircleAvatar(
-              radius: 16,
-              backgroundColor: colorScheme.primary,
-              child: Icon(Icons.person, size: 18, color: colorScheme.onPrimary),
-            ),
-          ),
         ],
+        showStreak: true,
+        showNotifications: true,
+        showProfileAvatar: true,
       ),
       body: SafeArea(
         child: Column(

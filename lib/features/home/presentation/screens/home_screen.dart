@@ -4,8 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../main.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
-import '../../../teacher/presentation/providers/teacher_class_hub_provider.dart';
+import '../../../../core/theme/widgets/retro_top_bar.dart';
 import 'package:raite/features/class/presentation/providers/class_provider.dart';
+import 'package:raite/features/teacher/presentation/providers/teacher_class_hub_provider.dart';
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -24,44 +25,12 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        backgroundColor: colorScheme.surface.withValues(alpha: 0.8),
-        elevation: 0,
-        title: Text(
-          'Home',
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: colorScheme.onSurface,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.notifications_none, color: colorScheme.onSurfaceVariant),
-            tooltip: 'Notifications',
-            onPressed: () => _showNotificationsSheet(context, ref),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0, left: 8.0),
-            child: InkWell(
-              onTap: () {
-                ref.read(studentBottomNavIndexProvider.notifier).setIndex(4);
-              },
-              borderRadius: BorderRadius.circular(16),
-              child: CircleAvatar(
-                radius: 16,
-                backgroundColor: colorScheme.primary,
-                child: Text(
-                  displayName.isNotEmpty ? displayName[0].toUpperCase() : 'S',
-                  style: TextStyle(
-                    color: colorScheme.onPrimary,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
+      appBar: const RetroTopAppBar(
+        subtitle: 'Study Desk',
+        title: 'Dashboard',
+        showStreak: true,
+        showNotifications: true,
+        showProfileAvatar: true,
       ),
       body: SafeArea(
         child: SingleChildScrollView(

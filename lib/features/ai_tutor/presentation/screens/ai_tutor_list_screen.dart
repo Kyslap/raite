@@ -5,6 +5,7 @@ import 'package:raite/main.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../class/presentation/providers/class_provider.dart';
 import '../../../class/domain/topic_model.dart';
+import '../../../../core/theme/widgets/retro_top_bar.dart';
 
 class AiTutorListScreen extends ConsumerWidget {
   const AiTutorListScreen({super.key});
@@ -174,52 +175,12 @@ class AiTutorListScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'STUDY DESK',
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: colorScheme.secondary,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.5,
-              ),
-            ),
-            Text(
-              'AI Study Tutors',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: colorScheme.onSurface,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0, left: 4.0),
-            child: InkWell(
-              onTap: () {
-                ref.read(studentBottomNavIndexProvider.notifier).setIndex(4);
-              },
-              borderRadius: BorderRadius.circular(16),
-              child: CircleAvatar(
-                radius: 16,
-                backgroundColor: colorScheme.primary,
-                child: Text(
-                  displayName.isNotEmpty ? displayName[0].toUpperCase() : 'S',
-                  style: TextStyle(
-                    color: colorScheme.onPrimary,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
+      appBar: const RetroTopAppBar(
+        subtitle: 'Study Desk',
+        title: 'AI Study Tutors',
+        showStreak: true,
+        showNotifications: true,
+        showProfileAvatar: true,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),

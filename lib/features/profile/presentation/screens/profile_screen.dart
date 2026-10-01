@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../class/presentation/providers/class_provider.dart';
 import '../../../class/presentation/providers/student_class_hub_provider.dart';
+import '../../../../core/theme/widgets/retro_top_bar.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -262,36 +263,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text(
-          'STUDENT PROFILE',
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.2,
-            color: colorScheme.onSurface,
-          ),
-        ),
-        actions: [
-          // Quick Switch to Teacher Demo View
-          TextButton.icon(
-            onPressed: () {
-              context.go('/teacher');
-            },
-            icon: const Icon(Icons.swap_horiz, size: 16),
-            label: const Text('Teacher View', style: TextStyle(fontSize: 12)),
-            style: TextButton.styleFrom(
-              foregroundColor: colorScheme.primary,
-            ),
-          ),
-          IconButton(
-            icon: Icon(Icons.logout, color: colorScheme.error, size: 20),
-            tooltip: 'Sign Out',
-            onPressed: () => _showLogoutDialog(context),
-          ),
-          const SizedBox(width: 8),
-        ],
+      appBar: const RetroTopAppBar(
+        subtitle: 'Student Account',
+        title: 'Scholar Profile',
+        showStreak: true,
+        showNotifications: true,
+        showProfileAvatar: false,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -600,9 +577,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 color: colorScheme.surfaceContainerLow,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
-              ),
-              child: Column(
-                children: [
+              clipBehavior: Clip.antiAlias,
+              child: Material(
+                color: Colors.transparent,
+                child: Column(
+                  children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -676,6 +655,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ],
               ),
             ),
+          ),
             const SizedBox(height: 24),
 
             // 5. Account Settings & Sign Out
@@ -694,24 +674,28 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
               ),
-              child: Column(
-                children: [
-                  ListTile(
-                    leading: Icon(Icons.school, color: colorScheme.primary),
-                    title: const Text('Switch to Teacher Portal', style: TextStyle(fontWeight: FontWeight.w600)),
-                    subtitle: const Text('Hackathon Demo Switcher', style: TextStyle(fontSize: 11)),
-                    trailing: const Icon(Icons.chevron_right, size: 18),
-                    onTap: () => context.go('/teacher'),
-                  ),
-                  const Divider(height: 1),
-                  ListTile(
-                    leading: Icon(Icons.logout_rounded, color: colorScheme.error),
-                    title: Text('Sign Out', style: TextStyle(color: colorScheme.error, fontWeight: FontWeight.w600)),
-                    subtitle: const Text('Log out of this device', style: TextStyle(fontSize: 11)),
-                    trailing: Icon(Icons.chevron_right, size: 18, color: colorScheme.error),
-                    onTap: () => _showLogoutDialog(context),
-                  ),
-                ],
+              clipBehavior: Clip.antiAlias,
+              child: Material(
+                color: Colors.transparent,
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: Icon(Icons.school, color: colorScheme.primary),
+                      title: const Text('Switch to Teacher Portal', style: TextStyle(fontWeight: FontWeight.w600)),
+                      subtitle: const Text('Hackathon Demo Switcher', style: TextStyle(fontSize: 11)),
+                      trailing: const Icon(Icons.chevron_right, size: 18),
+                      onTap: () => context.go('/teacher'),
+                    ),
+                    const Divider(height: 1),
+                    ListTile(
+                      leading: Icon(Icons.logout_rounded, color: colorScheme.error),
+                      title: Text('Sign Out', style: TextStyle(color: colorScheme.error, fontWeight: FontWeight.w600)),
+                      subtitle: const Text('Log out of this device', style: TextStyle(fontSize: 11)),
+                      trailing: Icon(Icons.chevron_right, size: 18, color: colorScheme.error),
+                      onTap: () => _showLogoutDialog(context),
+                    ),
+                  ],
+                ),
               ),
             ),
 
