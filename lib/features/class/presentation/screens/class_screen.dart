@@ -69,13 +69,13 @@ class _ClassScreenState extends ConsumerState<ClassScreen>
           topics: [],
         ),
       );
-    } else if (enrolledList.isNotEmpty) {
-      currentClass = enrolledList.first;
-      _selectedClassId = currentClass.id;
     }
 
     if (currentClass == null) {
-      return _buildNoClassScreen(context, colorScheme, theme);
+      if (enrolledList.isEmpty) {
+        return _buildNoClassScreen(context, colorScheme, theme);
+      }
+      return _buildClassesListScreen(context, enrolledList, colorScheme, theme);
     }
 
     // Class specific data from teacher providers
@@ -95,12 +95,16 @@ class _ClassScreenState extends ConsumerState<ClassScreen>
       appBar: AppBar(
         backgroundColor: colorScheme.surface,
         elevation: 0,
-        leading: context.canPop()
-            ? IconButton(
-                icon: Icon(Icons.arrow_back_ios_new, color: colorScheme.onSurface, size: 20),
-                onPressed: () => context.pop(),
-              )
-            : null,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new, color: colorScheme.onSurface, size: 20),
+          onPressed: () {
+            if (widget.classId != null && context.canPop()) {
+              context.pop();
+            } else {
+              setState(() => _selectedClassId = null);
+            }
+          },
+        ),
         title: enrolledList.length > 1
             ? DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
@@ -1739,6 +1743,230 @@ class _ClassScreenState extends ConsumerState<ClassScreen>
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  // List of enrolled classes view for student
+  Widget _buildClassesListScreen(
+    BuildContext context,
+    List<ClassModel> enrolledList,
+    ColorScheme colorScheme,
+    ThemeData theme,
+  ) {
+    return Scaffold(
+      backgroundColor: colorScheme.surface,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: Text(
+          'Enrolled Classes',
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.5,
+            color: colorScheme.onSurface,
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.key_rounded, color: colorScheme.primary),
+            tooltip: 'Join Class with Code',
+            onPressed: () => _showJoinClassDialog(context),
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
+      body: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        children: [
+          // Header info banner
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: colorScheme.primaryContainer.withValues(alpha: 0.25),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: colorScheme.primary.withValues(alpha: 0.15)),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.school, size: 20, color: colorScheme.primary),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'You are enrolled in ${enrolledList.length} ${enrolledList.length == 1 ? "course" : "courses"}. Tap any class to enter its hub.',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurface,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // List of classes
+          ...enrolledList.map((cls) {
+            final classLessons = ref.watch(teacherLessonsProvider).where((l) => l.classId == cls.id).toList();
+            final classAssignments = ref.watch(classAssignmentsProvider).where((a) => a.classId == cls.id).toList();
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: InkWell(
+                onTap: () {
+                  setState(() {
+                    _selectedClassId = cls.id;
+                  });
+                },
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: colorScheme.primary.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: colorScheme.surfaceContainerHigh,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(Icons.school_outlined, color: colorScheme.primary, size: 26),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        cls.name,
+                                        style: theme.textTheme.titleMedium?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: colorScheme.onSurface,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: colorScheme.primaryContainer,
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        cls.courseCode,
+                                        style: theme.textTheme.labelSmall?.copyWith(
+                                          color: colorScheme.onPrimaryContainer,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  cls.professor,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      // Progress bar
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(4),
+                              child: LinearProgressIndicator(
+                                value: cls.progress.clamp(0.0, 1.0),
+                                backgroundColor: colorScheme.surfaceContainerHighest,
+                                valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
+                                minHeight: 6,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            '${(cls.progress * 100).toInt()}%',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      const Divider(height: 1),
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.folder_open, size: 14, color: colorScheme.outline),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${classLessons.isNotEmpty ? classLessons.length : cls.topics.length} Materials',
+                                style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+                              ),
+                              const SizedBox(width: 12),
+                              Icon(Icons.assignment_outlined, size: 14, color: colorScheme.outline),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${classAssignments.length} Assignments',
+                                style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              Text(
+                                'Enter Hub',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                              const SizedBox(width: 2),
+                              Icon(Icons.chevron_right, size: 16, color: colorScheme.primary),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }),
+        ],
       ),
     );
   }
