@@ -1,57 +1,105 @@
 # Smart Learning Platform Hub (Raite)
 
-Raite is a feature-rich, intelligent learning platform designed for both teachers and students. It features a custom retro-inspired design system and integrates Google's Gemini models for AI tutoring and Retrieval-Augmented Generation (RAG).
+Raite is a feature-rich, intelligent learning platform designed for both teachers and students. It features a custom retro-inspired design system and integrates Google's Gemini models for AI tutoring, Retrieval-Augmented Generation (RAG), multimodal OCR study generation, cohort habit intelligence, and GitHub-style learning activity tracking.
 
-## 🚀 Features & Internal Architecture
+---
+
+## 🚀 Features & Architecture
 
 ### 1. Authentication & Role Management
 - **Overview**: Users can sign up, log in, and log out as either a **Teacher** or a **Student**. 
 - **Internal Flow**: 
   - Powered by **Supabase Auth**. User sessions and roles are tracked using a custom `UserModel`.
-  - **Instant Demo**: An option on the login screen allows bypassing standard auth to instantly view the app's UI (Note: API functions that require Row Level Security will not work in demo mode).
-  - **State Management**: `auth_provider.dart` (Riverpod) keeps the global app state in sync with the current user session. Auth state changes are handled gracefully (e.g., logging out safely drops session data).
+  - **Instant Demo**: An option on the login screen allows bypassing standard auth to instantly preview the app's UI.
+  - **State Management**: `auth_provider.dart` (Riverpod) keeps the global app state in sync with the current user session, cleanly clearing state on logout.
 
-### 2. Teacher Dashboard
-Teachers have full control over course creation and content management.
-- **Class Creation**: Teachers can create new classes (e.g., "Intro to Astrophysics"), which generate unique join codes (or accept custom codes). Stored in the `classes` Supabase table.
-- **Lesson Builder**: Teachers can create rich text lessons. Stored in the `lessons` table.
-- **AI Knowledge Base (Uploads)**: 
-  - Uses a **dual-upload architecture**. When a teacher uploads a `.pdf`, the client extracts the raw text. 
-  - Both the original pristine `.pdf` (for human viewing) and the extracted `.txt` (for AI parsing) are uploaded to Supabase Storage.
-  - Teachers have a dedicated section in their dashboard to view and download all their uploaded materials securely via Signed URLs.
+### 2. Teacher Dashboard & Class Management
+Teachers have full control over course creation, material distribution, and class monitoring:
+- **Class Hub**: Teachers can create classes with unique join codes (or custom codes), manage enrolled student rosters, publish assignments, and broadcast class announcements.
+- **Lesson Builder**: Teachers can create structured rich text lessons and syllabus topics.
+- **AI Knowledge Base (Dual-Upload Architecture)**: 
+  - When a teacher uploads a course PDF, the client extracts raw text in real time.
+  - Both the original PDF (for pristine human reading) and clean text (for AI chunking) are stored in Supabase Storage.
+  - Teachers can preview and download uploaded materials via secure signed URLs.
 - **AI Class Insights**: 
-  - A dynamic dashboard widget that synthesizes real-time analytics for the teacher. 
-  - It pulls recent student chat logs from the `ai_chat_logs` table and uses Gemini to generate a warm, markdown-formatted report outlining common student questions, potential pain points, and actionable teaching tips.
+  - Synthesizes real-time analytics by pulling recent student chat logs from `ai_chat_logs`.
+  - Uses Gemini to generate markdown reports highlighting common questions, conceptual bottlenecks, and actionable teaching tips.
 
-### 3. Student Dashboard
-- **Class Enrollment**: Students can use a Class Join Code to enroll in a class, giving them access to its lessons and knowledge base.
-- **Lesson Viewer**: Students can browse and read lessons published by their teachers.
-- **Material Viewing**: Students can securely view the original, formatted PDF documents uploaded by the teacher right from the AI Tutor interface.
+### 3. Student Dashboard & Class Enrollment
+- **Class Code Join**: Students can join classes via 6-character access codes with instant validation and dynamic class switching.
+- **Assignments & Announcements**: Students receive class-wide announcements, check upcoming assignment deadlines, and track submission statuses.
+- **In-App PDF Viewer**: Securely renders course documents and lecture slides directly within the app alongside the AI Tutor.
 
 ### 4. AI Tutor (Nova) & RAG Knowledge Base
-The most advanced feature of the platform. Students can chat with "Nova", an AI tutor that knows exactly what the teacher uploaded.
-- **Persistent Chat History**: All conversations with Nova are securely saved to the `ai_chat_logs` table (including the user's prompt and AI's response), allowing students to pick up their study sessions right where they left off.
-- **Edge Function (Backend Processing)**: 
-  - When a teacher uploads a document, a Supabase Edge Function (`process_document`) is triggered.
-  - It fetches the text from the `raw_text_url` if available (falling back to `file_url`) to cleanly split the text into chunks without messy PDF metadata.
-  - It calls the **Gemini Embedding API** (`gemini-embedding-2` with Matryoshka Representation Learning set to 768 dimensions) to turn each text chunk into a dense vector array.
-  - The vectors are saved to the `document_chunks` table, which uses Postgres `pgvector` indexing.
-- **Vector Search (Frontend Retrieval)**:
-  - When a student asks a question, the Flutter app calls the Gemini API to embed the student's question into a 768-dimensional vector.
-  - It triggers a Postgres RPC function (`match_class_documents`) to calculate the **cosine distance** (`<=>`) between the question and the database vectors.
-  - Crucially, it retrieves the original `document_title` and `document_id` for every matched chunk to act as a **Source Citation**.
-- **Context Injection (Generation)**:
-  - The relevant text chunks and their explicit file names are seamlessly injected into Nova's system instructions.
-  - This allows the AI to accurately identify which document it is summarizing, avoiding "outlier" hallucinations.
-  - The final prompt is sent to `gemini-3.5-flash-lite`, which responds to the student accurately using *only* the teacher's materials.
+Students can learn with **Nova**, a personalized AI tutor grounded directly in the teacher's uploaded course materials:
+- **Persistent Chat History**: All conversations with Nova are stored in the `ai_chat_logs` table, allowing students to resume study sessions across devices.
+- **RAG Edge Function (`process_document`)**:
+  - Automatically splits uploaded documents into clean text chunks without noisy PDF artifacts.
+  - Generates 768-dimensional vector embeddings using Google's **Gemini Embedding API** (`gemini-embedding-2` with Matryoshka Representation Learning).
+  - Stores vectors in the `document_chunks` table utilizing PostgreSQL `pgvector` HNSW indexing.
+- **Vector Search & Source Citations**:
+  - Encodes student questions and executes cosine distance search (`<=>`) via the `match_class_documents` RPC function.
+  - Injects relevant excerpts along with exact document titles and citations into the prompt.
+- **Multimodal & Adaptive Learning**:
+  - Supports image and document attachments for homework help.
+  - Configurable tone (Academic, Casual, Socratic) and language preferences.
+  - Uses `gemini-3.5-flash-lite` for ultra-fast, hallucination-resistant responses.
 
-### 5. Design System (Retro Theme)
-- **Architecture**: A "Feature-First Layered Architecture" enforced via Riverpod and GoRouter.
-- **Aesthetics**: Custom-built Retro Theme (`AppTheme`). Uses deep retro greens (`#375742`), soft cream backgrounds (`#FCF9F2`), and retro gold accents, styled with `Plus Jakarta Sans` typography. 
+### 5. Study Decks: Flashcards, Quizzes & Multimodal OCR
+An active-recall study suite that transforms static documents into interactive study materials:
+- **Multimodal OCR Note Scanner**:
+  - Uses Google ML Kit (`google_mlkit_text_recognition`) to extract handwritten or printed text from photos, documents, and textbook pages.
+  - Gemini parses the OCR text to automatically generate comprehensive summary notes, flashcard decks, and practice quizzes.
+- **Flashcard Deck Mastery**:
+  - 3D-flipping cards with 3-tier Leitner-style mastery progression: *Learning*, *Reviewing*, and *Mastered*.
+- **Interactive Quiz Runner**:
+  - Timed multiple-choice quizzes with randomized questions, instant rationale explanations, and high-score tracking.
 
-## 🛠️ Tech Stack
-- **Framework**: Flutter (Dart)
-- **Backend & Database**: Supabase (PostgreSQL, Edge Functions, pgvector)
-- **AI/LLM**: Google Gemini (`gemini-3.5-flash-lite` for chat, `gemini-embedding-2` for RAG)
-- **State Management**: Riverpod
-- **Routing**: GoRouter
+### 6. Interactive Daily Goals & Focus Timer
+- **Customizable Targets**: Students set daily study targets (e.g. 45 mins) and track progress via an animated retro circular indicator.
+- **Dynamic Task Checklist**: Auto-tracks course reading, Nova AI chats, assignment progress, and focused study intervals.
+- **Streak Protection**: Maintains daily learning streaks and rewards milestone achievements.
+- **Offline & Manual Logging**: Allows students to log offline reading or textbook study time.
+
+### 7. Hive Mind: Cohort Habit Intelligence & Gap Analysis
+Bridges the academic achievement gap by analyzing behavioral divergence between performance quartiles:
+- **Quartile Differential Tracking**: Compares the top 20% of students against struggling peers across study focus time, quiz mastery, submission timeliness, and AI tutor interaction patterns.
+- **AI Pedagogical Synthesis**:
+  - Uses Gemini to calculate gap severity (Low, Moderate, Significant, Critical) and generate pedagogical interventions for teachers (e.g., targeted revision topics, low-stakes practice quizzes).
+- **Student Peer Nudges**:
+  - Displays constructive, non-punitive nudges on the student home screen (e.g., *"Top performers review flashcards within 48h of class"*).
+
+### 8. GitHub-Style Study Activity Heatmap
+Encourages daily learning consistency through visual accountability:
+- **16-Week Activity Grid**: A 7-row (Monday to Sunday) horizontally scrollable contribution matrix styled with a 5-level retro-green intensity palette (`#EFEBE1`, `#C0DAC6`, `#7FA88B`, `#4F7059`, `#375742`).
+- **Unified Activity Accounting**: Automatically records and increments daily points across:
+  - Flashcard reviews
+  - Quizzes completed
+  - Nova AI tutor inquiries
+  - Focus timer minutes
+  - Assignment submissions
+- **Interactive Day Inspector**: Tapping any square opens a detailed bottom sheet displaying the exact breakdown of study activities completed on that date.
+- **Omnipresent Placement**: Integrated into the **Home Screen**, **Student Profile**, and **Analytics & Metrics Screen**.
+
+---
+
+## 🎨 Design System (Retro Theme)
+- **Architecture**: Enforces a strict **Feature-First Layered Architecture** with Riverpod and GoRouter.
+- **Color Palette**:
+  - **Primary (Focus)**: Retro Dark Forest Green (`#375742`) with Container (`#4F7059`)
+  - **Secondary / Surface**: Retro Warm Gold & Brown (`#685D45` / `#F0E1C2`)
+  - **Background**: Warm Cream Canvas (`#FCF9F2`)
+- **Typography**: Clean, geometric `Plus Jakarta Sans`.
+- **Elevation & Radius**: Soft green-tinted ambient shadows, 8px standard card corners, and 24px pill-shaped buttons.
+
+---
+
+## 🛠️ Tech Stack & Dependencies
+- **Framework**: Flutter (Dart 3.x)
+- **State Management**: Riverpod (`flutter_riverpod`)
+- **Routing**: GoRouter (`go_router`)
+- **Backend & Database**: Supabase (PostgreSQL, Supabase Auth, Storage, Edge Functions, `pgvector`)
+- **AI / LLM**: Google Gemini API (`gemini-3.5-flash-lite`, `gemini-embedding-2`)
+- **Machine Learning / OCR**: Google ML Kit Text Recognition (`google_mlkit_text_recognition`)
+- **Document Rendering**: Syncfusion Flutter PDF Viewer (`syncfusion_flutter_pdfviewer`)
+- **Code Generation & Models**: Freezed (`freezed`, `json_serializable`)

@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../../auth/presentation/providers/auth_provider.dart';
-import '../../../class/presentation/providers/class_provider.dart';
-import '../../../class/presentation/providers/student_class_hub_provider.dart';
-import '../../../../core/theme/widgets/retro_top_bar.dart';
+import 'package:raite/features/auth/presentation/providers/auth_provider.dart';
+import 'package:raite/features/class/presentation/providers/class_provider.dart';
+import 'package:raite/features/class/presentation/providers/student_class_hub_provider.dart';
+import 'package:raite/core/theme/widgets/retro_top_bar.dart';
+import 'package:raite/features/daily_goals/presentation/providers/daily_goals_provider.dart';
+import 'package:raite/features/daily_goals/presentation/widgets/daily_goals_sheet.dart';
+import 'package:raite/features/contributions/presentation/widgets/study_heatmap_widget.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -260,6 +263,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     // Enrolled courses data
     final enrolledList = ref.watch(enrolledClassesProvider).value ?? [];
     final submissions = ref.watch(studentSubmissionsProvider);
+    final dailyGoal = ref.watch(dailyGoalsProvider);
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -425,16 +429,25 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: _StatMiniCard(
-                    icon: Icons.local_fire_department_rounded,
-                    value: '7 Days',
-                    label: 'Streak',
-                    colorScheme: colorScheme,
-                    theme: theme,
+                  child: InkWell(
+                    onTap: () => DailyGoalsSheet.show(context),
+                    borderRadius: BorderRadius.circular(16),
+                    child: _StatMiniCard(
+                      icon: Icons.local_fire_department_rounded,
+                      value: '${dailyGoal.streakDays} Days',
+                      label: 'Streak',
+                      colorScheme: colorScheme,
+                      theme: theme,
+                    ),
                   ),
                 ),
               ],
             ),
+            const SizedBox(height: 24),
+
+            // Study Activity Heatmap
+            const StudyHeatmapWidget(),
+
             const SizedBox(height: 24),
 
             // 3. Enrolled Courses Section

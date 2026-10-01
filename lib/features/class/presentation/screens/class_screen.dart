@@ -12,6 +12,7 @@ import '../../../teacher/domain/lesson_model.dart';
 import '../../../teacher/presentation/providers/teacher_class_hub_provider.dart';
 import '../../../teacher/presentation/providers/teacher_lesson_provider.dart';
 import 'package:raite/core/theme/widgets/retro_top_bar.dart';
+import 'package:raite/features/daily_goals/presentation/providers/daily_goals_provider.dart';
 
 class ClassScreen extends ConsumerStatefulWidget {
   final String? classId;
@@ -339,6 +340,51 @@ class _ClassScreenState extends ConsumerState<ClassScreen>
                       ),
                     ),
                   ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => context.push('/study-deck'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    side: BorderSide(color: colorScheme.primary.withValues(alpha: 0.4)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  icon: const Icon(Icons.style_outlined, size: 14),
+                  label: const Text('Flashcards', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => context.push('/study-deck'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    side: BorderSide(color: colorScheme.secondary.withValues(alpha: 0.4)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  icon: const Icon(Icons.quiz_outlined, size: 14),
+                  label: const Text('Quiz Deck', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () => context.push('/ocr-scanner'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colorScheme.primary,
+                    foregroundColor: colorScheme.onPrimary,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  icon: const Icon(Icons.document_scanner, size: 14),
+                  label: const Text('Scan Notes', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                 ),
               ),
             ],
@@ -1161,6 +1207,7 @@ class _ClassScreenState extends ConsumerState<ClassScreen>
                   ),
                   ElevatedButton.icon(
                     onPressed: () {
+                      ref.read(dailyGoalsProvider.notifier).recordLessonStudied(lesson.title);
                       context.push(
                         '/ai-tutor',
                         extra: {
@@ -1216,6 +1263,7 @@ class _ClassScreenState extends ConsumerState<ClassScreen>
                     final isPdf = att.fileType.toLowerCase().contains('pdf');
                     return InkWell(
                       onTap: () {
+                        ref.read(dailyGoalsProvider.notifier).recordLessonStudied(lesson.title);
                         context.push('/ai-tutor', extra: {
                           'topic': TopicModel(
                             id: lesson.id,
@@ -1610,6 +1658,7 @@ class _ClassScreenState extends ConsumerState<ClassScreen>
                             note: noteController.text.trim(),
                             attachedFileName: selectedDemoFile ?? 'Solution_Submission.pdf',
                           );
+                      ref.read(dailyGoalsProvider.notifier).recordAssignmentWorked(assignment.title);
 
                       Navigator.pop(ctx);
                       ScaffoldMessenger.of(context).showSnackBar(
