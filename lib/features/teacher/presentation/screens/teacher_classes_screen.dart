@@ -148,17 +148,23 @@ class TeacherClassesScreen extends ConsumerWidget {
                               if (!ctx.mounted) return;
                               Navigator.pop(ctx);
 
+                              Clipboard.setData(ClipboardData(text: newCls.code));
+                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text('🎉 Class created! Join code: ${newCls.code}'),
-                                  backgroundColor: colorScheme.primary,
-                                  action: SnackBarAction(
-                                    label: 'Copy Code',
-                                    textColor: Colors.white,
-                                    onPressed: () {
-                                      Clipboard.setData(ClipboardData(text: newCls.code));
-                                    },
+                                  content: Row(
+                                    children: [
+                                      const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text('🎉 Class created! Join code ${newCls.code} copied to clipboard.'),
+                                      ),
+                                    ],
                                   ),
+                                  backgroundColor: colorScheme.primary,
+                                  duration: const Duration(seconds: 2),
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                 ),
                               );
                             } catch (e) {
@@ -342,11 +348,13 @@ class TeacherClassesScreen extends ConsumerWidget {
                                 InkWell(
                                   onTap: () {
                                     Clipboard.setData(ClipboardData(text: cls.code));
+                                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text('📋 Code ${cls.code} copied to clipboard!'),
-                                        duration: const Duration(seconds: 2),
+                                        duration: const Duration(milliseconds: 1500),
                                         behavior: SnackBarBehavior.floating,
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                       ),
                                     );
                                   },
@@ -388,11 +396,13 @@ class TeacherClassesScreen extends ConsumerWidget {
                                     final shareMsg =
                                         'Join my class "${cls.title}" on Raite using code: ${cls.code}';
                                     Clipboard.setData(ClipboardData(text: shareMsg));
+                                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text('Invite message copied: "$shareMsg"'),
-                                        duration: const Duration(seconds: 3),
+                                        duration: const Duration(milliseconds: 1500),
                                         behavior: SnackBarBehavior.floating,
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                       ),
                                     );
                                   },
@@ -457,27 +467,109 @@ class TeacherClassesScreen extends ConsumerWidget {
                       else
                         ...classLessons.map((l) {
                           return Padding(
-                            padding: const EdgeInsets.only(bottom: 8.0),
-                            child: Row(
+                            padding: const EdgeInsets.only(bottom: 10.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Icon(Icons.check_circle,
-                                    color: Color(0xFF10B981), size: 16),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    l.title,
-                                    style: theme.textTheme.bodyMedium?.copyWith(
-                                      fontWeight: FontWeight.w600,
+                                Row(
+                                  children: [
+                                    const Icon(Icons.check_circle,
+                                        color: Color(0xFF10B981), size: 16),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        l.title,
+                                        style: theme.textTheme.bodyMedium?.copyWith(
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                    Text(
+                                      l.estimatedMinutes,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: colorScheme.outline,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                if (l.attachments.isNotEmpty) ...[
+                                  const SizedBox(height: 4),
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 24.0),
+                                    child: Wrap(
+                                      spacing: 6,
+                                      runSpacing: 4,
+                                      children: l.attachments.map((att) {
+                                        final isPdf = att.fileType.toLowerCase().contains('pdf');
+                                        final isPpt = att.fileType.toLowerCase().contains('ppt');
+                                        return Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                          decoration: BoxDecoration(
+                                            color: isPpt
+                                                ? Colors.orange.withValues(alpha: 0.12)
+                                                : isPdf
+                                                    ? Colors.red.withValues(alpha: 0.12)
+                                                    : colorScheme.primary.withValues(alpha: 0.1),
+                                            borderRadius: BorderRadius.circular(6),
+                                            border: Border.all(
+                                              color: isPpt
+                                                  ? Colors.orange.withValues(alpha: 0.3)
+                                                  : isPdf
+                                                      ? Colors.red.withValues(alpha: 0.3)
+                                                      : colorScheme.primary.withValues(alpha: 0.2),
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                isPpt
+                                                    ? Icons.slideshow_rounded
+                                                    : isPdf
+                                                        ? Icons.picture_as_pdf_rounded
+                                                        : Icons.attach_file_rounded,
+                                                size: 13,
+                                                color: isPpt
+                                                    ? Colors.orange.shade800
+                                                    : isPdf
+                                                        ? Colors.red.shade800
+                                                        : colorScheme.primary,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              ConstrainedBox(
+                                                constraints: const BoxConstraints(maxWidth: 180),
+                                                child: Text(
+                                                  att.name,
+                                                  overflow: TextOverflow.ellipsis,
+                                                  style: TextStyle(
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: isPpt
+                                                        ? Colors.orange.shade900
+                                                        : isPdf
+                                                            ? Colors.red.shade900
+                                                            : colorScheme.primary,
+                                                  ),
+                                                ),
+                                              ),
+                                              if (att.formattedSize.isNotEmpty) ...[
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  '(${att.formattedSize})',
+                                                  style: TextStyle(
+                                                    fontSize: 10,
+                                                    color: colorScheme.outline,
+                                                  ),
+                                                ),
+                                              ],
+                                            ],
+                                          ),
+                                        );
+                                      }).toList(),
                                     ),
                                   ),
-                                ),
-                                Text(
-                                  l.estimatedMinutes,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: colorScheme.outline,
-                                  ),
-                                ),
+                                ],
                               ],
                             ),
                           );
