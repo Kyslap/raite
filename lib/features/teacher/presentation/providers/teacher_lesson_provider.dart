@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/lesson_model.dart';
 
 class TeacherClass {
@@ -20,23 +22,77 @@ class TeacherClass {
 }
 
 class TeacherClassNotifier extends Notifier<List<TeacherClass>> {
+  SupabaseClient? get _client {
+    try {
+      return Supabase.instance.client;
+    } catch (_) {
+      return null;
+    }
+  }
+
   @override
   List<TeacherClass> build() {
+    _loadFromSupabase();
     return const [];
   }
 
-  TeacherClass addClass({
+  Future<void> _loadFromSupabase() async {
+    final client = _client;
+    if (client == null) return;
+    try {
+      final res = await client
+          .from('classes')
+          .select()
+          .order('created_at', ascending: false);
+
+      final loaded = (res as List).map((item) => TeacherClass(
+        id: item['id'].toString(),
+        title: item['title']?.toString() ?? '',
+        department: item['department']?.toString() ?? '',
+        code: item['code']?.toString() ?? '',
+        studentCount: (item['student_count'] as num?)?.toInt() ?? 0,
+      )).toList();
+
+      state = loaded;
+    } catch (e) {
+      debugPrint('Supabase load classes error: $e');
+    }
+  }
+
+  Future<TeacherClass> addClass({
     required String title,
     required String department,
     String? customCode,
-  }) {
+  }) async {
     // Generate clean 6-char code if none provided
     final autoCode = customCode?.trim().toUpperCase().isNotEmpty == true
         ? customCode!.trim().toUpperCase()
         : '${department.length >= 3 ? department.substring(0, 3).toUpperCase() : "CLS"}-${(100 + DateTime.now().millisecond % 900)}';
 
+    String classId = 'class-${DateTime.now().millisecondsSinceEpoch}';
+
+    final client = _client;
+    if (client != null) {
+      final instructorName = client.auth.currentUser?.userMetadata?['name'] ?? 'Faculty Instructor';
+      final instructorId = client.auth.currentUser?.id;
+
+      final insertData = {
+        'title': title,
+        'department': department,
+        'code': autoCode,
+        'instructor_name': instructorName,
+        'instructor_id': instructorId,
+        'student_count': 0,
+      };
+
+      final res = await client.from('classes').insert(insertData).select().maybeSingle();
+      if (res != null && res['id'] != null) {
+        classId = res['id'].toString();
+      }
+    }
+
     final newClass = TeacherClass(
-      id: 'class-${DateTime.now().millisecondsSinceEpoch}',
+      id: classId,
       title: title,
       department: department,
       code: autoCode,
@@ -54,12 +110,54 @@ final teacherClassesProvider =
 });
 
 class TeacherLessonNotifier extends Notifier<List<LessonModel>> {
+  SupabaseClient? get _client {
+    try {
+      return Supabase.instance.client;
+    } catch (_) {
+      return null;
+    }
+  }
+
   @override
   List<LessonModel> build() {
+    _loadFromSupabase();
     return const [];
   }
 
-  void addLesson({
+  Future<void> _loadFromSupabase() async {
+    final client = _client;
+    if (client == null) return;
+    try {
+      final res = await client
+          .from('lessons')
+          .select()
+          .order('created_at', ascending: false);
+
+      final loaded = (res as List).map((l) {
+        final objs = (l['objectives'] as List?)?.map((e) => e.toString()).toList() ?? [];
+        final quizzes = (l['quiz_questions'] as List?)?.map((e) => e.toString()).toList() ?? [];
+        final created = DateTime.tryParse(l['created_at']?.toString() ?? '') ?? DateTime.now();
+
+        return LessonModel(
+          id: l['id'].toString(),
+          classId: l['class_id']?.toString() ?? '',
+          className: l['class_name']?.toString() ?? '',
+          title: l['title']?.toString() ?? '',
+          content: l['content']?.toString() ?? '',
+          estimatedMinutes: l['estimated_minutes']?.toString() ?? '45 mins',
+          objectives: objs,
+          quizQuestions: quizzes,
+          createdAt: created,
+        );
+      }).toList();
+
+      state = loaded;
+    } catch (e) {
+      debugPrint('Supabase load lessons error: $e');
+    }
+  }
+
+  Future<LessonModel> addLesson({
     required String classId,
     required String className,
     required String title,
@@ -67,9 +165,33 @@ class TeacherLessonNotifier extends Notifier<List<LessonModel>> {
     required String estimatedMinutes,
     List<String> objectives = const [],
     List<String> quizQuestions = const [],
-  }) {
+  }) async {
+    String lessonId = 'lesson-${DateTime.now().millisecondsSinceEpoch}';
+
+    final client = _client;
+    if (client != null) {
+      try {
+        final insertData = {
+          'class_id': classId.startsWith('class-') ? null : classId,
+          'class_name': className,
+          'title': title,
+          'content': content,
+          'estimated_minutes': estimatedMinutes,
+          'objectives': objectives,
+          'quiz_questions': quizQuestions,
+        };
+
+        final res = await client.from('lessons').insert(insertData).select().maybeSingle();
+        if (res != null && res['id'] != null) {
+          lessonId = res['id'].toString();
+        }
+      } catch (e) {
+        debugPrint('Supabase insert lesson error: $e');
+      }
+    }
+
     final newLesson = LessonModel(
-      id: 'lesson-${DateTime.now().millisecondsSinceEpoch}',
+      id: lessonId,
       classId: classId,
       className: className,
       title: title,
@@ -80,6 +202,7 @@ class TeacherLessonNotifier extends Notifier<List<LessonModel>> {
       createdAt: DateTime.now(),
     );
     state = [newLesson, ...state];
+    return newLesson;
   }
 }
 

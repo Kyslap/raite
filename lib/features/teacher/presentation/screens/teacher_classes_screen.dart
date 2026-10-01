@@ -14,6 +14,8 @@ class TeacherClassesScreen extends ConsumerWidget {
     final codeController = TextEditingController();
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    bool isCreating = false;
+    String? errorMessage;
 
     showModalBottomSheet(
       context: context,
@@ -100,51 +102,89 @@ class TeacherClassesScreen extends ConsumerWidget {
                       prefixIcon: const Icon(Icons.key, size: 18),
                     ),
                   ),
+                  if (errorMessage != null) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: colorScheme.errorContainer.withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: colorScheme.error.withValues(alpha: 0.5)),
+                      ),
+                      child: Text(
+                        errorMessage!,
+                        style: TextStyle(color: colorScheme.error, fontSize: 12),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 24),
                   ElevatedButton(
-                    onPressed: () {
-                      final title = titleController.text.trim();
-                      final dept = deptController.text.trim();
-                      final customCode = codeController.text.trim();
+                    onPressed: isCreating
+                        ? null
+                        : () async {
+                            final title = titleController.text.trim();
+                            final dept = deptController.text.trim();
+                            final customCode = codeController.text.trim();
 
-                      if (title.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Please enter a class title')),
-                        );
-                        return;
-                      }
+                            if (title.isEmpty) {
+                              setSheetState(() => errorMessage = 'Please enter a class title');
+                              return;
+                            }
 
-                      final newCls = ref
-                          .read(teacherClassesProvider.notifier)
-                          .addClass(
-                            title: title,
-                            department: dept.isNotEmpty ? dept : 'General Studies',
-                            customCode: customCode.isNotEmpty ? customCode : null,
-                          );
+                            setSheetState(() {
+                              isCreating = true;
+                              errorMessage = null;
+                            });
 
-                      Navigator.pop(ctx);
+                            try {
+                              final newCls = await ref
+                                  .read(teacherClassesProvider.notifier)
+                                  .addClass(
+                                    title: title,
+                                    department: dept.isNotEmpty ? dept : 'General Studies',
+                                    customCode: customCode.isNotEmpty ? customCode : null,
+                                  );
 
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('🎉 Class created! Join code: ${newCls.code}'),
-                          backgroundColor: colorScheme.primary,
-                          action: SnackBarAction(
-                            label: 'Copy Code',
-                            textColor: Colors.white,
-                            onPressed: () {
-                              Clipboard.setData(ClipboardData(text: newCls.code));
-                            },
-                          ),
-                        ),
-                      );
-                    },
+                              if (!ctx.mounted) return;
+                              Navigator.pop(ctx);
+
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('🎉 Class created! Join code: ${newCls.code}'),
+                                  backgroundColor: colorScheme.primary,
+                                  action: SnackBarAction(
+                                    label: 'Copy Code',
+                                    textColor: Colors.white,
+                                    onPressed: () {
+                                      Clipboard.setData(ClipboardData(text: newCls.code));
+                                    },
+                                  ),
+                                ),
+                              );
+                            } catch (e) {
+                              setSheetState(() {
+                                isCreating = false;
+                                errorMessage =
+                                    'Error saving to Supabase:\n$e\n\nEnsure you have run the database setup in Supabase SQL editor.';
+                              });
+                            }
+                          },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colorScheme.primary,
                       foregroundColor: colorScheme.onPrimary,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: const Text('Create Class & Generate Code', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                    child: isCreating
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          )
+                        : const Text(
+                            'Create Class & Generate Code',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                          ),
                   ),
                 ],
               ),

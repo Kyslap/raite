@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/class_model.dart';
 import '../../domain/topic_model.dart';
 import '../../data/mock_class_repository.dart';
@@ -64,14 +65,75 @@ class EnrolledClassesNotifier extends AsyncNotifier<List<ClassModel>> {
       );
     }
 
-    // Search in system catalog
-    final allCatalog = ref.read(allAvailableClassesProvider);
     ClassModel? foundClass;
 
-    for (final c in allCatalog) {
-      if (c.courseCode.trim().toUpperCase() == cleanCode) {
-        foundClass = c;
-        break;
+    // Search in Supabase first
+    try {
+      final client = Supabase.instance.client;
+      final res = await client
+          .from('classes')
+          .select()
+          .ilike('code', cleanCode)
+          .maybeSingle();
+
+      if (res != null) {
+        final classId = res['id'].toString();
+        List<TopicModel> topics = [];
+        try {
+          final lessonsRes = await client
+              .from('lessons')
+              .select()
+              .eq('class_id', classId);
+          topics = (lessonsRes as List)
+              .map((l) => TopicModel(
+                    id: l['id'].toString(),
+                    title: l['title']?.toString() ?? 'Topic',
+                    description: l['content']?.toString() ?? '',
+                  ))
+              .toList();
+        } catch (_) {}
+
+        if (topics.isEmpty) {
+          topics = [
+            TopicModel(
+              id: 'topic-$classId',
+              title: 'Introduction & Foundations',
+              description: '${res['department'] ?? 'Course'} curriculum and syllabus',
+            ),
+          ];
+        }
+
+        foundClass = ClassModel(
+          id: classId,
+          courseCode: res['code']?.toString() ?? cleanCode,
+          name: res['title']?.toString() ?? 'Class',
+          professor: res['instructor_name']?.toString() ?? 'Academic Faculty',
+          progress: 0.0,
+          topics: topics,
+        );
+
+        // Record in Supabase user_classes if authenticated
+        final userId = client.auth.currentUser?.id;
+        if (userId != null) {
+          try {
+            await client.from('user_classes').upsert({
+              'user_id': userId,
+              'class_id': classId,
+              'progress_percentage': 0,
+            });
+          } catch (_) {}
+        }
+      }
+    } catch (_) {}
+
+    // Search in system catalog
+    if (foundClass == null) {
+      final allCatalog = ref.read(allAvailableClassesProvider);
+      for (final c in allCatalog) {
+        if (c.courseCode.trim().toUpperCase() == cleanCode) {
+          foundClass = c;
+          break;
+        }
       }
     }
 
