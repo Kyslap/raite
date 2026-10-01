@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:raite/theme.dart';
 import 'package:raite/screens/home_screen.dart';
 import 'package:raite/screens/class_screen.dart';
 import 'package:raite/screens/ai_tutor_screen.dart';
 import 'package:raite/screens/metrics_screen.dart';
+import 'core/theme/app_theme.dart';
+import 'core/routing/app_router.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,19 +22,25 @@ Future<void> main() async {
     anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? '',
   );
 
-  runApp(const MyApp());
+  runApp(
+    const ProviderScope(
+      child: SmartLearningApp(),
+    ),
+  );
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class SmartLearningApp extends ConsumerWidget {
+  const SmartLearningApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Learning App',
-      theme: appTheme,
+  Widget build(BuildContext context, WidgetRef ref) {
+    final goRouter = ref.watch(routerProvider);
+
+    return MaterialApp.router(
+      title: 'Smart Learning Platform Hub',
+      theme: AppTheme.retroTheme,
+      routerConfig: goRouter,
       debugShowCheckedModeBanner: false,
-      home: const MainNavigationScreen(),
     );
   }
 }
