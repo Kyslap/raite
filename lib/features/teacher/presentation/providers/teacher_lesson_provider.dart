@@ -102,6 +102,18 @@ class TeacherClassNotifier extends Notifier<List<TeacherClass>> {
     state = [newClass, ...state];
     return newClass;
   }
+
+  Future<void> deleteClass(String classId) async {
+    final client = _client;
+    if (client != null) {
+      try {
+        await client.from('classes').delete().eq('id', classId);
+      } catch (e) {
+        debugPrint('Supabase delete class error: $e');
+      }
+    }
+    state = state.where((c) => c.id != classId).toList();
+  }
 }
 
 final teacherClassesProvider =
@@ -116,6 +128,10 @@ class TeacherLessonNotifier extends Notifier<List<LessonModel>> {
     } catch (_) {
       return null;
     }
+  }
+
+  void removeLessonsForClass(String classId) {
+    state = state.where((l) => l.classId != classId).toList();
   }
 
   @override

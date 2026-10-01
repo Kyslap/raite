@@ -2,13 +2,81 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/teacher_lesson_provider.dart';
+import 'teacher_class_detail_screen.dart';
 
-class TeacherClassesScreen extends ConsumerWidget {
+class TeacherClassesScreen extends ConsumerStatefulWidget {
   final Function(int)? onNavigateTab;
 
   const TeacherClassesScreen({super.key, this.onNavigateTab});
 
-  void _showCreateClassSheet(BuildContext context, WidgetRef ref) {
+  @override
+  ConsumerState<TeacherClassesScreen> createState() => _TeacherClassesScreenState();
+}
+
+class _TeacherClassesScreenState extends ConsumerState<TeacherClassesScreen> {
+  TeacherClass? _selectedClass;
+
+  void _showDeleteClassDialog(TeacherClass cls) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: colorScheme.error, size: 28),
+            const SizedBox(width: 10),
+            const Text('Delete Class?'),
+          ],
+        ),
+        content: Text(
+          'Are you sure you want to delete "${cls.title}"?\n\n'
+          'This will permanently delete the class, its lessons, materials, and student enrollments. This cannot be undone.',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+            height: 1.4,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              if (_selectedClass?.id == cls.id) {
+                setState(() => _selectedClass = null);
+              }
+              await ref.read(teacherClassesProvider.notifier).deleteClass(cls.id);
+              ref.read(teacherLessonsProvider.notifier).removeLessonsForClass(cls.id);
+
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('🗑️ Class "${cls.title}" deleted.'),
+                  duration: const Duration(seconds: 2),
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colorScheme.error,
+              foregroundColor: colorScheme.onError,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('Delete Class', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showCreateClassSheet() {
     final titleController = TextEditingController();
     final deptController = TextEditingController();
     final codeController = TextEditingController();
@@ -202,11 +270,30 @@ class TeacherClassesScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final classes = ref.watch(teacherClassesProvider);
     final lessons = ref.watch(teacherLessonsProvider);
+
+    // Keep bottom navigation bar visible by rendering detail screen in-place
+    if (_selectedClass != null) {
+      final matching = classes.where((c) => c.id == _selectedClass!.id);
+      if (matching.isEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) setState(() => _selectedClass = null);
+        });
+      } else {
+        return TeacherClassDetailScreen(
+          teacherClass: matching.first,
+          onBack: () {
+            setState(() {
+              _selectedClass = null;
+            });
+          },
+        );
+      }
+    }
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -224,7 +311,7 @@ class TeacherClassesScreen extends ConsumerWidget {
           IconButton(
             icon: Icon(Icons.add_circle, color: colorScheme.primary, size: 28),
             tooltip: 'Create New Class',
-            onPressed: () => _showCreateClassSheet(context, ref),
+            onPressed: _showCreateClassSheet,
           ),
           const SizedBox(width: 8),
         ],
@@ -262,7 +349,7 @@ class TeacherClassesScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 24),
                     ElevatedButton.icon(
-                      onPressed: () => _showCreateClassSheet(context, ref),
+                      onPressed: _showCreateClassSheet,
                       icon: const Icon(Icons.add, size: 18),
                       label: const Text('Create Your First Class'),
                       style: ElevatedButton.styleFrom(
@@ -299,40 +386,50 @@ class TeacherClassesScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Class Header
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: 52,
-                        height: 52,
-                        decoration: BoxDecoration(
-                          color: colorScheme.primaryContainer,
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Icon(
-                          Icons.menu_book,
-                          color: colorScheme.onPrimaryContainer,
-                          size: 26,
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              cls.title,
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: colorScheme.onSurface,
-                              ),
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(18),
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                onTap: () {
+                  setState(() {
+                    _selectedClass = cls;
+                  });
+                },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Class Header
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 52,
+                            height: 52,
+                            decoration: BoxDecoration(
+                              color: colorScheme.primaryContainer,
+                              borderRadius: BorderRadius.circular(14),
                             ),
+                            child: Icon(
+                              Icons.menu_book,
+                              color: colorScheme.onPrimaryContainer,
+                              size: 26,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  cls.title,
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: colorScheme.onSurface,
+                                  ),
+                                ),
                             const SizedBox(height: 4),
                             Text(
                               '${cls.department} • ${cls.studentCount} Students Enrolled',
@@ -412,6 +509,62 @@ class TeacherClassesScreen extends ConsumerWidget {
                           ],
                         ),
                       ),
+                      PopupMenuButton<String>(
+                        icon: Icon(Icons.more_vert, color: colorScheme.outline, size: 20),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        onSelected: (val) {
+                          if (val == 'open') {
+                            setState(() {
+                              _selectedClass = cls;
+                            });
+                          } else if (val == 'copy_code') {
+                            Clipboard.setData(ClipboardData(text: cls.code));
+                            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('📋 Code ${cls.code} copied!'),
+                                duration: const Duration(milliseconds: 1500),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          } else if (val == 'delete') {
+                            _showDeleteClassDialog(cls);
+                          }
+                        },
+                        itemBuilder: (ctx) => [
+                          PopupMenuItem(
+                            value: 'open',
+                            child: Row(
+                              children: const [
+                                Icon(Icons.hub_outlined, size: 18),
+                                SizedBox(width: 10),
+                                Text('Open Class Hub (Teams)'),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'copy_code',
+                            child: Row(
+                              children: const [
+                                Icon(Icons.key, size: 18),
+                                SizedBox(width: 10),
+                                Text('Copy Join Code'),
+                              ],
+                            ),
+                          ),
+                          const PopupMenuDivider(),
+                          PopupMenuItem(
+                            value: 'delete',
+                            child: Row(
+                              children: [
+                                Icon(Icons.delete_outline, color: colorScheme.error, size: 18),
+                                const SizedBox(width: 10),
+                                Text('Delete Class', style: TextStyle(color: colorScheme.error, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -435,7 +588,7 @@ class TeacherClassesScreen extends ConsumerWidget {
                           ),
                           InkWell(
                             onTap: () {
-                              if (onNavigateTab != null) onNavigateTab!(2);
+                              if (widget.onNavigateTab != null) widget.onNavigateTab!(2);
                             },
                             child: Row(
                               children: [
@@ -577,9 +730,39 @@ class TeacherClassesScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
+                const Divider(height: 1),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primaryContainer.withValues(alpha: 0.15),
+                    borderRadius: const BorderRadius.vertical(bottom: Radius.circular(18)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.dashboard_customize_outlined, size: 16, color: colorScheme.primary),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Open Class Hub (Announcements & Tasks)',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Icon(Icons.arrow_forward_ios, size: 12, color: colorScheme.primary),
+                    ],
+                  ),
+                ),
               ],
             ),
-          );
+          ),
+        ),
+      );
         },
       ),
     );
