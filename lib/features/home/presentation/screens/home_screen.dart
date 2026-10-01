@@ -284,18 +284,74 @@ class HomeScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
               ref.watch(enrolledClassesProvider).when(
-                data: (classes) => Column(
-                  children: classes.map((c) => Padding(
-                    padding: const EdgeInsets.only(bottom: 16.0),
-                    child: _EnrolledClassCard(
-                      icon: Icons.class_outlined,
-                      title: c.name,
-                      progress: c.progress,
-                      subtitle: '${c.professor} • ${c.courseCode}',
-                      onTap: () => context.push('/class/${c.id}'),
-                    ),
-                  )).toList(),
-                ),
+                data: (classes) {
+                  if (classes.isEmpty) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                      decoration: BoxDecoration(
+                        color: colorScheme.surfaceContainerLow,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: colorScheme.primaryContainer.withValues(alpha: 0.3),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(Icons.school_outlined, size: 32, color: colorScheme.primary),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'No Classes Joined Yet',
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Ask your teacher for their 6-character class code to enroll in their course curriculum.',
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          OutlinedButton.icon(
+                            onPressed: () => _showJoinClassDialog(context, ref),
+                            icon: const Icon(Icons.key, size: 16),
+                            label: const Text('Enter Class Code'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: colorScheme.primary,
+                              side: BorderSide(color: colorScheme.primary.withValues(alpha: 0.5)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return Column(
+                    children: classes.map((c) => Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0),
+                      child: _EnrolledClassCard(
+                        icon: Icons.class_outlined,
+                        title: c.name,
+                        progress: c.progress,
+                        subtitle: '${c.professor} • ${c.courseCode}',
+                        onTap: () => context.push('/class/${c.id}'),
+                      ),
+                    )).toList(),
+                  );
+                },
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (err, stack) => Text('Error: $err'),
               ),

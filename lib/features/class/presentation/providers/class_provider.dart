@@ -22,42 +22,7 @@ final classRepositoryProvider = Provider((ref) => MockClassRepository());
 class AllAvailableClassesNotifier extends Notifier<List<ClassModel>> {
   @override
   List<ClassModel> build() {
-    return const [
-      ClassModel(
-        id: 'c1',
-        courseCode: 'MATH-402',
-        name: 'Advanced Applied Calculus',
-        professor: 'Dr. Aris Thorne',
-        progress: 0.82,
-        topics: [
-          TopicModel(id: 't1', title: 'Derivatives & Rates of Change', description: 'Calculus derivatives'),
-          TopicModel(id: 't2', title: 'Integrals', description: 'Area under the curve'),
-          TopicModel(id: 't3', title: 'Limits', description: 'Approaching infinity'),
-        ],
-      ),
-      ClassModel(
-        id: 'c2',
-        courseCode: 'CS-101',
-        name: 'AI & Neural Networks 101',
-        professor: 'Prof. Sarah Jenkins',
-        progress: 0.64,
-        topics: [
-          TopicModel(id: 't4', title: 'Backpropagation & Gradients', description: 'Neural network training'),
-          TopicModel(id: 't5', title: 'Loss Optimization', description: 'Gradient descent algorithms'),
-        ],
-      ),
-      ClassModel(
-        id: 'c3',
-        courseCode: 'PHY-204',
-        name: 'Classical & Quantum Dynamics',
-        professor: 'Dr. Eleanor Vance',
-        progress: 0.35,
-        topics: [
-          TopicModel(id: 't6', title: 'Newtonian Trajectories', description: 'Force equations'),
-          TopicModel(id: 't7', title: 'Quantum Wavefunctions', description: 'Schrodinger equation intro'),
-        ],
-      ),
-    ];
+    return const [];
   }
 
   void registerClass(ClassModel newClass) {
@@ -115,19 +80,32 @@ class EnrolledClassesNotifier extends AsyncNotifier<List<ClassModel>> {
       final teacherClasses = ref.read(teacherClassesProvider);
       for (final tc in teacherClasses) {
         if (tc.code.trim().toUpperCase() == cleanCode) {
+          final teacherLessons = ref.read(teacherLessonsProvider);
+          final classLessons = teacherLessons.where((l) => l.classId == tc.id).toList();
+
+          final topics = classLessons.isNotEmpty
+              ? classLessons
+                  .map((l) => TopicModel(
+                        id: l.id,
+                        title: l.title,
+                        description: l.content,
+                      ))
+                  .toList()
+              : [
+                  TopicModel(
+                    id: 'topic-${DateTime.now().millisecondsSinceEpoch}',
+                    title: 'Course Introduction & Fundamentals',
+                    description: '${tc.department} core curriculum and syllabus overview',
+                  ),
+                ];
+
           foundClass = ClassModel(
             id: tc.id,
             courseCode: tc.code,
             name: tc.title,
-            professor: 'Professor Vance',
+            professor: 'Academic Faculty',
             progress: 0.0,
-            topics: [
-              TopicModel(
-                id: 'topic-${DateTime.now().millisecondsSinceEpoch}',
-                title: 'Introduction & Foundations',
-                description: '${tc.department} fundamentals overview',
-              ),
-            ],
+            topics: topics,
           );
           break;
         }

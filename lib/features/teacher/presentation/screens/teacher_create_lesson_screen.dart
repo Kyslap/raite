@@ -125,8 +125,17 @@ class _TeacherCreateLessonScreenState
     }
 
     final classes = ref.read(teacherClassesProvider);
-    final targetClass =
-        classes.firstWhere((c) => c.id == _selectedClassId, orElse: () => classes.first);
+    if (classes.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please create a class from the Classes tab first')),
+      );
+      return;
+    }
+
+    final targetClass = classes.firstWhere(
+      (c) => c.id == _selectedClassId,
+      orElse: () => classes.first,
+    );
 
     ref.read(teacherLessonsProvider.notifier).addLesson(
           classId: targetClass.id,
@@ -207,37 +216,59 @@ class _TeacherCreateLessonScreenState
               ),
             ),
             const SizedBox(height: 8),
-            SizedBox(
-              height: 44,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: classes.length,
-                separatorBuilder: (context, index) => const SizedBox(width: 8),
-                itemBuilder: (context, index) {
-                  final cls = classes[index];
-                  final isSelected = cls.id == _selectedClassId;
+            if (classes.isEmpty)
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: colorScheme.errorContainer.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: colorScheme.error.withValues(alpha: 0.4)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, size: 20, color: colorScheme.error),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'No classes created yet. Please create a class first from the "Classes" tab.',
+                        style: TextStyle(fontSize: 12, color: colorScheme.onErrorContainer),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              SizedBox(
+                height: 44,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: classes.length,
+                  separatorBuilder: (context, index) => const SizedBox(width: 8),
+                  itemBuilder: (context, index) {
+                    final cls = classes[index];
+                    final isSelected = cls.id == _selectedClassId || (_selectedClassId.isEmpty && index == 0);
 
-                  return ChoiceChip(
-                    label: Text(cls.title),
-                    selected: isSelected,
-                    onSelected: (val) {
-                      if (val) setState(() => _selectedClassId = cls.id);
-                    },
-                    selectedColor: colorScheme.primaryContainer,
-                    labelStyle: TextStyle(
-                      color: isSelected
-                          ? colorScheme.onPrimaryContainer
-                          : colorScheme.onSurface,
-                      fontWeight:
-                          isSelected ? FontWeight.bold : FontWeight.normal,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  );
-                },
+                    return ChoiceChip(
+                      label: Text(cls.title),
+                      selected: isSelected,
+                      onSelected: (val) {
+                        if (val) setState(() => _selectedClassId = cls.id);
+                      },
+                      selectedColor: colorScheme.primaryContainer,
+                      labelStyle: TextStyle(
+                        color: isSelected
+                            ? colorScheme.onPrimaryContainer
+                            : colorScheme.onSurface,
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.normal,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
             const SizedBox(height: 20),
 
             // AI Co-pilot Assist Banner

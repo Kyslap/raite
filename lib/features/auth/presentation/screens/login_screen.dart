@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/widgets/retro_button.dart';
 import '../../../../core/theme/widgets/retro_text_field.dart';
 import '../providers/auth_provider.dart';
+import '../../../class/presentation/providers/class_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -270,6 +271,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                         ),
                       ),
+                      if (_selectedRole == 'student') ...[
+                        const SizedBox(height: 4),
+                        Center(
+                          child: TextButton.icon(
+                            onPressed: () => _showQuickJoinModal(context),
+                            icon: Icon(Icons.key, size: 16, color: colorScheme.secondary),
+                            label: Text(
+                              'Have a Class Code? Join Directly',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.secondary,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -311,6 +329,156 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  void _showQuickJoinModal(BuildContext context) {
+    final codeController = TextEditingController();
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        bool isLoading = false;
+        String? errorMessage;
+
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return Container(
+              padding: EdgeInsets.only(
+                left: 24,
+                right: 24,
+                top: 24,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+              ),
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: 20,
+                    offset: const Offset(0, -4),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: colorScheme.outlineVariant,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(Icons.key, color: colorScheme.primary),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Join Class with Code',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.onSurface,
+                              ),
+                            ),
+                            Text(
+                              'Enter teacher invitation code to access student portal',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  RetroTextField(
+                    label: 'CLASS CODE',
+                    hint: 'e.g. CS101A or MATH-402',
+                    controller: codeController,
+                    prefixIcon: Icons.pin_outlined,
+                  ),
+                  if (errorMessage != null) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      errorMessage!,
+                      style: TextStyle(color: colorScheme.error, fontSize: 12),
+                    ),
+                  ],
+                  const SizedBox(height: 20),
+                  RetroButton(
+                    text: 'Join & Enter Student Portal',
+                    isLoading: isLoading,
+                    icon: Icons.login,
+                    onPressed: () async {
+                      final code = codeController.text.trim();
+                      if (code.isEmpty) {
+                        setSheetState(() => errorMessage = 'Please enter a valid class code');
+                        return;
+                      }
+
+                      setSheetState(() {
+                        isLoading = true;
+                        errorMessage = null;
+                      });
+
+                      final result = await ref
+                          .read(enrolledClassesProvider.notifier)
+                          .joinClassByCode(code);
+
+                      if (!ctx.mounted) return;
+
+                      if (!result.success) {
+                        setSheetState(() {
+                          isLoading = false;
+                          errorMessage = result.message;
+                        });
+                      } else {
+                        Navigator.pop(ctx);
+                        context.go('/home');
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Row(
+                              children: [
+                                const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                                const SizedBox(width: 8),
+                                Expanded(child: Text(result.message)),
+                              ],
+                            ),
+                            backgroundColor: colorScheme.primary,
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

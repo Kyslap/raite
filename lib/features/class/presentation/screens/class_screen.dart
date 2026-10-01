@@ -25,6 +25,83 @@ class _ClassScreenState extends ConsumerState<ClassScreen> {
         ? ref.watch(classDetailProvider(widget.classId!))
         : (enrolledList.isNotEmpty ? enrolledList.first : null);
 
+    if (classModel == null) {
+      return Scaffold(
+        backgroundColor: colorScheme.surface,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back_ios_new, color: colorScheme.onSurface),
+            onPressed: () {
+              if (context.canPop()) context.pop();
+            },
+          ),
+          title: Text(
+            'CLASS',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1.0,
+              color: colorScheme.onSurface,
+            ),
+          ),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.key, color: colorScheme.primary),
+              tooltip: 'Join Class with Code',
+              onPressed: () => _showJoinClassDialog(context),
+            ),
+          ],
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primaryContainer.withValues(alpha: 0.3),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.school_outlined, size: 56, color: colorScheme.primary),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'No Class Selected or Enrolled',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'You have not joined any classes yet. Enter an invite code from your teacher to view syllabus topics and interactive assignments.',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: () => _showJoinClassDialog(context),
+                  icon: const Icon(Icons.key, size: 18),
+                  label: const Text('Join Class with Code'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colorScheme.primary,
+                    foregroundColor: colorScheme.onPrimary,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
@@ -112,7 +189,7 @@ class _ClassScreenState extends ConsumerState<ClassScreen> {
                                       borderRadius: BorderRadius.circular(16),
                                     ),
                                     child: Text(
-                                      classModel?.courseCode ?? 'MATH 402',
+                                      classModel.courseCode,
                                       style: theme.textTheme.labelMedium?.copyWith(
                                         color: colorScheme.onSecondaryContainer,
                                         fontWeight: FontWeight.bold,
@@ -121,7 +198,7 @@ class _ClassScreenState extends ConsumerState<ClassScreen> {
                                   ),
                                   const SizedBox(height: 12),
                                   Text(
-                                    classModel?.name ?? 'Advanced Mathematics',
+                                    classModel.name,
                                     style: theme.textTheme.headlineSmall?.copyWith(
                                       color: colorScheme.onSurface,
                                       fontWeight: FontWeight.bold,
@@ -129,7 +206,7 @@ class _ClassScreenState extends ConsumerState<ClassScreen> {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    '${classModel?.professor ?? 'Professor Aris Thorne'} • Room 304',
+                                    '${classModel.professor} • Room 304',
                                     style: theme.textTheme.bodyMedium?.copyWith(
                                       color: colorScheme.onSurfaceVariant,
                                     ),
@@ -168,7 +245,7 @@ class _ClassScreenState extends ConsumerState<ClassScreen> {
               const SizedBox(height: 24),
 
               // Topics Section
-              if (classModel != null && classModel.topics.isNotEmpty) ...[
+              if (classModel.topics.isNotEmpty) ...[
                 Text(
                   'Current Topics',
                   style: theme.textTheme.titleMedium?.copyWith(
