@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../features/class/domain/topic_model.dart';
 import '../providers/ai_tutor_provider.dart';
 
@@ -55,7 +57,8 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final messages = ref.watch(chatMessagesProvider);
+    final topicId = widget.initialTopic?.id ?? 'global';
+    final messages = ref.watch(chatMessagesProvider)[topicId] ?? [];
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -206,6 +209,9 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
                   ),
                   const SizedBox(height: 24),
 
+                  if (widget.initialTopic != null)
+                    _buildClassMaterials(widget.initialTopic!.id, colorScheme, theme),
+
                   // Suggested Prompts
                   Text(
                     'SUGGESTED PROMPTS',
@@ -322,11 +328,14 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
                         onPressed: () {
                           final text = _inputController.text;
                           if (text.isNotEmpty) {
+                            final topicId = widget.initialTopic?.id ?? 'global';
                             ref.read(chatMessagesProvider.notifier).sendMessage(
-                                  text,
+                                  topicId: topicId,
+                                  text: text,
                                   tone: _selectedTone,
                                   language: _selectedLanguage,
                                   topicContext: widget.initialTopic?.title,
+                                  classId: topicId, // The topic ID is actually the class ID when launched from AiTutorListScreen
                                 );
                             _inputController.clear();
                           }
@@ -399,6 +408,107 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: widgets,
+    );
+  }
+
+  Widget _buildClassMaterials(String classId, ColorScheme colorScheme, ThemeData theme) {
+    final materialsAsync = ref.watch(classDocumentsProvider(classId));
+    
+    return materialsAsync.when(
+      data: (materials) {
+        if (materials.isEmpty) return const SizedBox.shrink();
+        
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'AVAILABLE CLASS MATERIALS',
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  letterSpacing: 1.0,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Nova has access to the following documents. You can ask specific questions about them:',
+                      style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: materials.map((m) => Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(8),
+                          onTap: () async {
+                            try {
+                              final supabase = Supabase.instance.client;
+                              final url = await supabase.storage.from('class_materials').createSignedUrl(m['file_url']!, 60 * 60);
+                              final uri = Uri.parse(url);
+                              if (await canLaunchUrl(uri)) {
+                                await launchUrl(uri);
+                              } else {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not open file.')));
+                                }
+                              }
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error opening file: $e')));
+                              }
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: colorScheme.primaryContainer.withValues(alpha: 0.5),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: colorScheme.primary.withValues(alpha: 0.2)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.insert_drive_file, size: 14, color: colorScheme.primary),
+                                const SizedBox(width: 6),
+                                Text(
+                                  m['title'] ?? 'Unknown File',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: colorScheme.primary,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Icon(Icons.open_in_new, size: 12, color: colorScheme.primary.withValues(alpha: 0.7)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      )).toList(),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 }

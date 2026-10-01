@@ -4,11 +4,13 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'features/home/presentation/screens/home_screen.dart';
 import 'features/class/presentation/screens/class_screen.dart';
-import 'features/ai_tutor/presentation/screens/ai_tutor_screen.dart';
+
+import 'features/ai_tutor/presentation/screens/ai_tutor_list_screen.dart';
 import 'package:raite/screens/metrics_screen.dart';
 import 'core/theme/app_theme.dart';
 import 'core/routing/app_router.dart';
 import 'package:go_router/go_router.dart';
+import 'features/auth/presentation/providers/auth_provider.dart';
 
 String? initError;
 
@@ -53,20 +55,20 @@ class SmartLearningApp extends ConsumerWidget {
   }
 }
 
-class MainNavigationScreen extends StatefulWidget {
+class MainNavigationScreen extends ConsumerStatefulWidget {
   const MainNavigationScreen({super.key});
 
   @override
-  State<MainNavigationScreen> createState() => _MainNavigationScreenState();
+  ConsumerState<MainNavigationScreen> createState() => _MainNavigationScreenState();
 }
 
-class _MainNavigationScreenState extends State<MainNavigationScreen> {
+class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = [
     const HomeScreen(),
     const ClassScreen(),
-    const AiTutorScreen(),
+    const AiTutorListScreen(),
     const MetricsScreen(),
     const Scaffold(body: Center(child: Text('Profile Screen'))), // Placeholder
   ];
@@ -126,6 +128,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                       foregroundColor: colorScheme.primary,
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.logout, color: colorScheme.error, size: 18),
+                    onPressed: () async {
+                      await ref.read(authStateProvider.notifier).logout();
+                      if (context.mounted) context.go('/');
+                    },
+                    tooltip: 'Logout',
                   ),
                 ],
               ),
