@@ -5,11 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/sign_up_screen.dart';
-import '../../features/home/presentation/screens/home_screen.dart';
-import '../../features/class/presentation/screens/class_screen.dart';
 
 import '../../main.dart';
-
+import '../../features/class/presentation/screens/class_screen.dart';
+import '../../features/ai_tutor/presentation/screens/ai_tutor_screen.dart';
+import '../../features/class/domain/topic_model.dart';
 // Temporarily returning a basic screen until we build the features
 class PlaceholderScreen extends StatelessWidget {
   final String title;
@@ -50,6 +50,17 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/home',
         builder: (context, state) => const MainNavigationScreen(),
+      ),
+      GoRoute(
+        path: '/class/:id',
+        builder: (context, state) => ClassScreen(classId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/ai-tutor',
+        builder: (context, state) {
+          final topic = state.extra as TopicModel?;
+          return AiTutorScreen(initialTopic: topic);
+        },
       ),
     ],
   );

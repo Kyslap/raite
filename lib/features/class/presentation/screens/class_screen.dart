@@ -1,20 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/class_provider.dart';
 
-class ClassScreen extends StatefulWidget {
-  const ClassScreen({super.key});
+class ClassScreen extends ConsumerStatefulWidget {
+  final String? classId;
+  const ClassScreen({super.key, this.classId});
 
   @override
-  State<ClassScreen> createState() => _ClassScreenState();
+  ConsumerState<ClassScreen> createState() => _ClassScreenState();
 }
 
-class _ClassScreenState extends State<ClassScreen> {
+class _ClassScreenState extends ConsumerState<ClassScreen> {
   int _selectedTabIndex = 0; // 0 for Activities, 1 for Posts
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    
+    // Fetch dynamic class data
+    final classModel = widget.classId != null 
+        ? ref.watch(classDetailProvider(widget.classId!))
+        : null;
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -98,7 +106,7 @@ class _ClassScreenState extends State<ClassScreen> {
                                       borderRadius: BorderRadius.circular(16),
                                     ),
                                     child: Text(
-                                      'MATH 402',
+                                      classModel?.courseCode ?? 'MATH 402',
                                       style: theme.textTheme.labelMedium?.copyWith(
                                         color: colorScheme.onSecondaryContainer,
                                         fontWeight: FontWeight.bold,
@@ -107,7 +115,7 @@ class _ClassScreenState extends State<ClassScreen> {
                                   ),
                                   const SizedBox(height: 12),
                                   Text(
-                                    'Advanced Mathematics',
+                                    classModel?.name ?? 'Advanced Mathematics',
                                     style: theme.textTheme.headlineSmall?.copyWith(
                                       color: colorScheme.onSurface,
                                       fontWeight: FontWeight.bold,
@@ -115,7 +123,7 @@ class _ClassScreenState extends State<ClassScreen> {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    'Professor Aris Thorne • Room 304',
+                                    '${classModel?.professor ?? 'Professor Aris Thorne'} • Room 304',
                                     style: theme.textTheme.bodyMedium?.copyWith(
                                       color: colorScheme.onSurfaceVariant,
                                     ),
@@ -152,6 +160,35 @@ class _ClassScreenState extends State<ClassScreen> {
                 ),
               ),
               const SizedBox(height: 24),
+
+              // Topics Section
+              if (classModel != null && classModel.topics.isNotEmpty) ...[
+                Text(
+                  'Current Topics',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: colorScheme.onSurface,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: classModel.topics.map((topic) {
+                    return ActionChip(
+                      label: Text(topic.title),
+                      backgroundColor: colorScheme.surfaceContainerHigh,
+                      side: BorderSide.none,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      onPressed: () {
+                        context.push('/ai-tutor', extra: topic);
+                      },
+                      avatar: Icon(Icons.smart_toy, color: colorScheme.primary, size: 16),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 24),
+              ],
 
               // Live Lecture Banner
               Container(

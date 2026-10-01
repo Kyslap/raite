@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:raite/features/class/presentation/providers/class_provider.dart';
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -251,20 +251,21 @@ class HomeScreen extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: 16),
-              _EnrolledClassCard(
-                icon: Icons.calculate_outlined,
-                title: 'Advanced Mathematics',
-                progress: 0.82,
-                subtitle: 'Dr. Aris Thorne • Chapter 4: Calculus',
-                onTap: () => context.push('/class'),
-              ),
-              const SizedBox(height: 16),
-              _EnrolledClassCard(
-                icon: Icons.terminal_outlined,
-                title: 'Computer Science 101',
-                progress: 0.64,
-                subtitle: 'Prof. Sarah Jenkins • Module 3: Data Structures',
-                onTap: () => context.push('/class'),
+              ref.watch(enrolledClassesProvider).when(
+                data: (classes) => Column(
+                  children: classes.map((c) => Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    child: _EnrolledClassCard(
+                      icon: Icons.class_outlined,
+                      title: c.name,
+                      progress: c.progress,
+                      subtitle: '${c.professor} • ${c.courseCode}',
+                      onTap: () => context.push('/class/${c.id}'),
+                    ),
+                  )).toList(),
+                ),
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (err, stack) => Text('Error: $err'),
               ),
               const SizedBox(height: 32),
 

@@ -42,9 +42,9 @@ lib/
 
 ### UI & Design System (Modern Theme)
 - **Colors**: Never hardcode colors in widgets. Always use the central theme (`Theme.of(context).colorScheme`).
-  - Primary (Focus): Indigo `#4F47E5`
-  - Secondary: Light Indigo `#6366F1`
-  - Background/Surface: Light Gray/White `#F8F9FB`
+  - Primary (Focus): Retro Dark Green `#375742`
+  - Secondary: Retro Gold/Brown `#685d45`
+  - Background/Surface: Warm Cream `#FCF9F2`
 - **Typography**: Use `Plus Jakarta Sans` defined in the text theme.
 - **Elevation**: Avoid 1px solid borders. Use soft, green-tinted ambient shadows for depth (e.g. `primaryContainer` with 0.08 opacity).
 - **Shapes**: Standard UI elements use `8px` (`0.5rem`) border radius, with `24px` (pill-shaped) for primary action buttons.
