@@ -6,6 +6,8 @@ import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/sign_up_screen.dart';
 
+import '../../main.dart';
+
 // Temporarily returning a basic screen until we build the features
 class PlaceholderScreen extends StatelessWidget {
   final String title;
@@ -45,7 +47,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/home',
-        builder: (context, state) => const PlaceholderScreen(title: 'Home Screen'),
+        builder: (context, state) => const MainNavigationScreen(),
       ),
     ],
   );
