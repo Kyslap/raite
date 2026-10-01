@@ -341,35 +341,8 @@ class HomeScreen extends ConsumerWidget {
                 isPrimaryAction: false,
               ),
               
-              const SizedBox(height: 80), // Padding for bottom nav
+              const SizedBox(height: 16),
             ],
-          ),
-        ),
-      ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: colorScheme.surface.withValues(alpha: 0.9),
-          boxShadow: [
-            BoxShadow(
-              color: colorScheme.onSurface.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -4),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _BottomNavItem(icon: Icons.home, label: 'Home', isActive: true),
-                _BottomNavItem(icon: Icons.school_outlined, label: 'Classes'),
-                _BottomNavItem(icon: Icons.smart_toy_outlined, label: 'AI Tutor'),
-                _BottomNavItem(icon: Icons.bar_chart_outlined, label: 'Metrics'),
-                _BottomNavItem(icon: Icons.person_outline, label: 'Profile'),
-              ],
-            ),
           ),
         ),
       ),
@@ -827,40 +800,3 @@ class _ActivityCard extends StatelessWidget {
   }
 }
 
-class _BottomNavItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool isActive;
-
-  const _BottomNavItem({
-    required this.icon,
-    required this.label,
-    this.isActive = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    
-    final color = isActive ? colorScheme.primary : colorScheme.onSurfaceVariant;
-    
-    return InkWell(
-      onTap: () {},
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: color,
-              fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
