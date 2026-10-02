@@ -1098,6 +1098,8 @@ class _TeacherClassesScreenState extends ConsumerState<TeacherClassesScreen> {
                               classId: cls.id,
                               className: cls.title,
                               courseCode: cls.code,
+                              isCollapsible: true,
+                              initiallyExpanded: true,
                             ),
                           ),
                         ],

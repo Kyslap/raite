@@ -1,28 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../domain/hive_mind_model.dart';
 import '../providers/hive_mind_provider.dart';
 
-class HiveMindReportCard extends ConsumerWidget {
+class HiveMindReportCard extends ConsumerStatefulWidget {
   final String classId;
   final String className;
   final String courseCode;
+  final bool isCollapsible;
+  final bool initiallyExpanded;
 
   const HiveMindReportCard({
     super.key,
     required this.classId,
     this.className = 'Class',
     this.courseCode = '',
+    this.isCollapsible = false,
+    this.initiallyExpanded = true,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HiveMindReportCard> createState() => _HiveMindReportCardState();
+}
+
+class _HiveMindReportCardState extends ConsumerState<HiveMindReportCard> {
+  late bool _isExpanded;
+
+  @override
+  void initState() {
+    super.initState();
+    _isExpanded = widget.initiallyExpanded;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final params = ClassReportParams(
-      classId: classId,
-      className: className,
-      courseCode: courseCode,
+      classId: widget.classId,
+      className: widget.className,
+      courseCode: widget.courseCode,
     );
     final reportAsync = ref.watch(hiveMindReportProvider(params));
     final appliedInterventions = ref.watch(appliedInterventionsProvider);
@@ -93,9 +111,13 @@ class HiveMindReportCard extends ConsumerWidget {
                           ),
                           const SizedBox(width: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF97316).withValues(alpha: 0.15),
+                              color: const Color(0xFFF97316)
+                                  .withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: const Text(
@@ -122,12 +144,17 @@ class HiveMindReportCard extends ConsumerWidget {
                 ),
                 reportAsync.when(
                   data: (report) => Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: colorScheme.surface,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: colorScheme.outlineVariant.withValues(alpha: 0.6),
+                        color: colorScheme.outlineVariant.withValues(
+                          alpha: 0.6,
+                        ),
                       ),
                     ),
                     child: Row(
@@ -153,13 +180,31 @@ class HiveMindReportCard extends ConsumerWidget {
                   loading: () => const SizedBox.shrink(),
                   error: (_, _) => const SizedBox.shrink(),
                 ),
+                if (widget.isCollapsible)
+                  IconButton(
+                    icon: AnimatedRotation(
+                      turns: _isExpanded ? 0.5 : 0.0,
+                      duration: const Duration(milliseconds: 300),
+                      child: Icon(
+                        Icons.keyboard_arrow_down,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isExpanded = !_isExpanded;
+                      });
+                    },
+                  ),
               ],
             ),
           ),
 
           // Body Content
-          reportAsync.when(
-            data: (report) => Padding(
+          AnimatedCrossFade(
+            firstChild: const SizedBox(width: double.infinity, height: 0),
+            secondChild: reportAsync.when(
+              data: (report) => Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -171,7 +216,9 @@ class HiveMindReportCard extends ConsumerWidget {
                       color: colorScheme.surface,
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+                        color: colorScheme.outlineVariant.withValues(
+                          alpha: 0.4,
+                        ),
                       ),
                     ),
                     child: Column(
@@ -191,12 +238,17 @@ class HiveMindReportCard extends ConsumerWidget {
                             Container(
                               height: 24,
                               width: 1,
-                              color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                              color: colorScheme.outlineVariant.withValues(
+                                alpha: 0.5,
+                              ),
                             ),
                             Expanded(
                               child: _CohortSummaryBadge(
                                 label: 'Core Cohort',
-                                count: report.totalStudents - report.topCohortCount - report.atRiskCohortCount,
+                                count:
+                                    report.totalStudents -
+                                    report.topCohortCount -
+                                    report.atRiskCohortCount,
                                 color: colorScheme.primary,
                                 description: 'Avg 78% Mastery',
                               ),
@@ -204,7 +256,9 @@ class HiveMindReportCard extends ConsumerWidget {
                             Container(
                               height: 24,
                               width: 1,
-                              color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                              color: colorScheme.outlineVariant.withValues(
+                                alpha: 0.5,
+                              ),
                             ),
                             Expanded(
                               child: _CohortSummaryBadge(
@@ -271,13 +325,16 @@ class HiveMindReportCard extends ConsumerWidget {
                       ),
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: colorScheme.primary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          '${report.interventions.where((i) => appliedInterventions.contains(i.id)).length}/${report.interventions.length} Applied',
+                          '${report.interventions.where((i) => appliedInterventions.contains(i.id)).length}/${report.interventions.length} Suggested',
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
@@ -289,7 +346,9 @@ class HiveMindReportCard extends ConsumerWidget {
                   ),
                   const SizedBox(height: 10),
                   ...report.interventions.map((intervention) {
-                    final isApplied = appliedInterventions.contains(intervention.id);
+                    final isApplied = appliedInterventions.contains(
+                      intervention.id,
+                    );
                     return _InterventionCard(
                       intervention: intervention,
                       isApplied: isApplied,
@@ -301,8 +360,8 @@ class HiveMindReportCard extends ConsumerWidget {
                           SnackBar(
                             content: Text(
                               isApplied
-                                  ? 'Reverted "${intervention.title}"'
-                                  : 'Applied intervention: "${intervention.title}"',
+                                  ? 'Reverted suggestion: "${intervention.title}"'
+                                  : '✨ Suggested intervention: "${intervention.title}"',
                             ),
                             duration: const Duration(seconds: 2),
                             backgroundColor: colorScheme.primary,
@@ -327,7 +386,10 @@ class HiveMindReportCard extends ConsumerWidget {
                     SizedBox(height: 12),
                     Text(
                       'Analyzing student habit telemetry...',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ],
                 ),
@@ -343,6 +405,11 @@ class HiveMindReportCard extends ConsumerWidget {
                 ],
               ),
             ),
+          ),
+            crossFadeState: _isExpanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            duration: const Duration(milliseconds: 300),
           ),
         ],
       ),
@@ -375,10 +442,7 @@ class _CohortSummaryBadge extends StatelessWidget {
             Container(
               width: 8,
               height: 8,
-              decoration: BoxDecoration(
-                color: color,
-                shape: BoxShape.circle,
-              ),
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
             ),
             const SizedBox(width: 6),
             Flexible(
@@ -454,7 +518,8 @@ class _HabitMetricRow extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: _getSeverityColor(metric.severity).withValues(alpha: 0.12),
+                  color: _getSeverityColor(metric.severity)
+                      .withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
@@ -475,7 +540,10 @@ class _HabitMetricRow extends StatelessWidget {
             children: [
               Expanded(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFF16A34A).withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(8),
@@ -505,7 +573,10 @@ class _HabitMetricRow extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFDC2626).withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(8),
@@ -640,12 +711,18 @@ class _InterventionCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+              color: colorScheme.surfaceContainerHighest.withValues(
+                alpha: 0.35,
+              ),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
               children: [
-                Icon(Icons.lightbulb_outline, size: 14, color: colorScheme.secondary),
+                Icon(
+                  Icons.lightbulb_outline,
+                  size: 14,
+                  color: colorScheme.secondary,
+                ),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
@@ -666,12 +743,17 @@ class _InterventionCard extends StatelessWidget {
             child: ElevatedButton.icon(
               onPressed: onToggle,
               icon: Icon(
-                isApplied ? Icons.check_circle_rounded : Icons.bolt_rounded,
+                isApplied
+                    ? Icons.check_circle_rounded
+                    : Icons.lightbulb_rounded,
                 size: 16,
               ),
               label: Text(
-                isApplied ? 'Intervention Active' : 'Apply Intervention',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                isApplied ? 'Intervention Suggested' : 'Suggest Intervention',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: isApplied
@@ -679,7 +761,10 @@ class _InterventionCard extends StatelessWidget {
                     : colorScheme.primary,
                 foregroundColor: Colors.white,
                 elevation: 0,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
