@@ -33,7 +33,33 @@ class TeacherClassNotifier extends Notifier<List<TeacherClass>> {
   @override
   List<TeacherClass> build() {
     _loadFromSupabase();
-    return const [];
+    return _initialSeedClasses();
+  }
+
+  static List<TeacherClass> _initialSeedClasses() {
+    return const [
+      TeacherClass(
+        id: 'class-1',
+        title: 'Calculus & Differential Equations',
+        department: 'Department of Mathematics',
+        code: 'MATH-201',
+        studentCount: 34,
+      ),
+      TeacherClass(
+        id: 'class-2',
+        title: 'Data Structures & Algorithms',
+        department: 'Computer Science',
+        code: 'CS-210',
+        studentCount: 42,
+      ),
+      TeacherClass(
+        id: 'class-3',
+        title: 'Astrophysics & Planetary Mechanics',
+        department: 'Physics & Astronomy',
+        code: 'ASTRO-101',
+        studentCount: 28,
+      ),
+    ];
   }
 
   Future<void> _loadFromSupabase() async {
@@ -53,7 +79,9 @@ class TeacherClassNotifier extends Notifier<List<TeacherClass>> {
         studentCount: (item['student_count'] as num?)?.toInt() ?? 0,
       )).toList();
 
-      state = loaded;
+      if (loaded.isNotEmpty) {
+        state = loaded;
+      }
     } catch (e) {
       debugPrint('Supabase load classes error: $e');
     }
@@ -137,7 +165,48 @@ class TeacherLessonNotifier extends Notifier<List<LessonModel>> {
   @override
   List<LessonModel> build() {
     _loadFromSupabase();
-    return const [];
+    return _initialSeedLessons();
+  }
+
+  static List<LessonModel> _initialSeedLessons() {
+    return [
+      LessonModel(
+        id: 'lesson-seed-1',
+        classId: 'class-1',
+        className: 'Calculus & Differential Equations',
+        title: 'Techniques of Integration & Taylor Polynomials',
+        content: '## 1. Executive Summary\nDetailed walkthrough of Integration by Parts, trigonometric substitution, and convergence tests for infinite series.\n\n## 2. Practical Applications\nUsed across electrical circuit analysis and orbital decay estimations.',
+        estimatedMinutes: '45 mins',
+        objectives: const [
+          'Master integration by parts using the LIATE hierarchy',
+          'Evaluate improper integrals with infinite discontinuities',
+          'Construct Taylor series approximations up to degree 4',
+        ],
+        quizQuestions: const [
+          'When does integration by parts terminate faster than tabular method?',
+          'What is the radius of convergence for the geometric series 1/(1-x)?',
+        ],
+        attachments: const [],
+        createdAt: DateTime.now().subtract(const Duration(days: 2)),
+      ),
+      LessonModel(
+        id: 'lesson-seed-2',
+        classId: 'class-2',
+        className: 'Data Structures & Algorithms',
+        title: 'Balanced Binary Search Trees & AVL Rotations',
+        content: '## 1. Executive Summary\nAnalysis of worst-case search tree degenerations and self-balancing BST mechanisms.\n\n## 2. AVL Invariants\nHeight factor differential must remain in {-1, 0, 1} across all subtrees.',
+        estimatedMinutes: '60 mins',
+        objectives: const [
+          'Prove O(log n) upper bound for balanced BST search operations',
+          'Execute single and double AVL tree rotations on insert',
+        ],
+        quizQuestions: const [
+          'Under what rebalancing conditions is a Left-Right (LR) rotation necessary?',
+        ],
+        attachments: const [],
+        createdAt: DateTime.now().subtract(const Duration(days: 5)),
+      ),
+    ];
   }
 
   Future<void> _loadFromSupabase() async {
@@ -176,7 +245,9 @@ class TeacherLessonNotifier extends Notifier<List<LessonModel>> {
         );
       }).toList();
 
-      state = loaded;
+      if (loaded.isNotEmpty) {
+        state = loaded;
+      }
     } catch (e) {
       debugPrint('Supabase load lessons error: $e');
     }

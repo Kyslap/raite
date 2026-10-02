@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/teacher_lesson_provider.dart';
+import '../providers/teacher_class_hub_provider.dart';
 import '../providers/teacher_insights_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
@@ -470,7 +471,6 @@ class TeacherDashboardScreen extends ConsumerWidget {
                       lessons.where((l) => l.classId == cls.id).length;
 
                   return Container(
-                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: colorScheme.surfaceContainerLow,
                       borderRadius: BorderRadius.circular(16),
@@ -478,81 +478,97 @@ class TeacherDashboardScreen extends ConsumerWidget {
                         color: colorScheme.outlineVariant.withValues(alpha: 0.5),
                       ),
                     ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: colorScheme.primaryContainer,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(
-                            Icons.laptop_chromebook,
-                            color: colorScheme.onPrimaryContainer,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Material(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(16),
+                      clipBehavior: Clip.antiAlias,
+                      child: InkWell(
+                        onTap: () {
+                          ref.read(selectedTeacherClassProvider.notifier).selectClass(cls);
+                          if (onNavigateTab != null) {
+                            onNavigateTab!(1); // Switch to Classes tab
+                          }
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
                             children: [
-                              Text(
-                                cls.title,
-                                style: theme.textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: colorScheme.onSurface,
+                              Container(
+                                width: 48,
+                                height: 48,
+                                decoration: BoxDecoration(
+                                  color: colorScheme.primaryContainer,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  Icons.laptop_chromebook,
+                                  color: colorScheme.onPrimaryContainer,
                                 ),
                               ),
-                              const SizedBox(height: 4),
-                              Wrap(
-                                crossAxisAlignment: WrapCrossAlignment.center,
-                                spacing: 8,
-                                children: [
-                                  Text(
-                                    '${cls.department} • ${cls.studentCount} Students',
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: colorScheme.onSurfaceVariant,
-                                    ),
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: colorScheme.primary.withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: Text(
-                                      cls.code,
-                                      style: TextStyle(
-                                        color: colorScheme.primary,
-                                        fontSize: 10,
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      cls.title,
+                                      style: theme.textTheme.titleSmall?.copyWith(
                                         fontWeight: FontWeight.bold,
+                                        color: colorScheme.onSurface,
                                       ),
                                     ),
+                                    const SizedBox(height: 4),
+                                    Wrap(
+                                      crossAxisAlignment: WrapCrossAlignment.center,
+                                      spacing: 8,
+                                      children: [
+                                        Text(
+                                          '${cls.department} • ${cls.studentCount} Students',
+                                          style: theme.textTheme.bodySmall?.copyWith(
+                                            color: colorScheme.onSurfaceVariant,
+                                          ),
+                                        ),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: colorScheme.primary.withValues(alpha: 0.1),
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          child: Text(
+                                            cls.code,
+                                            style: TextStyle(
+                                              color: colorScheme.primary,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.surface,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: colorScheme.outlineVariant.withValues(alpha: 0.6),
                                   ),
-                                ],
+                                ),
+                                child: Text(
+                                  '$classLessonsCount Lessons',
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: colorScheme.primary,
+                                  ),
+                                ),
                               ),
                             ],
                           ),
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: colorScheme.surface,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: colorScheme.outlineVariant.withValues(alpha: 0.6),
-                            ),
-                          ),
-                          child: Text(
-                            '$classLessonsCount Lessons',
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: colorScheme.primary,
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   );
                 },

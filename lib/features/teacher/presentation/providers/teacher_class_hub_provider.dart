@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/announcement_model.dart';
 import '../../domain/assignment_model.dart';
 import '../../../class/domain/student_submission_model.dart';
+import 'teacher_lesson_provider.dart';
 
 class ClassAnnouncementsNotifier extends Notifier<List<AnnouncementModel>> {
   SupabaseClient? get _client {
@@ -289,3 +290,17 @@ final teacherSubmissionsProvider =
     NotifierProvider<TeacherSubmissionsNotifier, List<StudentSubmissionModel>>(() {
   return TeacherSubmissionsNotifier();
 });
+
+class SelectedTeacherClassNotifier extends Notifier<TeacherClass?> {
+  @override
+  TeacherClass? build() => null;
+
+  void selectClass(TeacherClass? cls) {
+    state = cls;
+  }
+}
+
+final selectedTeacherClassProvider =
+    NotifierProvider<SelectedTeacherClassNotifier, TeacherClass?>(
+  SelectedTeacherClassNotifier.new,
+);
