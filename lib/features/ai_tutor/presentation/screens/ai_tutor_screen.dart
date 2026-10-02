@@ -9,6 +9,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import '../../../../features/class/domain/topic_model.dart';
+import '../../../../features/class/presentation/providers/class_provider.dart';
 import '../providers/ai_tutor_provider.dart';
 import 'package:raite/features/daily_goals/presentation/providers/daily_goals_provider.dart';
 
@@ -131,6 +132,12 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
     final colorScheme = theme.colorScheme;
     final topicId = widget.initialTopic?.id ?? 'global';
     final messages = ref.watch(chatMessagesProvider)[topicId] ?? [];
+    
+    final classesState = ref.watch(enrolledClassesProvider);
+    String defaultTopic = 'anything you want to learn';
+    if (classesState.value != null && classesState.value!.isNotEmpty) {
+      defaultTopic = classesState.value!.first.title;
+    }
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -360,7 +367,7 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
                                   TextSpan(
                                     text: widget.initialTopic != null 
                                         ? widget.initialTopic!.title 
-                                        : 'Calculus: Derivatives & Rates of Change',
+                                        : defaultTopic,
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       decoration: TextDecoration.underline,
