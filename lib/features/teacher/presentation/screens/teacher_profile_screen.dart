@@ -365,78 +365,84 @@ class _TeacherProfileScreenState extends ConsumerState<TeacherProfileScreen> {
                   color: colorScheme.outlineVariant.withValues(alpha: 0.4),
                 ),
               ),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Lai AI Teaching Style',
-                            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+              child: Material(
+                color: Colors.transparent,
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Lai AI Teaching Style',
+                                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Guided inquiry tone used in class answers',
+                                style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Guided inquiry tone used in class answers',
-                            style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
-                          ),
-                        ],
-                      ),
-                      DropdownButton<String>(
-                        value: _selectedAiTone,
-                        underline: const SizedBox(),
-                        style: TextStyle(
-                          color: colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
                         ),
-                        items: ['Socratic Method', 'Explanatory', 'Rigorous Proofs']
-                            .map((tone) => DropdownMenuItem(
-                                  value: tone,
-                                  child: Text(tone),
-                                ))
-                            .toList(),
-                        onChanged: (val) {
-                          if (val != null) setState(() => _selectedAiTone = val);
-                        },
+                        const SizedBox(width: 8),
+                        DropdownButton<String>(
+                          value: _selectedAiTone,
+                          underline: const SizedBox(),
+                          style: TextStyle(
+                            color: colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                          items: ['Socratic Method', 'Explanatory', 'Rigorous Proofs']
+                              .map((tone) => DropdownMenuItem(
+                                    value: tone,
+                                    child: Text(tone),
+                                  ))
+                              .toList(),
+                          onChanged: (val) {
+                            if (val != null) setState(() => _selectedAiTone = val);
+                          },
+                        ),
+                      ],
+                    ),
+                    const Divider(height: 24),
+                    SwitchListTile.adaptive(
+                      contentPadding: EdgeInsets.zero,
+                      dense: true,
+                      title: const Text(
+                        'Submission Turn-In Alerts',
+                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
                       ),
-                    ],
-                  ),
-                  const Divider(height: 24),
-                  SwitchListTile.adaptive(
-                    contentPadding: EdgeInsets.zero,
-                    dense: true,
-                    title: const Text(
-                      'Submission Turn-In Alerts',
-                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                      subtitle: Text(
+                        'Notify when students submit homework assignments',
+                        style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
+                      ),
+                      value: _submissionAlerts,
+                      activeTrackColor: colorScheme.primary,
+                      onChanged: (val) => setState(() => _submissionAlerts = val),
                     ),
-                    subtitle: Text(
-                      'Notify when students submit homework assignments',
-                      style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
+                    const Divider(height: 16),
+                    SwitchListTile.adaptive(
+                      contentPadding: EdgeInsets.zero,
+                      dense: true,
+                      title: const Text(
+                        'Confusion Spike Alerts',
+                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                      ),
+                      subtitle: Text(
+                        'Get alerts when 3+ students ask similar questions',
+                        style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
+                      ),
+                      value: _confusionAlerts,
+                      activeTrackColor: colorScheme.primary,
+                      onChanged: (val) => setState(() => _confusionAlerts = val),
                     ),
-                    value: _submissionAlerts,
-                    activeTrackColor: colorScheme.primary,
-                    onChanged: (val) => setState(() => _submissionAlerts = val),
-                  ),
-                  const Divider(height: 16),
-                  SwitchListTile.adaptive(
-                    contentPadding: EdgeInsets.zero,
-                    dense: true,
-                    title: const Text(
-                      'Confusion Spike Alerts',
-                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-                    ),
-                    subtitle: Text(
-                      'Get alerts when 3+ students ask similar questions',
-                      style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
-                    ),
-                    value: _confusionAlerts,
-                    activeTrackColor: colorScheme.primary,
-                    onChanged: (val) => setState(() => _confusionAlerts = val),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 24),

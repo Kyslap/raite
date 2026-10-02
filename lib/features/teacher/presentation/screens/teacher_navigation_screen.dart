@@ -73,7 +73,7 @@ class _TeacherNavigationScreenState
             BottomNavigationBarItem(
               icon: Icon(Icons.post_add_outlined),
               activeIcon: Icon(Icons.post_add),
-              label: 'Post Lesson',
+              label: 'Lesson',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.insights_outlined),

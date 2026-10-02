@@ -93,7 +93,7 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
 
   // Selected customization state (would normally be managed by Riverpod)
   String _selectedTone = 'Academic';
-  String _selectedLanguage = 'English';
+  String _selectedLanguage = 'Auto';
 
   void _showSetupSheet() {
     showModalBottomSheet(
@@ -146,13 +146,51 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
           ),
         ),
         actions: [
+          // Quick Language Mode Badge / Selector
+          InkWell(
+            onTap: _showSetupSheet,
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              margin: const EdgeInsets.symmetric(vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: colorScheme.primaryContainer.withValues(alpha: 0.7),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: colorScheme.primary.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    _selectedLanguage == 'Auto'
+                        ? Icons.auto_awesome_rounded
+                        : Icons.translate_rounded,
+                    size: 14,
+                    color: colorScheme.onPrimaryContainer,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    _selectedLanguage == 'Auto' ? 'Auto Mode' : _selectedLanguage,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onPrimaryContainer,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 4),
           IconButton(
             icon: Icon(Icons.tune, color: colorScheme.primary),
             tooltip: 'Customize AI Tutor',
             onPressed: _showSetupSheet,
           ),
           Padding(
-            padding: const EdgeInsets.only(right: 16.0, left: 8.0),
+            padding: const EdgeInsets.only(right: 16.0, left: 4.0),
             child: InkWell(
               onTap: () {
                 if (context.canPop()) {
@@ -410,6 +448,14 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
+                        _PromptPill(
+                          icon: '🌾',
+                          label: 'Kapampangan: Nanu ing WBS?',
+                          onTap: () {
+                            _inputController.text = 'Makananu yang gawan ing Work Breakdown Structure (WBS) king Project Management?';
+                          },
+                        ),
+                        const SizedBox(width: 8),
                         _PromptPill(
                           icon: '📊',
                           label: 'Explain Critical Path (CPM)',
@@ -780,7 +826,15 @@ class _AiTutorSetupSheetState extends State<_AiTutorSetupSheet> {
   late String _selectedLanguage;
 
   final List<String> _tones = ['Academic', 'Friendly', 'Socratic', 'Vintage/Strict'];
-  final List<String> _languages = ['English', 'Tagalog', 'Taglish', 'Spanish', 'French'];
+  final List<String> _languages = [
+    'Auto',
+    'Kapampangan',
+    'Taglish',
+    'Tagalog',
+    'English',
+    'Spanish',
+    'French',
+  ];
 
   @override
   void initState() {
@@ -896,8 +950,21 @@ class _AiTutorSetupSheetState extends State<_AiTutorSetupSheet> {
             runSpacing: 8,
             children: _languages.map((lang) {
               final isSelected = _selectedLanguage == lang;
+              String displayLabel = lang;
+              if (lang == 'Auto') displayLabel = 'Auto (Detect Language)';
+              if (lang == 'Kapampangan') displayLabel = 'Kapampangan (Amanung Sisuan)';
+
               return ChoiceChip(
-                label: Text(lang),
+                avatar: lang == 'Auto'
+                    ? Icon(
+                        Icons.auto_awesome,
+                        size: 14,
+                        color: isSelected ? colorScheme.onPrimaryContainer : colorScheme.primary,
+                      )
+                    : (lang == 'Kapampangan'
+                        ? const Text('🌾', style: TextStyle(fontSize: 12))
+                        : null),
+                label: Text(displayLabel),
                 selected: isSelected,
                 onSelected: (selected) {
                   if (selected) setState(() => _selectedLanguage = lang);
