@@ -11,8 +11,8 @@ class HiveMindReportCard extends ConsumerWidget {
   const HiveMindReportCard({
     super.key,
     required this.classId,
-    required this.className,
-    required this.courseCode,
+    this.className = 'Class',
+    this.courseCode = '',
   });
 
   @override

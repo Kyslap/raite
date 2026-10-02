@@ -6,6 +6,7 @@ import 'teacher_dashboard_screen.dart';
 import 'teacher_classes_screen.dart';
 import 'teacher_create_lesson_screen.dart';
 import 'teacher_analytics_screen.dart';
+import 'teacher_profile_screen.dart';
 
 class TeacherNavigationScreen extends ConsumerStatefulWidget {
   const TeacherNavigationScreen({super.key});
@@ -33,6 +34,7 @@ class _TeacherNavigationScreenState
       TeacherClassesScreen(onNavigateTab: _onNavigateTab),
       TeacherCreateLessonScreen(onLessonPublished: () => _onNavigateTab(0)),
       const TeacherAnalyticsScreen(),
+      TeacherProfileScreen(onNavigateTab: _onNavigateTab),
     ];
 
     return Scaffold(
@@ -137,6 +139,11 @@ class _TeacherNavigationScreenState
               icon: Icon(Icons.insights_outlined),
               activeIcon: Icon(Icons.insights),
               label: 'Insights',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_outline),
+              activeIcon: Icon(Icons.person),
+              label: 'Profile',
             ),
           ],
         ),

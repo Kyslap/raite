@@ -196,43 +196,56 @@ class TeacherDashboardScreen extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Row(
-          children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: colorScheme.primary,
-                shape: BoxShape.circle,
+        title: GestureDetector(
+          onTap: () => onNavigateTab?.call(4),
+          behavior: HitTestBehavior.opaque,
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: colorScheme.primary,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.psychology, color: Colors.white, size: 22),
               ),
-              child: const Icon(Icons.psychology, color: Colors.white, size: 22),
-            ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Professor ${user?.name ?? 'Teacher'}',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface,
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Professor ${user?.name ?? 'Teacher'}',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
+                    ),
                   ),
-                ),
-                Text(
-                  'Educator Portal',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
+                  Text(
+                    'Educator Portal',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
         actions: [
           IconButton(
             icon: Icon(Icons.notifications_none_outlined, color: colorScheme.onSurface),
             tooltip: 'Teacher Alerts',
             onPressed: () => _showTeacherNotificationsSheet(context, ref),
+          ),
+          IconButton(
+            icon: CircleAvatar(
+              radius: 14,
+              backgroundColor: colorScheme.primaryContainer,
+              child: Icon(Icons.person, size: 16, color: colorScheme.primary),
+            ),
+            tooltip: 'Educator Profile & Logout',
+            onPressed: () => onNavigateTab?.call(4),
           ),
           const SizedBox(width: 8),
         ],
