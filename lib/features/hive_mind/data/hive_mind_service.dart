@@ -32,7 +32,7 @@ class HiveMindService {
     }
 
     // 2. Synthesize baseline habit differentials based on the academic subject
-    final habitMetrics = _buildSubjectHabitMetrics(courseCode);
+    final habitMetrics = _buildSubjectHabitMetrics(courseCode, className);
 
     // 3. Generate narrative summary & targeted interventions via Gemini (or rich fallback)
     final aiResult = await _synthesizePedagogicalAnalysis(
@@ -41,14 +41,21 @@ class HiveMindService {
       questions: recentStudentQuestions,
     );
 
+    // Deterministic, class-specific cohort variance
+    final hash = classId.hashCode.abs();
+    final dynamicTotalStudents = 26 + (hash % 16);
+    final dynamicTopCount = 5 + (hash % 4);
+    final dynamicAtRiskCount = 4 + ((hash >> 2) % 4);
+    final dynamicGap = 24.0 + ((hash % 180) / 10.0);
+
     return HiveMindReport(
       classId: classId,
       className: className,
       courseCode: courseCode,
-      totalStudents: 32,
-      topCohortCount: 7,
-      atRiskCohortCount: 6,
-      gapVariancePercentage: 34.2,
+      totalStudents: dynamicTotalStudents,
+      topCohortCount: dynamicTopCount,
+      atRiskCohortCount: dynamicAtRiskCount,
+      gapVariancePercentage: dynamicGap,
       narrativeSummary: aiResult.narrative,
       habitMetrics: habitMetrics,
       interventions: aiResult.interventions,
@@ -56,8 +63,9 @@ class HiveMindService {
     );
   }
 
-  List<CohortHabitMetric> _buildSubjectHabitMetrics(String courseCode) {
+  List<CohortHabitMetric> _buildSubjectHabitMetrics(String courseCode, [String className = '']) {
     final code = courseCode.toUpperCase();
+    final name = className.toLowerCase();
     if (code.contains('MATH') || code.contains('CALC')) {
       return [
         const CohortHabitMetric(
@@ -134,6 +142,45 @@ class HiveMindService {
           gapExplanation: 'Deep algorithmic debugging requires sustained 30+ minute uninterrupted focus sessions.',
           severity: HabitGapSeverity.low,
           icon: Icons.timer_rounded,
+        ),
+      ];
+    } else if (code.contains('IT') || code.contains('ITE') || code.contains('PM') || name.contains('project') || name.contains('raite') || name.contains('test')) {
+      return [
+        const CohortHabitMetric(
+          title: 'Sprint Deliverable Pacing',
+          category: 'Agile Workflow',
+          topCohortStat: '2.5 days ahead',
+          atRiskCohortStat: 'Deadline night rush',
+          gapExplanation: 'Top students stage milestones incrementally, while at-risk cohorts submit without peer code or charter verification.',
+          severity: HabitGapSeverity.critical,
+          icon: Icons.view_kanban_rounded,
+        ),
+        const CohortHabitMetric(
+          title: 'Requirements & Context Review',
+          category: 'System Specifications',
+          topCohortStat: 'Reviews specs daily',
+          atRiskCohortStat: 'Rarely reads File 2',
+          gapExplanation: 'High performers thoroughly examine project environments and stakeholder matrices before implementation.',
+          severity: HabitGapSeverity.critical,
+          icon: Icons.menu_book_rounded,
+        ),
+        const CohortHabitMetric(
+          title: 'Dialect & Vernacular Clarifications',
+          category: 'Concept Internalization',
+          topCohortStat: 'Rephrases in own words',
+          atRiskCohortStat: 'Passive memorization',
+          gapExplanation: 'Top learners leverage Lai to translate abstract systems terminology into native intuitive concepts.',
+          severity: HabitGapSeverity.moderate,
+          icon: Icons.psychology_rounded,
+        ),
+        const CohortHabitMetric(
+          title: 'Scope Risk Mitigation Checks',
+          category: 'Project Control',
+          topCohortStat: '3 check-ins / sprint',
+          atRiskCohortStat: '0 preemptive checks',
+          gapExplanation: 'Struggling learners experience scope creep because they delay identifying dependency roadblocks.',
+          severity: HabitGapSeverity.moderate,
+          icon: Icons.security_rounded,
         ),
       ];
     } else {

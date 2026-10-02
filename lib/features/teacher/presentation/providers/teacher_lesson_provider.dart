@@ -59,6 +59,13 @@ class TeacherClassNotifier extends Notifier<List<TeacherClass>> {
         code: 'ASTRO-101',
         studentCount: 28,
       ),
+      TeacherClass(
+        id: 'class-4',
+        title: 'Software Project Management',
+        department: 'Information Systems',
+        code: 'PM-301',
+        studentCount: 36,
+      ),
     ];
   }
 
@@ -205,6 +212,25 @@ class TeacherLessonNotifier extends Notifier<List<LessonModel>> {
         ],
         attachments: const [],
         createdAt: DateTime.now().subtract(const Duration(days: 5)),
+      ),
+      LessonModel(
+        id: 'lesson-seed-3',
+        classId: 'class-4',
+        className: 'Software Project Management',
+        title: 'Agile Frameworks, CPM & Earned Value Management',
+        content: '## 1. Executive Summary\nDetailed exploration of Project Lifecycles: Agile vs. Waterfall, Critical Path scheduling, and Earned Value Management (EVM).\n\n## 2. Quantitative Controls\nMastering Schedule Variance (SV), Cost Variance (CV), and Schedule Performance Index (SPI).',
+        estimatedMinutes: '50 mins',
+        objectives: const [
+          'Calculate Critical Path and identify float/slack time',
+          'Evaluate Cost and Schedule Variance using EVM metrics',
+          'Draft RACI matrix and Sprint Retrospective protocols',
+        ],
+        quizQuestions: const [
+          'What does an SPI value greater than 1.0 indicate about project pacing?',
+          'How does scope creep directly impact the project critical path?',
+        ],
+        attachments: const [],
+        createdAt: DateTime.now().subtract(const Duration(days: 1)),
       ),
     ];
   }
