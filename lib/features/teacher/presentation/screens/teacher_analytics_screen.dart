@@ -67,6 +67,7 @@ class _TeacherAnalyticsScreenState
             tooltip: 'Refresh AI Insights',
             onPressed: () {
               ref.invalidate(classInsightsProvider(targetClassId));
+              ref.invalidate(dynamicClassMetricsProvider(targetClassId));
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: const Text('✨ Refreshing Gemini AI Classroom Insights...'),
@@ -231,7 +232,7 @@ class _TeacherAnalyticsScreenState
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              '${lessons.length} Modules',
+                              '${lessons.where((l) => _selectedClassId == null || l.classId == _selectedClassId).length} Modules',
                               style: TextStyle(
                                 fontSize: 11,
                                 color: colorScheme.onSurfaceVariant,
@@ -277,86 +278,15 @@ class _TeacherAnalyticsScreenState
             const SizedBox(height: 24),
 
             // 4. Hive Mind Cohort Habit Intelligence & Intervention Card
-            HiveMindReportCard(classId: targetClassId),
+            HiveMindReportCard(
+              classId: targetClassId,
+              className: activeClass?.title ?? 'Course',
+              courseCode: activeClass?.code ?? 'CLS',
+            ),
             const SizedBox(height: 24),
 
-            // 5. Most Asked Topics to Lai AI
-            Text(
-              'Top Inquiry Concepts (Confusion Signals)',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: colorScheme.onSurface,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Frequent topics students asked Lai AI Tutor to clarify this week:',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 12),
-            const _TopicBar(
-              topic: 'Backpropagation Chain Rule & Matrix Derivatives',
-              percentage: 0.72,
-              questionsCount: 42,
-              color: Color(0xFFEF4444),
-            ),
-            const SizedBox(height: 10),
-            const _TopicBar(
-              topic: 'Stokes Theorem & Surface Normal Orientation',
-              percentage: 0.55,
-              questionsCount: 31,
-              color: Color(0xFFF59E0B),
-            ),
-            const SizedBox(height: 10),
-            const _TopicBar(
-              topic: 'Eigenvalues & Diagonalization Transforms',
-              percentage: 0.38,
-              questionsCount: 19,
-              color: Color(0xFF10B981),
-            ),
-            const SizedBox(height: 28),
-
-            // 6. Students Flagged for Follow-up
-            Text(
-              'Students Flagged for Follow-up',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: colorScheme.onSurface,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerLow,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: colorScheme.outlineVariant.withValues(alpha: 0.5),
-                ),
-              ),
-              child: Column(
-                children: const [
-                  _StudentAlertTile(
-                    name: 'Marcus Brody',
-                    issue: 'Struggling with Gradient Descent quiz (Score: 40%)',
-                    status: 'Needs Help',
-                  ),
-                  Divider(height: 1),
-                  _StudentAlertTile(
-                    name: 'Sophia Chen',
-                    issue: 'Has not started "Stokes Theorem" lesson (Due in 1d)',
-                    status: 'Pending',
-                  ),
-                  Divider(height: 1),
-                  _StudentAlertTile(
-                    name: 'Liam Gallagher',
-                    issue: 'Asked 8 clarifying questions on Momentum Optimizer',
-                    status: 'Active Inquirer',
-                  ),
-                ],
-              ),
-            ),
+            // 5. & 6. Dynamic Metrics Section
+            _DynamicMetricsSection(classId: targetClassId),
             const SizedBox(height: 32),
           ],
         ),
@@ -609,3 +539,106 @@ class _StudentAlertTile extends StatelessWidget {
     );
   }
 }
+
+class _DynamicMetricsSection extends ConsumerWidget {
+  final String classId;
+
+  const _DynamicMetricsSection({required this.classId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final metricsAsync = ref.watch(dynamicClassMetricsProvider(classId));
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return metricsAsync.when(
+      data: (metrics) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 5. Most Asked Topics
+            Text(
+              'Top Inquiry Concepts (Confusion Signals)',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Frequent topics students asked Lai AI Tutor to clarify this week:',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 12),
+            ...metrics.topics.map((topic) {
+              Color c;
+              try {
+                c = Color(int.parse(topic.colorHex.replaceAll('#', ''), radix: 16) + 0xFF000000);
+              } catch (_) {
+                c = colorScheme.primary;
+              }
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10.0),
+                child: _TopicBar(
+                  topic: topic.topic,
+                  percentage: topic.percentage,
+                  questionsCount: topic.questionsCount,
+                  color: c,
+                ),
+              );
+            }),
+            const SizedBox(height: 28),
+
+            // 6. Students Flagged for Follow-up
+            Text(
+              'Students Flagged for Follow-up',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                ),
+              ),
+              child: Column(
+                children: metrics.flaggedStudents.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final student = entry.value;
+                  return Column(
+                    children: [
+                      _StudentAlertTile(
+                        name: student.name,
+                        issue: student.issue,
+                        status: student.status,
+                      ),
+                      if (index < metrics.flaggedStudents.length - 1)
+                        const Divider(height: 1),
+                    ],
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
+        );
+      },
+      loading: () => const Center(
+        child: Padding(
+          padding: EdgeInsets.all(32.0),
+          child: CircularProgressIndicator(),
+        ),
+      ),
+      error: (e, st) => Center(
+        child: Text('Failed to load metrics: $e'),
+      ),
+    );
+  }
+}
+

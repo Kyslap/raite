@@ -87,7 +87,6 @@ class _OcrScannerScreenState extends ConsumerState<OcrScannerScreen> {
       appBar: const RetroTopAppBar(
         title: 'Note Scanner',
         subtitle: 'OCR AI Vision Reader',
-        showStreak: true,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),

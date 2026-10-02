@@ -32,7 +32,7 @@ class HiveMindService {
     }
 
     // 2. Synthesize baseline habit differentials based on the academic subject
-    final habitMetrics = _buildSubjectHabitMetrics(courseCode);
+    final habitMetrics = _buildSubjectHabitMetrics(courseCode, className);
 
     // 3. Generate narrative summary & targeted interventions via Gemini (or rich fallback)
     final aiResult = await _synthesizePedagogicalAnalysis(
@@ -41,14 +41,21 @@ class HiveMindService {
       questions: recentStudentQuestions,
     );
 
+    // Deterministic, class-specific cohort variance
+    final hash = classId.hashCode.abs();
+    final dynamicTotalStudents = 26 + (hash % 16);
+    final dynamicTopCount = 5 + (hash % 4);
+    final dynamicAtRiskCount = 4 + ((hash >> 2) % 4);
+    final dynamicGap = 24.0 + ((hash % 180) / 10.0);
+
     return HiveMindReport(
       classId: classId,
       className: className,
       courseCode: courseCode,
-      totalStudents: 32,
-      topCohortCount: 7,
-      atRiskCohortCount: 6,
-      gapVariancePercentage: 34.2,
+      totalStudents: dynamicTotalStudents,
+      topCohortCount: dynamicTopCount,
+      atRiskCohortCount: dynamicAtRiskCount,
+      gapVariancePercentage: dynamicGap,
       narrativeSummary: aiResult.narrative,
       habitMetrics: habitMetrics,
       interventions: aiResult.interventions,
@@ -56,9 +63,49 @@ class HiveMindService {
     );
   }
 
-  List<CohortHabitMetric> _buildSubjectHabitMetrics(String courseCode) {
+  List<CohortHabitMetric> _buildSubjectHabitMetrics(String courseCode, [String className = '']) {
     final code = courseCode.toUpperCase();
-    if (code.contains('MATH') || code.contains('CALC')) {
+    final name = className.toLowerCase();
+    if (code.contains('PM') || code.contains('PROJ') || code.contains('MGMT') || name.contains('project') || name.contains('management')) {
+      return [
+        const CohortHabitMetric(
+          title: 'WBS & Milestone Planning Spacing',
+          category: 'Pacing & Prep',
+          topCohortStat: '3.2 days early',
+          atRiskCohortStat: '6 hours early',
+          gapExplanation: 'Top students outline deliverables and decompose tasks into WBS packages days in advance.',
+          severity: HabitGapSeverity.critical,
+          icon: Icons.access_time_rounded,
+        ),
+        const CohortHabitMetric(
+          title: 'Agile & Risk Matrix Card Reviews',
+          category: 'Active Recall',
+          topCohortStat: '16 cards / day',
+          atRiskCohortStat: '2 cards / week',
+          gapExplanation: 'Top cohort consistently reviews Scrum ceremonies, sprint metrics, and risk mitigation strategies daily.',
+          severity: HabitGapSeverity.critical,
+          icon: Icons.style_rounded,
+        ),
+        const CohortHabitMetric(
+          title: 'Case Study Simulation Retakes',
+          category: 'Iterative Practice',
+          topCohortStat: '2.4 retakes / quiz',
+          atRiskCohortStat: '1.0 single attempt',
+          gapExplanation: 'Top students review incorrect sprint planning trade-offs and retake case quizzes until 90%+ mastery.',
+          severity: HabitGapSeverity.moderate,
+          icon: Icons.replay_circle_filled_rounded,
+        ),
+        const CohortHabitMetric(
+          title: 'AI Tutor Scenario Inquiries',
+          category: 'Inquiry Style',
+          topCohortStat: 'Exploratory ("Trade-offs...")',
+          atRiskCohortStat: 'Definition-seeking',
+          gapExplanation: 'High performers ask Lai (AI Tutor) to challenge their scope trade-offs and calculate critical paths.',
+          severity: HabitGapSeverity.moderate,
+          icon: Icons.psychology_rounded,
+        ),
+      ];
+    } else if (code.contains('MATH') || code.contains('CALC')) {
       return [
         const CohortHabitMetric(
           title: 'Review Spacing Before Quizzes',
@@ -136,6 +183,45 @@ class HiveMindService {
           icon: Icons.timer_rounded,
         ),
       ];
+    } else if (code.contains('IT') || code.contains('ITE') || code.contains('PM') || name.contains('project') || name.contains('raite') || name.contains('test')) {
+      return [
+        const CohortHabitMetric(
+          title: 'Sprint Deliverable Pacing',
+          category: 'Agile Workflow',
+          topCohortStat: '2.5 days ahead',
+          atRiskCohortStat: 'Deadline night rush',
+          gapExplanation: 'Top students stage milestones incrementally, while at-risk cohorts submit without peer code or charter verification.',
+          severity: HabitGapSeverity.critical,
+          icon: Icons.view_kanban_rounded,
+        ),
+        const CohortHabitMetric(
+          title: 'Requirements & Context Review',
+          category: 'System Specifications',
+          topCohortStat: 'Reviews specs daily',
+          atRiskCohortStat: 'Rarely reads File 2',
+          gapExplanation: 'High performers thoroughly examine project environments and stakeholder matrices before implementation.',
+          severity: HabitGapSeverity.critical,
+          icon: Icons.menu_book_rounded,
+        ),
+        const CohortHabitMetric(
+          title: 'Dialect & Vernacular Clarifications',
+          category: 'Concept Internalization',
+          topCohortStat: 'Rephrases in own words',
+          atRiskCohortStat: 'Passive memorization',
+          gapExplanation: 'Top learners leverage Lai to translate abstract systems terminology into native intuitive concepts.',
+          severity: HabitGapSeverity.moderate,
+          icon: Icons.psychology_rounded,
+        ),
+        const CohortHabitMetric(
+          title: 'Scope Risk Mitigation Checks',
+          category: 'Project Control',
+          topCohortStat: '3 check-ins / sprint',
+          atRiskCohortStat: '0 preemptive checks',
+          gapExplanation: 'Struggling learners experience scope creep because they delay identifying dependency roadblocks.',
+          severity: HabitGapSeverity.moderate,
+          icon: Icons.security_rounded,
+        ),
+      ];
     } else {
       return [
         const CohortHabitMetric(
@@ -182,7 +268,7 @@ class HiveMindService {
     if (hasValidKey) {
       try {
         final model = GenerativeModel(
-          model: 'gemini-2.0-flash',
+          model: 'gemini-3.1-flash-lite',
           apiKey: apiKey,
         );
 
@@ -276,6 +362,38 @@ INTERVENTION 3: [Title] | [1-sentence description] | [Why this bridges the gap]
   }
 
   _AiSynthesisResult _fallbackPedagogicalAnalysis(String className, String courseCode) {
+    final code = courseCode.toUpperCase();
+    final name = className.toLowerCase();
+
+    if (code.contains('IT') || code.contains('ITE') || code.contains('PM') || name.contains('project') || name.contains('raite') || name.contains('test')) {
+      return _AiSynthesisResult(
+        narrative: 'A 32% habit differential is observed in $courseCode ($className). High-performing students review system architecture and File 2 documentation 2-3 days ahead of deliverable milestones, while struggling students begin on the deadline date without consulting stakeholder frameworks.',
+        interventions: [
+          const TeacherIntervention(
+            id: 'int-pm-1',
+            title: 'Deploy Sprint 48h Checkpoint Milestone',
+            description: 'Schedule an automated low-stakes milestone checkpoint 2 days prior to the project deliverable deadline.',
+            actionType: InterventionActionType.assignQuiz,
+            impactRationale: 'Eliminates deadline night pushes and enforces systematic Agile pacing across all project groups.',
+          ),
+          const TeacherIntervention(
+            id: 'int-pm-2',
+            title: 'Push File 2 Systems & Context Flashcards',
+            description: 'Broadcast a curated 12-card active recall deck on File 2 organizational frameworks and stakeholder models to students.',
+            actionType: InterventionActionType.pushFlashcards,
+            impactRationale: 'Solidifies understanding of stakeholder matrices and functional vs. matrix structures before grading.',
+          ),
+          const TeacherIntervention(
+            id: 'int-pm-3',
+            title: 'Schedule 15-Minute Dialect & Logic Breakout',
+            description: 'Hold a live 15-minute group walk-through translating complex systems terminology into native intuitive concepts.',
+            actionType: InterventionActionType.scheduleReview,
+            impactRationale: 'Assists students who understand high-level concepts but struggle with technical English jargon.',
+          ),
+        ],
+      );
+    }
+
     return _AiSynthesisResult(
       narrative: 'A 34% behavioral disparity exists between the top cohort and at-risk students in $courseCode. Top students engage with active recall flashcards 48 hours prior to evaluative deadlines, whereas struggling learners attempt material in a single cramming session with minimal retry attempts.',
       interventions: [
@@ -309,7 +427,19 @@ INTERVENTION 3: [Title] | [1-sentence description] | [Why this bridges the gap]
 
     for (final code in enrolledCourseCodes) {
       final upper = code.toUpperCase();
-      if (upper.contains('MATH') || upper.contains('CALC')) {
+      if (upper.contains('PM') || upper.contains('PROJ') || upper.contains('MGMT')) {
+        nudges.add(
+          const StudentPeerNudge(
+            id: 'nudge-pm-1',
+            courseCode: 'PM 301',
+            headline: 'Peer Habit Insight',
+            habitInsight: '88% of top-scoring students review Agile WBS and Risk Management matrices 2 days before sprint milestones.',
+            actionPrompt: 'Review 10 Flashcards Now (5 mins)',
+            targetRoute: '/study-deck',
+            icon: Icons.style_outlined,
+          ),
+        );
+      } else if (upper.contains('MATH') || upper.contains('CALC')) {
         nudges.add(
           const StudentPeerNudge(
             id: 'nudge-math-1',

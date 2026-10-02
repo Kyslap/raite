@@ -138,7 +138,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Ask your instructor for the class code (e.g. MATH-402, AI-101) and enter it below:',
+                      'Ask your instructor for the class code (e.g. PM-301, AI-101) and enter it below:',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -154,7 +154,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         letterSpacing: 2.0,
                       ),
                       decoration: InputDecoration(
-                        hintText: 'e.g. MATH-101',
+                        hintText: 'e.g. PM-301',
                         hintStyle: TextStyle(
                           letterSpacing: 1.0,
                           color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),

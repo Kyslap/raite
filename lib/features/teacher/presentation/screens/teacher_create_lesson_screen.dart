@@ -388,7 +388,7 @@ Return a JSON object with this exact structure:
             style: ElevatedButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.primary,
               foregroundColor: Theme.of(context).colorScheme.onPrimary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
             ),
             child: const Text('Back to Dashboard'),
           ),
@@ -568,7 +568,7 @@ Return a JSON object with this exact structure:
                             vertical: 14,
                           ),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(24),
                           ),
                         ),
                         child: _isGeneratingAI
@@ -755,7 +755,7 @@ Return a JSON object with this exact structure:
                             foregroundColor: colorScheme.onPrimary,
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(24),
                             ),
                           ),
                         ),
@@ -770,7 +770,7 @@ Return a JSON object with this exact structure:
                           side: BorderSide(color: colorScheme.primary.withValues(alpha: 0.4)),
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(24),
                           ),
                         ),
                       ),

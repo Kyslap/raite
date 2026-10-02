@@ -9,6 +9,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import '../../../../features/class/domain/topic_model.dart';
+import '../../../../features/class/presentation/providers/class_provider.dart';
 import '../providers/ai_tutor_provider.dart';
 import 'package:raite/features/daily_goals/presentation/providers/daily_goals_provider.dart';
 
@@ -131,6 +132,12 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
     final colorScheme = theme.colorScheme;
     final topicId = widget.initialTopic?.id ?? 'global';
     final messages = ref.watch(chatMessagesProvider)[topicId] ?? [];
+    
+    final classesState = ref.watch(enrolledClassesProvider);
+    String defaultTopic = 'anything you want to learn';
+    if (classesState.value != null && classesState.value!.isNotEmpty) {
+      defaultTopic = classesState.value!.first.title;
+    }
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -360,7 +367,7 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
                                   TextSpan(
                                     text: widget.initialTopic != null 
                                         ? widget.initialTopic!.title 
-                                        : 'Calculus: Derivatives & Rates of Change',
+                                        : defaultTopic,
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       decoration: TextDecoration.underline,
@@ -411,26 +418,26 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
                     child: Row(
                       children: [
                         _PromptPill(
-                          icon: '⚡',
-                          label: 'Explain the power rule',
+                          icon: '📊',
+                          label: 'Explain Critical Path (CPM)',
                           onTap: () {
-                            _inputController.text = 'Explain the power rule simply';
+                            _inputController.text = 'Explain Critical Path Method (CPM) and total float simply';
                           },
                         ),
                         const SizedBox(width: 8),
                         _PromptPill(
-                          icon: '🍎',
-                          label: 'Real-world physics example',
+                          icon: '🔄',
+                          label: 'Agile vs Waterfall trade-offs',
                           onTap: () {
-                            _inputController.text = 'Show a real-world physics example';
+                            _inputController.text = 'Compare Agile vs Waterfall methodology trade-offs for software development';
                           },
                         ),
                         const SizedBox(width: 8),
                         _PromptPill(
                           icon: '📝',
-                          label: 'Quiz me on shortcuts',
+                          label: 'Quiz me on Scrum roles',
                           onTap: () {
-                            _inputController.text = 'Quiz me on derivative shortcuts';
+                            _inputController.text = 'Quiz me on Scrum roles (Product Owner, Scrum Master, Developers)';
                           },
                         ),
                       ],
@@ -565,7 +572,9 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
                                       text: messageToSend,
                                       tone: _selectedTone,
                                       language: _selectedLanguage,
-                                      topicContext: widget.initialTopic?.title,
+                                      topicContext: widget.initialTopic != null
+                                          ? '${widget.initialTopic!.title}${widget.initialTopic!.description.isNotEmpty ? ": ${widget.initialTopic!.description}" : ""}'
+                                          : null,
                                       classId: classId,
                                     );
                                 ref.read(dailyGoalsProvider.notifier).recordAiTutorInteraction();

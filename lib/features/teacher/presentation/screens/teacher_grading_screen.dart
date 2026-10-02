@@ -128,7 +128,7 @@ class _TeacherGradingScreenState extends ConsumerState<TeacherGradingScreen> {
                           backgroundColor: colorScheme.primary,
                           foregroundColor: colorScheme.onPrimary,
                           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                         ),
                       ),
                     ],
@@ -182,11 +182,13 @@ class _TeacherGradingScreenState extends ConsumerState<TeacherGradingScreen> {
     final allSubmissions = ref.watch(teacherSubmissionsProvider);
 
     // Filter submissions matching this assignment
-    final assignmentSubmissions = allSubmissions
-        .where((s) =>
-            s.assignmentId == widget.assignment.id ||
-            s.assignmentId == 'asg-demo-1')
+    final directMatches = allSubmissions
+        .where((s) => s.assignmentId == widget.assignment.id)
         .toList();
+
+    final assignmentSubmissions = directMatches.isNotEmpty
+        ? directMatches
+        : allSubmissions.where((s) => s.assignmentId == 'asg-demo-1').toList();
 
     // Derived statistics
     final totalStudents = widget.teacherClass.studentCount > 0
@@ -669,7 +671,7 @@ class _TeacherGradingScreenState extends ConsumerState<TeacherGradingScreen> {
                             backgroundColor: colorScheme.primary,
                             foregroundColor: colorScheme.onPrimary,
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                           ),
                         ),
                       ),

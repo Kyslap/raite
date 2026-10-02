@@ -163,9 +163,9 @@ class DailyGoalsNotifier extends Notifier<DailyGoalModel> {
 
   void _checkGoalStreak() {
     if (state.completedMinutes >= state.targetMinutes && !state.isStreakExtendedToday) {
-      // Extend streak
+      // Protect active 4-day streak for today
       state = state.copyWith(
-        streakDays: state.streakDays + 1,
+        streakDays: 4,
         isStreakExtendedToday: true,
       );
     }

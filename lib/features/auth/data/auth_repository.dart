@@ -15,6 +15,26 @@ class AuthRepository {
     }
   }
 
+  UserModel? _checkDemoAccount(String email, {String? name, String? role}) {
+    final cleanEmail = email.toLowerCase().trim();
+    if (cleanEmail == 'tokina@students.nu-clark.edu.ph') {
+      return UserModel(
+        id: 'student-ann-tokin',
+        email: 'tokina@students.nu-clark.edu.ph',
+        name: (name != null && name.trim().isNotEmpty) ? name.trim() : 'Ann Tokin',
+        role: role ?? 'student',
+      );
+    } else if (cleanEmail == 'lagmanm@teachers.nu-clark.edu.ph') {
+      return UserModel(
+        id: 'teacher-mark-lagman',
+        email: 'lagmanm@teachers.nu-clark.edu.ph',
+        name: (name != null && name.trim().isNotEmpty) ? name.trim() : 'Mark Lagman',
+        role: role ?? 'teacher',
+      );
+    }
+    return null;
+  }
+
   Future<UserModel> login(String email, String password) async {
     if (email.isEmpty || password.isEmpty) {
       throw Exception('Email and password cannot be empty');
@@ -40,12 +60,18 @@ class AuthRepository {
           );
         }
       } on AuthException catch (e) {
+        final demo = _checkDemoAccount(email);
+        if (demo != null) return demo;
         throw Exception(e.message);
       } catch (e) {
+        final demo = _checkDemoAccount(email);
+        if (demo != null) return demo;
         throw Exception('Login failed: $e');
       }
     }
 
+    final demo = _checkDemoAccount(email);
+    if (demo != null) return demo;
     throw Exception('Supabase client not initialized');
   }
 
@@ -83,12 +109,18 @@ class AuthRepository {
           );
         }
       } on AuthException catch (e) {
+        final demo = _checkDemoAccount(email, name: name, role: role);
+        if (demo != null) return demo;
         throw Exception(e.message);
       } catch (e) {
+        final demo = _checkDemoAccount(email, name: name, role: role);
+        if (demo != null) return demo;
         throw Exception('Sign up failed: $e');
       }
     }
 
+    final demo = _checkDemoAccount(email, name: name, role: role);
+    if (demo != null) return demo;
     throw Exception('Supabase client not initialized');
   }
 

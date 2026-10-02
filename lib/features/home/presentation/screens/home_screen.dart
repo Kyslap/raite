@@ -42,73 +42,35 @@ class HomeScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Friendly Greeting & Streak Banner
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.end,
+              // Friendly Greeting
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Welcome back,',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        ref.watch(authStateProvider).when(
-                          data: (user) => Text(
-                            '${user?.name ?? displayName} 👋',
-                            style: theme.textTheme.headlineMedium?.copyWith(
-                              color: colorScheme.onSurface,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          loading: () => const SizedBox(
-                            height: 32,
-                            width: 150,
-                            child: CircularProgressIndicator(),
-                          ),
-                          error: (_, _) => Text(
-                            '$displayName 👋',
-                            style: theme.textTheme.headlineMedium?.copyWith(
-                              color: colorScheme.onSurface,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
+                  Text(
+                    'Welcome back,',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  GestureDetector(
-                    onTap: () => DailyGoalsSheet.show(context),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: colorScheme.surfaceContainer,
-                        borderRadius: BorderRadius.circular(24),
-                        boxShadow: [
-                          BoxShadow(
-                            color: colorScheme.onSurface.withValues(alpha: 0.05),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
+                  const SizedBox(height: 4),
+                  ref.watch(authStateProvider).when(
+                    data: (user) => Text(
+                      '${user?.name ?? displayName} 👋',
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        color: colorScheme.onSurface,
+                        fontWeight: FontWeight.bold,
                       ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.local_fire_department, size: 20, color: Color(0xFFF97316)),
-                          const SizedBox(width: 6),
-                          Text(
-                            '${dailyGoal.streakDays} Days',
-                            style: theme.textTheme.labelLarge?.copyWith(
-                              color: colorScheme.onSurface,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
+                    ),
+                    loading: () => const SizedBox(
+                      height: 32,
+                      width: 150,
+                      child: CircularProgressIndicator(),
+                    ),
+                    error: (_, _) => Text(
+                      '$displayName 👋',
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        color: colorScheme.onSurface,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
@@ -153,47 +115,50 @@ class HomeScreen extends ConsumerWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Text(
-                                        'DAILY GOAL PROGRESS',
-                                        style: theme.textTheme.labelMedium?.copyWith(
-                                          color: colorScheme.onPrimaryContainer,
-                                          letterSpacing: 1.0,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withValues(alpha: 0.25),
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                        child: Text(
-                                          '${dailyGoal.completedTasksCount}/${dailyGoal.tasks.length} Done',
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.bold,
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          'DAILY GOAL PROGRESS',
+                                          style: theme.textTheme.labelMedium?.copyWith(
                                             color: colorScheme.onPrimaryContainer,
+                                            letterSpacing: 1.0,
+                                            fontWeight: FontWeight.bold,
                                           ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    '${dailyGoal.completedMinutes} / ${dailyGoal.targetMinutes} mins',
-                                    style: theme.textTheme.headlineSmall?.copyWith(
-                                      color: colorScheme.onPrimaryContainer,
-                                      fontWeight: FontWeight.bold,
+                                        const SizedBox(width: 8),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white.withValues(alpha: 0.25),
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: Text(
+                                            '${dailyGoal.completedTasksCount}/${dailyGoal.tasks.length} Done',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              color: colorScheme.onPrimaryContainer,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '${dailyGoal.completedMinutes} / ${dailyGoal.targetMinutes} mins',
+                                      style: theme.textTheme.headlineSmall?.copyWith(
+                                        color: colorScheme.onPrimaryContainer,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
+                              const SizedBox(width: 8),
                               Icon(
                                 dailyGoal.isGoalMet ? Icons.verified : Icons.military_tech,
                                 size: 36,
@@ -215,15 +180,19 @@ class HomeScreen extends ConsumerWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                dailyGoal.isGoalMet
-                                    ? '🎉 Goal achieved! Streak protected'
-                                    : '${dailyGoal.minutesLeft} mins left to maintain streak',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onPrimaryContainer,
-                                  fontWeight: FontWeight.w600,
+                              Expanded(
+                                child: Text(
+                                  dailyGoal.isGoalMet
+                                      ? '🎉 Goal achieved! Streak protected'
+                                      : '${dailyGoal.minutesLeft} mins left to maintain streak',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onPrimaryContainer,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
+                              const SizedBox(width: 8),
                               InkWell(
                                 onTap: () => DailyGoalsSheet.show(context),
                                 child: Text(
@@ -597,7 +566,7 @@ class HomeScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Ask your instructor for the 6-character class code (e.g. MATH-402, AI-101, PHY-204) and enter it below:',
+                      'Ask your instructor for the 6-character class code (e.g. PM-301, AI-101, CS-210) and enter it below:',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),

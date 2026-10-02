@@ -1,18 +1,36 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/student_submission_model.dart';
+import '../../../teacher/presentation/providers/teacher_class_hub_provider.dart';
 
 class StudentSubmissionsNotifier extends Notifier<Map<String, StudentSubmissionModel>> {
   @override
   Map<String, StudentSubmissionModel> build() {
     return {
-      'demo-sub-1': StudentSubmissionModel(
-        assignmentId: 'demo-asg-3',
-        classId: 'math-101',
-        submittedAt: DateTime.now().subtract(const Duration(days: 2)),
-        note: 'Submitted all proofs for Chapter 3. Verified using theorem 4.2.',
-        attachedFileName: 'Tensor_Calculus_Lab3_Proofs.pdf',
+      'asg-demo-1': StudentSubmissionModel(
+        id: 'sub-1',
+        assignmentId: 'asg-demo-1',
+        classId: 'class-1',
+        studentId: 'stu-101',
+        studentName: 'Alex Rivera',
+        studentEmail: 'alex.rivera@raite.edu',
+        submittedAt: DateTime.now().subtract(const Duration(hours: 14)),
+        note: 'Completed Project Charter, Stakeholder RACI matrix, and 3-level WBS breakdown.',
+        attachedFileName: 'Project_Charter_AlexRivera.pdf',
         status: 'graded',
-        grade: '98 / 100 (A+)',
+        grade: '96 / 100',
+        feedback: 'Outstanding work on the WBS decomposition and risk mitigation plan!',
+      ),
+      'sample-asg-2': StudentSubmissionModel(
+        id: 'sub-sample-2',
+        assignmentId: 'sample-asg-2',
+        classId: 'class-1',
+        studentId: 'stu-101',
+        studentName: 'Alex Rivera',
+        studentEmail: 'alex.rivera@raite.edu',
+        submittedAt: DateTime.now().subtract(const Duration(days: 1)),
+        note: 'Completed Sprint Planning retrospective and Critical Path Network Diagram.',
+        attachedFileName: 'CPM_Network_Diagram_Alex.pdf',
+        status: 'submitted',
       ),
     };
   }
@@ -22,10 +40,17 @@ class StudentSubmissionsNotifier extends Notifier<Map<String, StudentSubmissionM
     required String classId,
     String note = '',
     String? attachedFileName,
+    String studentName = 'Alex Rivera',
+    String studentEmail = 'alex.rivera@raite.edu',
   }) {
+    final subId = 'sub-${DateTime.now().millisecondsSinceEpoch}';
     final newSub = StudentSubmissionModel(
+      id: subId,
       assignmentId: assignmentId,
       classId: classId,
+      studentId: 'stu-101',
+      studentName: studentName,
+      studentEmail: studentEmail,
       submittedAt: DateTime.now(),
       note: note,
       attachedFileName: attachedFileName,
@@ -36,12 +61,29 @@ class StudentSubmissionsNotifier extends Notifier<Map<String, StudentSubmissionM
       ...state,
       assignmentId: newSub,
     };
+
+    // Reactively push into Teacher Submissions so instructor immediately sees it
+    ref.read(teacherSubmissionsProvider.notifier).recordSubmission(newSub);
   }
 
   void unsubmitAssignment(String assignmentId) {
     final updated = Map<String, StudentSubmissionModel>.from(state);
-    updated.remove(assignmentId);
+    final removed = updated.remove(assignmentId);
     state = updated;
+
+    if (removed != null) {
+      ref.read(teacherSubmissionsProvider.notifier).removeSubmission(
+            assignmentId: assignmentId,
+            studentId: 'stu-101',
+          );
+    }
+  }
+
+  void updateGradedSubmission(StudentSubmissionModel gradedSub) {
+    state = {
+      ...state,
+      gradedSub.assignmentId: gradedSub,
+    };
   }
 
   bool isSubmitted(String assignmentId) {

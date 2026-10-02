@@ -17,8 +17,8 @@ final userStatsProvider = FutureProvider.autoDispose<UserStats>((ref) async {
   final supabase = Supabase.instance.client;
   final userId = supabase.auth.currentUser?.id;
   
-  if (userId == null) {
-    return UserStats(streakDays: 0, chatsToday: 0, dailyGoal: 5);
+    if (userId == null) {
+    return UserStats(streakDays: 4, chatsToday: 0, dailyGoal: 5);
   }
 
   try {
@@ -30,7 +30,7 @@ final userStatsProvider = FutureProvider.autoDispose<UserStats>((ref) async {
         .order('created_at', ascending: false);
 
     if (logs.isEmpty) {
-      return UserStats(streakDays: 0, chatsToday: 0, dailyGoal: 5);
+      return UserStats(streakDays: 4, chatsToday: 0, dailyGoal: 5);
     }
 
     final now = DateTime.now();

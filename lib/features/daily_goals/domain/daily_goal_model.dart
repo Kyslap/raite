@@ -57,7 +57,7 @@ class DailyGoalModel {
   const DailyGoalModel({
     this.targetMinutes = 45,
     this.completedMinutes = 30,
-    this.streakDays = 5,
+    this.streakDays = 4,
     required this.date,
     this.tasks = const [],
     this.isStreakExtendedToday = false,

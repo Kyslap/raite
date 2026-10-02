@@ -40,10 +40,10 @@ class TeacherClassNotifier extends Notifier<List<TeacherClass>> {
     return const [
       TeacherClass(
         id: 'class-1',
-        title: 'Calculus & Differential Equations',
-        department: 'Department of Mathematics',
-        code: 'MATH-201',
-        studentCount: 34,
+        title: 'Software Project Management',
+        department: 'Information Systems & Technology',
+        code: 'PM-301',
+        studentCount: 38,
       ),
       TeacherClass(
         id: 'class-2',
@@ -173,18 +173,19 @@ class TeacherLessonNotifier extends Notifier<List<LessonModel>> {
       LessonModel(
         id: 'lesson-seed-1',
         classId: 'class-1',
-        className: 'Calculus & Differential Equations',
-        title: 'Techniques of Integration & Taylor Polynomials',
-        content: '## 1. Executive Summary\nDetailed walkthrough of Integration by Parts, trigonometric substitution, and convergence tests for infinite series.\n\n## 2. Practical Applications\nUsed across electrical circuit analysis and orbital decay estimations.',
+        className: 'Software Project Management',
+        title: 'Agile Frameworks, Work Breakdown Structure (WBS) & Sprint Planning',
+        content: '## 1. Executive Summary\nDetailed exploration of Project Lifecycles: Agile vs. Waterfall, Work Breakdown Structure (WBS) decomposition, Critical Path scheduling, and Earned Value Management (EVM).\n\n## 2. Quantitative Controls\nMastering Schedule Variance (SV), Cost Variance (CV), and Schedule Performance Index (SPI) across multi-team deliverables.',
         estimatedMinutes: '45 mins',
         objectives: const [
-          'Master integration by parts using the LIATE hierarchy',
-          'Evaluate improper integrals with infinite discontinuities',
-          'Construct Taylor series approximations up to degree 4',
+          'Decompose project scope into a hierarchical Work Breakdown Structure (WBS)',
+          'Facilitate Agile Scrum ceremonies: Sprint Planning, Daily Standup, and Retrospective',
+          'Calculate Critical Path and identify float/slack across project activities',
+          'Evaluate Cost and Schedule Variance using EVM metrics',
         ],
         quizQuestions: const [
-          'When does integration by parts terminate faster than tabular method?',
-          'What is the radius of convergence for the geometric series 1/(1-x)?',
+          'What distinguishes the Critical Path from non-critical activity paths in project scheduling?',
+          'How does Agile methodology manage scope variability compared to traditional Waterfall?',
         ],
         attachments: const [],
         createdAt: DateTime.now().subtract(const Duration(days: 2)),
@@ -205,6 +206,25 @@ class TeacherLessonNotifier extends Notifier<List<LessonModel>> {
         ],
         attachments: const [],
         createdAt: DateTime.now().subtract(const Duration(days: 5)),
+      ),
+      LessonModel(
+        id: 'lesson-seed-3',
+        classId: 'class-4',
+        className: 'Software Project Management',
+        title: 'Agile Frameworks, CPM & Earned Value Management',
+        content: '## 1. Executive Summary\nDetailed exploration of Project Lifecycles: Agile vs. Waterfall, Critical Path scheduling, and Earned Value Management (EVM).\n\n## 2. Quantitative Controls\nMastering Schedule Variance (SV), Cost Variance (CV), and Schedule Performance Index (SPI).',
+        estimatedMinutes: '50 mins',
+        objectives: const [
+          'Calculate Critical Path and identify float/slack time',
+          'Evaluate Cost and Schedule Variance using EVM metrics',
+          'Draft RACI matrix and Sprint Retrospective protocols',
+        ],
+        quizQuestions: const [
+          'What does an SPI value greater than 1.0 indicate about project pacing?',
+          'How does scope creep directly impact the project critical path?',
+        ],
+        attachments: const [],
+        createdAt: DateTime.now().subtract(const Duration(days: 1)),
       ),
     ];
   }

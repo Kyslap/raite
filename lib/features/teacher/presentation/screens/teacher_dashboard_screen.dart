@@ -196,43 +196,56 @@ class TeacherDashboardScreen extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Row(
-          children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: colorScheme.primary,
-                shape: BoxShape.circle,
+        title: GestureDetector(
+          onTap: () => onNavigateTab?.call(4),
+          behavior: HitTestBehavior.opaque,
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: colorScheme.primary,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.psychology, color: Colors.white, size: 22),
               ),
-              child: const Icon(Icons.psychology, color: Colors.white, size: 22),
-            ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Professor ${user?.name ?? 'Teacher'}',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface,
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Professor ${user?.name ?? 'Teacher'}',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
+                    ),
                   ),
-                ),
-                Text(
-                  'Educator Portal',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
+                  Text(
+                    'Educator Portal',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
         actions: [
           IconButton(
             icon: Icon(Icons.notifications_none_outlined, color: colorScheme.onSurface),
             tooltip: 'Teacher Alerts',
             onPressed: () => _showTeacherNotificationsSheet(context, ref),
+          ),
+          IconButton(
+            icon: CircleAvatar(
+              radius: 14,
+              backgroundColor: colorScheme.primaryContainer,
+              child: Icon(Icons.person, size: 16, color: colorScheme.primary),
+            ),
+            tooltip: 'Educator Profile & Logout',
+            onPressed: () => onNavigateTab?.call(4),
           ),
           const SizedBox(width: 8),
         ],
@@ -387,7 +400,7 @@ class TeacherDashboardScreen extends ConsumerWidget {
                     value: inquiriesAsync.when(
                       data: (count) => '$count',
                       loading: () => '...',
-                      error: (_, __) => '0',
+                      error: (err, stack) => '0',
                     ),
                     icon: Icons.forum_outlined,
                     color: const Color(0xFFF59E0B),
@@ -729,63 +742,90 @@ class TeacherDashboardScreen extends ConsumerWidget {
             const SizedBox(height: 24),
 
             // AI Insights / Student Gap Alert for Hackathon judges
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFEF2F2),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFFCA5A5)),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(Icons.tips_and_updates, color: Color(0xFFDC2626), size: 24),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'AI Classroom Alert: Learning Gap Detected',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF991B1B),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          '7 students asked Lai AI multiple follow-up questions regarding "Vector Curl in Stokes Theorem". Recommended: Share supplementary review notes.',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Color(0xFFB91C1C),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        InkWell(
-                          onTap: () {
-                            if (onNavigateTab != null) onNavigateTab!(3);
-                          },
-                          child: const Text(
-                            'View Full Student Analytics →',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF991B1B),
-                              decoration: TextDecoration.underline,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            _DynamicDashboardAlertCard(onNavigateTab: onNavigateTab),
             const SizedBox(height: 24),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _DynamicDashboardAlertCard extends ConsumerWidget {
+  final Function(int)? onNavigateTab;
+
+  const _DynamicDashboardAlertCard({this.onNavigateTab});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final classes = ref.watch(teacherClassesProvider);
+    final targetClass = classes.isNotEmpty ? classes.first : null;
+    final classId = targetClass?.id ?? 'class-1';
+    final metricsAsync = ref.watch(dynamicClassMetricsProvider(classId));
+
+    return metricsAsync.when(
+      data: (metrics) {
+        final topTopic = metrics.topics.isNotEmpty ? metrics.topics.first : null;
+        final flagged = metrics.flaggedStudents.isNotEmpty ? metrics.flaggedStudents.first : null;
+        final topicName = topTopic?.topic ?? 'Key Concepts';
+        final count = topTopic?.questionsCount ?? 7;
+
+        return Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFEF2F2),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFFCA5A5)),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.tips_and_updates, color: Color(0xFFDC2626), size: 24),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'AI Classroom Alert: Learning Gap Detected (${targetClass?.code ?? "Course"})',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF991B1B),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '$count inquiries flagged regarding "$topicName". ${flagged != null ? "Follow-up recommended for ${flagged.name} (${flagged.status})." : "Recommended: Share supplementary review notes."}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFFB91C1C),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    InkWell(
+                      onTap: () {
+                        if (onNavigateTab != null) onNavigateTab!(3);
+                      },
+                      child: const Text(
+                        'View Full Student Analytics →',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF991B1B),
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 }

@@ -44,12 +44,23 @@ class ContributionNotifier extends Notifier<ContributionState> {
 
       // Realistic academic patterns: weekdays more active, occasional rest days
       final isWeekend = date.weekday == DateTime.saturday || date.weekday == DateTime.sunday;
-      final isRecentStreak = i <= 4; // active 5-day streak leading up to today
-      final chance = isRecentStreak ? 0.95 : (isWeekend ? 0.45 : 0.78);
+      // Fixed 4-day streak leading up to and including today (i = 0, 1, 2, 3)
+      final isRecentStreakDay = i >= 0 && i <= 3;
+      final isDayBeforeStreak = i == 4; // Rest day 4 days ago to anchor current streak to exactly 4
 
-      if (random.nextDouble() < chance) {
-        final count = isRecentStreak
-            ? random.nextInt(8) + 4
+      final bool hasActivity;
+      if (isRecentStreakDay) {
+        hasActivity = true;
+      } else if (isDayBeforeStreak) {
+        hasActivity = false;
+      } else {
+        final chance = isWeekend ? 0.45 : 0.78;
+        hasActivity = random.nextDouble() < chance;
+      }
+
+      if (hasActivity) {
+        final count = isRecentStreakDay
+            ? random.nextInt(6) + 4
             : (random.nextDouble() < 0.2
                 ? random.nextInt(12) + 6
                 : random.nextInt(6) + 1);

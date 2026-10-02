@@ -303,7 +303,7 @@ class _QuizPlayScreenState extends ConsumerState<QuizPlayScreen> {
                 backgroundColor: colorScheme.primary,
                 foregroundColor: colorScheme.onPrimary,
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
               ),
               child: Text(
                 _currentIndex == quiz.questions.length - 1 ? 'Finish Quiz' : 'Next Question',
@@ -418,7 +418,7 @@ class _QuizPlayScreenState extends ConsumerState<QuizPlayScreen> {
                     onPressed: _restartQuiz,
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                     ),
                     icon: const Icon(Icons.refresh),
                     label: const Text('Retake Quiz', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -432,7 +432,7 @@ class _QuizPlayScreenState extends ConsumerState<QuizPlayScreen> {
                       backgroundColor: colorScheme.primary,
                       foregroundColor: colorScheme.onPrimary,
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                     ),
                     icon: const Icon(Icons.check),
                     label: const Text('Done', style: TextStyle(fontWeight: FontWeight.bold)),

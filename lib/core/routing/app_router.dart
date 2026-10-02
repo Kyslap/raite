@@ -13,7 +13,6 @@ import '../../main.dart';
 import '../../features/class/presentation/screens/class_screen.dart';
 import '../../features/ai_tutor/presentation/screens/ai_tutor_screen.dart';
 import '../../features/class/domain/topic_model.dart';
-import 'package:flutter/foundation.dart';
 import '../../features/study_deck/presentation/screens/study_deck_screen.dart';
 import '../../features/study_deck/presentation/screens/flashcard_study_screen.dart';
 import '../../features/study_deck/presentation/screens/quiz_play_screen.dart';
@@ -41,7 +40,7 @@ class PlaceholderScreen extends StatelessWidget {
 
 final routerProvider = Provider<GoRouter>((ref) {
   final listenable = ValueNotifier<bool>(false);
-  ref.listen(authStateProvider, (_, __) {
+  ref.listen(authStateProvider, (previous, next) {
     listenable.value = !listenable.value;
   });
 
@@ -131,13 +130,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/flashcards/:id',
         builder: (context, state) => FlashcardStudyScreen(
-          deckId: state.pathParameters['id'] ?? 'deck-math201',
+          deckId: state.pathParameters['id'] ?? 'deck-pm301',
         ),
       ),
       GoRoute(
         path: '/quiz/:id',
         builder: (context, state) => QuizPlayScreen(
-          quizId: state.pathParameters['id'] ?? 'quiz-math201',
+          quizId: state.pathParameters['id'] ?? 'quiz-pm301',
         ),
       ),
       GoRoute(

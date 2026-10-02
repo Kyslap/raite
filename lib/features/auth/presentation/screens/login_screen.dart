@@ -14,9 +14,25 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  bool _rememberMe = false;
+  final _emailController =
+      TextEditingController(text: 'tokina@students.nu-clark.edu.ph');
+  final _passwordController = TextEditingController(text: 'Password123!');
+  String _selectedRole = 'student';
+  bool _rememberMe = true;
+
+  void _switchRole(String role) {
+    setState(() {
+      _selectedRole = role;
+      if (role == 'student') {
+        _emailController.text = 'tokina@students.nu-clark.edu.ph';
+        _passwordController.text = 'Password123!';
+      } else {
+        _emailController.text = 'lagmanm@teachers.nu-clark.edu.ph';
+        _passwordController.text = 'Password123!';
+      }
+    });
+  }
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -167,8 +183,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       width: 64,
                       height: 64,
                       decoration: BoxDecoration(
-                        color: colorScheme.primaryContainer,
-                        shape: BoxShape.circle,
+                        borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
                             color: colorScheme.primaryContainer.withValues(alpha: 0.3),
@@ -177,10 +192,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           )
                         ],
                       ),
-                      child: Icon(
-                        Icons.auto_stories,
-                        size: 32,
-                        color: colorScheme.onPrimaryContainer,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: Image.asset(
+                          'assets/images/app_icon_512.png',
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -229,6 +246,38 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      // Role Selector: Student / Teacher
+                      Text(
+                        'SIGN IN AS',
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _LoginRoleCard(
+                              label: 'Student',
+                              icon: Icons.school_outlined,
+                              isSelected: _selectedRole == 'student',
+                              onTap: () => _switchRole('student'),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _LoginRoleCard(
+                              label: 'Teacher',
+                              icon: Icons.psychology_outlined,
+                              isSelected: _selectedRole == 'teacher',
+                              onTap: () => _switchRole('teacher'),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
                       RetroTextField(
                         label: 'Email Address',
                         hint: 'email@academy.edu',
@@ -277,46 +326,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         isLoading: authState.isLoading,
                         onPressed: _login,
                         icon: Icons.arrow_forward,
-                      ),
-                      const SizedBox(height: 16),
-                      // Quick Hackathon Judge Access Shortcut
-                      Container(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: OutlinedButton.icon(
-                                onPressed: () => context.go('/home'),
-                                icon: const Icon(Icons.school, size: 16),
-                                label: const Text(
-                                  'Demo: Student',
-                                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                                ),
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: colorScheme.primary,
-                                  side: BorderSide(color: colorScheme.primary.withValues(alpha: 0.3)),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: OutlinedButton.icon(
-                                onPressed: () => context.go('/teacher'),
-                                icon: const Icon(Icons.psychology, size: 16),
-                                label: const Text(
-                                  'Demo: Teacher',
-                                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                                ),
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: colorScheme.primary,
-                                  side: BorderSide(color: colorScheme.primary.withValues(alpha: 0.3)),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
                       ),
                       const SizedBox(height: 4),
                       Center(
@@ -461,7 +470,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   const SizedBox(height: 20),
                   RetroTextField(
                     label: 'CLASS CODE',
-                    hint: 'e.g. CS101A or MATH-402',
+                    hint: 'e.g. PM-301 or CS-210',
                     controller: codeController,
                     prefixIcon: Icons.pin_outlined,
                   ),
@@ -524,6 +533,75 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           },
         );
       },
+    );
+  }
+}
+
+class _LoginRoleCard extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _LoginRoleCard({
+    required this.label,
+    required this.icon,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? colorScheme.primary
+              : colorScheme.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected
+                ? colorScheme.primary
+                : colorScheme.outlineVariant.withValues(alpha: 0.5),
+            width: isSelected ? 1.5 : 1.0,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: colorScheme.primary.withValues(alpha: 0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 18,
+              color: isSelected ? Colors.white : colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+                color: isSelected ? Colors.white : colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

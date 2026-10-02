@@ -13,11 +13,27 @@ class SignUpScreen extends ConsumerStatefulWidget {
 }
 
 class _SignUpScreenState extends ConsumerState<SignUpScreen> {
-  final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final _nameController = TextEditingController(text: 'Ann Tokin');
+  final _emailController =
+      TextEditingController(text: 'tokina@students.nu-clark.edu.ph');
+  final _passwordController = TextEditingController(text: 'Password123!');
   final _classCodeController = TextEditingController();
   String _selectedRole = 'student';
+
+  void _switchRole(String role) {
+    setState(() {
+      _selectedRole = role;
+      if (role == 'student') {
+        _nameController.text = 'Ann Tokin';
+        _emailController.text = 'tokina@students.nu-clark.edu.ph';
+        _passwordController.text = 'Password123!';
+      } else {
+        _nameController.text = 'Mark Lagman';
+        _emailController.text = 'lagmanm@teachers.nu-clark.edu.ph';
+        _passwordController.text = 'Password123!';
+      }
+    });
+  }
   
   @override
   void dispose() {
@@ -128,8 +144,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                       width: 64,
                       height: 64,
                       decoration: BoxDecoration(
-                        color: colorScheme.secondaryContainer,
-                        shape: BoxShape.circle,
+                        borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
                             color: colorScheme.onSurface.withValues(alpha: 0.05),
@@ -138,10 +153,12 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                           )
                         ],
                       ),
-                      child: Icon(
-                        Icons.school,
-                        size: 32,
-                        color: colorScheme.onSecondaryContainer,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: Image.asset(
+                          'assets/images/app_icon_512.png',
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -199,7 +216,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                               label: 'Student',
                               icon: Icons.badge_outlined,
                               isSelected: _selectedRole == 'student',
-                              onTap: () => setState(() => _selectedRole = 'student'),
+                              onTap: () => _switchRole('student'),
                             ),
                           ),
                           const SizedBox(width: 16),
@@ -208,7 +225,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                               label: 'Teacher',
                               icon: Icons.psychology_outlined,
                               isSelected: _selectedRole == 'teacher',
-                              onTap: () => setState(() => _selectedRole = 'teacher'),
+                              onTap: () => _switchRole('teacher'),
                             ),
                           ),
                         ],

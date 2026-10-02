@@ -28,7 +28,7 @@ class RetroTopAppBar extends ConsumerWidget implements PreferredSizeWidget {
     this.subtitle,
     this.leading,
     this.customActions,
-    this.showStreak = true,
+    this.showStreak = false,
     this.showNotifications = true,
     this.showProfileAvatar = true,
   });
@@ -324,7 +324,6 @@ class RetroTopAppBar extends ConsumerWidget implements PreferredSizeWidget {
 
     final announcements = ref.watch(classAnnouncementsProvider);
     final assignments = ref.watch(classAssignmentsProvider);
-    final dailyGoal = ref.watch(dailyGoalsProvider);
     final hasUnreadAlerts = announcements.isNotEmpty || assignments.isNotEmpty;
 
     return AppBar(
@@ -368,45 +367,6 @@ class RetroTopAppBar extends ConsumerWidget implements PreferredSizeWidget {
             ],
           ),
       actions: [
-        // 1. Streak Flame Badge
-        if (showStreak)
-          Padding(
-            padding: const EdgeInsets.only(right: 6.0),
-            child: InkWell(
-              onTap: () => DailyGoalsSheet.show(context),
-              borderRadius: BorderRadius.circular(20),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF97316).withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: const Color(0xFFF97316).withValues(alpha: 0.3),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.local_fire_department_rounded,
-                      color: Color(0xFFF97316),
-                      size: 16,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${dailyGoal.streakDays} Days',
-                      style: const TextStyle(
-                        color: Color(0xFFC2410C),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 11,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
         // Custom extra actions if supplied
         ...?customActions,
 
