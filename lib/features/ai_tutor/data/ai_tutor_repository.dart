@@ -160,6 +160,26 @@ where \$\\alpha\$ and \$\\beta\$ are complex probability amplitudes satisfying |
 💡 *Source Citation: Quantum Computing Lecture Slides & Course Materials*
 
 How would you like to explore this further? We can examine quantum entanglement or circuit logic gates!''';
+    } else if (lowerPrompt.contains('project') ||
+        lowerPrompt.contains('management') ||
+        lowerPrompt.contains('agile') ||
+        lowerPrompt.contains('scrum') ||
+        lowerPrompt.contains('wbs') ||
+        lowerPrompt.contains('sprint') ||
+        lowerTopic.contains('project') ||
+        lowerTopic.contains('pm')) {
+      fullResponse = '''
+Hello! I am **Lai**, your AI Tutor. Let's analyze this project management framework step-by-step:
+
+To address your inquiry regarding **\${topicContext ?? 'Project Management & Systems Planning'}**:
+
+<step number="1" title="Define Scope & Work Breakdown Structure" code="WBS 1.0 -> 1.1 Deliverables -> 1.1.1 Work Packages">Decompose complex deliverables into distinct, manageable work packages with single-owner accountability and verifiable acceptance criteria.</step>
+<step number="2" title="Identify Dependencies & Critical Path" code="Slack = Late Start (LS) - Early Start (ES) = 0">Map activity predecessors and successors to determine zero-float sequence paths that directly govern total project duration.</step>
+<step number="3" title="Mitigate Risk & Execute Sprints" code="Risk Exposure = Likelihood (%) * Impact (\$)">Prioritize high-exposure risks on the probability-impact matrix and implement 2-week timeboxed Agile sprints with daily standups.</step>
+
+💡 *Source Citation: Project Management Institute (PMBOK Guide) & ITPM Course Modules*
+
+Would you like to analyze an Agile vs. Waterfall trade-off or draft a sample Project Charter?''';
     } else if (lowerPrompt.contains('calculus') ||
         lowerPrompt.contains('derivative') ||
         lowerPrompt.contains('integral') ||

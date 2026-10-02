@@ -418,26 +418,26 @@ class _AiTutorScreenState extends ConsumerState<AiTutorScreen> {
                     child: Row(
                       children: [
                         _PromptPill(
-                          icon: '⚡',
-                          label: 'Explain the power rule',
+                          icon: '📊',
+                          label: 'Explain Critical Path (CPM)',
                           onTap: () {
-                            _inputController.text = 'Explain the power rule simply';
+                            _inputController.text = 'Explain Critical Path Method (CPM) and total float simply';
                           },
                         ),
                         const SizedBox(width: 8),
                         _PromptPill(
-                          icon: '🍎',
-                          label: 'Real-world physics example',
+                          icon: '🔄',
+                          label: 'Agile vs Waterfall trade-offs',
                           onTap: () {
-                            _inputController.text = 'Show a real-world physics example';
+                            _inputController.text = 'Compare Agile vs Waterfall methodology trade-offs for software development';
                           },
                         ),
                         const SizedBox(width: 8),
                         _PromptPill(
                           icon: '📝',
-                          label: 'Quiz me on shortcuts',
+                          label: 'Quiz me on Scrum roles',
                           onTap: () {
-                            _inputController.text = 'Quiz me on derivative shortcuts';
+                            _inputController.text = 'Quiz me on Scrum roles (Product Owner, Scrum Master, Developers)';
                           },
                         ),
                       ],

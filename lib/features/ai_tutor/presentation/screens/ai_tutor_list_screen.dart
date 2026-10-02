@@ -69,7 +69,7 @@ class AiTutorListScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Ask your instructor for the class code (e.g. MATH-402, AI-101) and enter it below:',
+                      'Ask your instructor for the class code (e.g. PM-301, AI-101) and enter it below:',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),

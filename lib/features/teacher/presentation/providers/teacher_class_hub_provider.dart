@@ -204,7 +204,7 @@ class TeacherSubmissionsNotifier extends Notifier<List<StudentSubmissionModel>> 
   @override
   List<StudentSubmissionModel> build() {
     return [
-      // Class 1 (MATH-201 Calculus)
+      // Class 1 (PM-301 Software Project Management)
       StudentSubmissionModel(
         id: 'sub-1',
         assignmentId: 'asg-demo-1',
@@ -213,11 +213,11 @@ class TeacherSubmissionsNotifier extends Notifier<List<StudentSubmissionModel>> 
         studentName: 'Alex Rivera',
         studentEmail: 'alex.rivera@raite.edu',
         submittedAt: DateTime.now().subtract(const Duration(hours: 14)),
-        note: 'Completed all problems and double checked convergence tests in section 4.',
-        attachedFileName: 'Problem_Set_1_AlexRivera.pdf',
+        note: 'Completed Project Charter, Stakeholder RACI matrix, and 3-level WBS breakdown.',
+        attachedFileName: 'Project_Charter_AlexRivera.pdf',
         status: 'graded',
         grade: '96',
-        feedback: 'Outstanding work on the Taylor series approximations!',
+        feedback: 'Outstanding work on the WBS decomposition and risk mitigation plan!',
       ),
       StudentSubmissionModel(
         id: 'sub-2',
@@ -227,8 +227,8 @@ class TeacherSubmissionsNotifier extends Notifier<List<StudentSubmissionModel>> 
         studentName: 'Sophia Martinez',
         studentEmail: 'sophia.m@raite.edu',
         submittedAt: DateTime.now().subtract(const Duration(hours: 5)),
-        note: 'Here is my assignment. Verified proofs with peer review.',
-        attachedFileName: 'Calculus_Worksheet_SophiaM.pdf',
+        note: 'Here is my assignment. Verified WBS deliverables with peer review.',
+        attachedFileName: 'WBS_Worksheet_SophiaM.pdf',
         status: 'submitted',
         grade: null,
         feedback: null,
@@ -241,8 +241,8 @@ class TeacherSubmissionsNotifier extends Notifier<List<StudentSubmissionModel>> 
         studentName: 'Marcus Vance',
         studentEmail: 'marcus.v@raite.edu',
         submittedAt: DateTime.now().subtract(const Duration(hours: 2)),
-        note: 'Attached the derivation formulas and summary notes.',
-        attachedFileName: 'Derivatives_Lab_Vance.pdf',
+        note: 'Attached Sprint Backlog breakdown and risk mitigation plan.',
+        attachedFileName: 'Sprint_Backlog_Vance.pdf',
         status: 'submitted',
         grade: null,
         feedback: null,

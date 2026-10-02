@@ -123,22 +123,22 @@ Future<CourseContextData> _resolveCourseContextAsync(Ref ref, String classId) as
   TeacherClass currentClass;
   try {
     currentClass = classes.firstWhere(
-      (c) => c.id == classId || (classId == 'math-101' && c.code.contains('MATH')),
+      (c) => c.id == classId || (classId == 'class-1' && c.code.contains('PM')),
       orElse: () => classes.isNotEmpty ? classes.first : const TeacherClass(
         id: 'class-1',
-        title: 'Calculus & Differential Equations',
-        department: 'Department of Mathematics',
-        code: 'MATH-201',
-        studentCount: 34,
+        title: 'Software Project Management',
+        department: 'Information Systems & Technology',
+        code: 'PM-301',
+        studentCount: 38,
       ),
     );
   } catch (_) {
     currentClass = const TeacherClass(
       id: 'class-1',
-      title: 'Calculus & Differential Equations',
-      department: 'Department of Mathematics',
-      code: 'MATH-201',
-      studentCount: 34,
+      title: 'Software Project Management',
+      department: 'Information Systems & Technology',
+      code: 'PM-301',
+      studentCount: 38,
     );
   }
 
@@ -319,7 +319,7 @@ CRITICAL INSTRUCTIONS:
 """;
 
       final model = GenerativeModel(
-        model: 'gemini-2.0-flash',
+        model: 'gemini-3.1-flash-lite',
         apiKey: key,
       );
 
