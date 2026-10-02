@@ -130,13 +130,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/flashcards/:id',
         builder: (context, state) => FlashcardStudyScreen(
-          deckId: state.pathParameters['id'] ?? 'deck-math201',
+          deckId: state.pathParameters['id'] ?? 'deck-pm301',
         ),
       ),
       GoRoute(
         path: '/quiz/:id',
         builder: (context, state) => QuizPlayScreen(
-          quizId: state.pathParameters['id'] ?? 'quiz-math201',
+          quizId: state.pathParameters['id'] ?? 'quiz-pm301',
         ),
       ),
       GoRoute(

@@ -1732,7 +1732,7 @@ class _ClassScreenState extends ConsumerState<ClassScreen>
                     children: [
                       'Solution_Document.pdf',
                       'Homework_Answers.docx',
-                      'Calculus_Proofs.pdf',
+                      'Project_Charter_WBS.pdf',
                     ].map((fileName) {
                       final isSelected = selectedDemoFile == fileName;
                       return ChoiceChip(
@@ -2266,7 +2266,7 @@ class _ClassScreenState extends ConsumerState<ClassScreen>
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Ask your instructor for the class code (e.g. MATH-402, AI-101, or 6-digit code) and enter it below:',
+                      'Ask your instructor for the class code (e.g. PM-301, AI-101, or 6-digit code) and enter it below:',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),

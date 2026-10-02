@@ -66,7 +66,46 @@ class HiveMindService {
   List<CohortHabitMetric> _buildSubjectHabitMetrics(String courseCode, [String className = '']) {
     final code = courseCode.toUpperCase();
     final name = className.toLowerCase();
-    if (code.contains('MATH') || code.contains('CALC')) {
+    if (code.contains('PM') || code.contains('PROJ') || code.contains('MGMT') || name.contains('project') || name.contains('management')) {
+      return [
+        const CohortHabitMetric(
+          title: 'WBS & Milestone Planning Spacing',
+          category: 'Pacing & Prep',
+          topCohortStat: '3.2 days early',
+          atRiskCohortStat: '6 hours early',
+          gapExplanation: 'Top students outline deliverables and decompose tasks into WBS packages days in advance.',
+          severity: HabitGapSeverity.critical,
+          icon: Icons.access_time_rounded,
+        ),
+        const CohortHabitMetric(
+          title: 'Agile & Risk Matrix Card Reviews',
+          category: 'Active Recall',
+          topCohortStat: '16 cards / day',
+          atRiskCohortStat: '2 cards / week',
+          gapExplanation: 'Top cohort consistently reviews Scrum ceremonies, sprint metrics, and risk mitigation strategies daily.',
+          severity: HabitGapSeverity.critical,
+          icon: Icons.style_rounded,
+        ),
+        const CohortHabitMetric(
+          title: 'Case Study Simulation Retakes',
+          category: 'Iterative Practice',
+          topCohortStat: '2.4 retakes / quiz',
+          atRiskCohortStat: '1.0 single attempt',
+          gapExplanation: 'Top students review incorrect sprint planning trade-offs and retake case quizzes until 90%+ mastery.',
+          severity: HabitGapSeverity.moderate,
+          icon: Icons.replay_circle_filled_rounded,
+        ),
+        const CohortHabitMetric(
+          title: 'AI Tutor Scenario Inquiries',
+          category: 'Inquiry Style',
+          topCohortStat: 'Exploratory ("Trade-offs...")',
+          atRiskCohortStat: 'Definition-seeking',
+          gapExplanation: 'High performers ask Lai (AI Tutor) to challenge their scope trade-offs and calculate critical paths.',
+          severity: HabitGapSeverity.moderate,
+          icon: Icons.psychology_rounded,
+        ),
+      ];
+    } else if (code.contains('MATH') || code.contains('CALC')) {
       return [
         const CohortHabitMetric(
           title: 'Review Spacing Before Quizzes',
@@ -229,7 +268,7 @@ class HiveMindService {
     if (hasValidKey) {
       try {
         final model = GenerativeModel(
-          model: 'gemini-2.0-flash',
+          model: 'gemini-3.1-flash-lite',
           apiKey: apiKey,
         );
 
@@ -356,7 +395,19 @@ INTERVENTION 3: [Title] | [1-sentence description] | [Why this bridges the gap]
 
     for (final code in enrolledCourseCodes) {
       final upper = code.toUpperCase();
-      if (upper.contains('MATH') || upper.contains('CALC')) {
+      if (upper.contains('PM') || upper.contains('PROJ') || upper.contains('MGMT')) {
+        nudges.add(
+          const StudentPeerNudge(
+            id: 'nudge-pm-1',
+            courseCode: 'PM 301',
+            headline: 'Peer Habit Insight',
+            habitInsight: '88% of top-scoring students review Agile WBS and Risk Management matrices 2 days before sprint milestones.',
+            actionPrompt: 'Review 10 Flashcards Now (5 mins)',
+            targetRoute: '/study-deck',
+            icon: Icons.style_outlined,
+          ),
+        );
+      } else if (upper.contains('MATH') || upper.contains('CALC')) {
         nudges.add(
           const StudentPeerNudge(
             id: 'nudge-math-1',

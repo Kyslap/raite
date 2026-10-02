@@ -470,7 +470,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   const SizedBox(height: 20),
                   RetroTextField(
                     label: 'CLASS CODE',
-                    hint: 'e.g. CS101A or MATH-402',
+                    hint: 'e.g. PM-301 or CS-210',
                     controller: codeController,
                     prefixIcon: Icons.pin_outlined,
                   ),
