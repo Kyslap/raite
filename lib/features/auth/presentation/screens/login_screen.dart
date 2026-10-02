@@ -183,8 +183,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       width: 64,
                       height: 64,
                       decoration: BoxDecoration(
-                        color: colorScheme.primaryContainer,
-                        shape: BoxShape.circle,
+                        borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
                             color: colorScheme.primaryContainer.withValues(alpha: 0.3),
@@ -193,10 +192,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           )
                         ],
                       ),
-                      child: Icon(
-                        Icons.auto_stories,
-                        size: 32,
-                        color: colorScheme.onPrimaryContainer,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: Image.asset(
+                          'assets/images/app_icon_512.png',
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),

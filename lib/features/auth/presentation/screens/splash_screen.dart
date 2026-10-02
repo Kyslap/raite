@@ -57,10 +57,9 @@ class SplashScreen extends StatelessWidget {
                   Column(
                     children: [
                       Container(
-                        width: 80,
-                        height: 80,
+                        width: 84,
+                        height: 84,
                         decoration: BoxDecoration(
-                          color: colorScheme.primary,
                           borderRadius: BorderRadius.circular(24),
                           boxShadow: [
                             BoxShadow(
@@ -70,10 +69,12 @@ class SplashScreen extends StatelessWidget {
                             )
                           ],
                         ),
-                        child: Icon(
-                          Icons.auto_awesome,
-                          size: 40,
-                          color: colorScheme.onPrimary,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(24),
+                          child: Image.asset(
+                            'assets/images/app_icon_512.png',
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 32),

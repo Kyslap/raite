@@ -6,7 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:http/http.dart' as http;
 
 class AiTutorRepository {
-  final String _modelName = 'gemini-2.0-flash';
+  final String _modelName = 'gemini-3.1-flash-lite';
 
   Stream<String> streamChatResponse({
     required String prompt,

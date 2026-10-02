@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import 'teacher_dashboard_screen.dart';
 import 'teacher_classes_screen.dart';
@@ -38,68 +37,9 @@ class _TeacherNavigationScreenState
     ];
 
     return Scaffold(
-      body: Column(
-        children: [
-          // Hackathon Demo Switcher Banner
-          SafeArea(
-            bottom: false,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              color: colorScheme.primaryContainer.withValues(alpha: 0.5),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: colorScheme.primary,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text(
-                      'TEACHER VIEW',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'Educator Portal Active',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: colorScheme.onPrimaryContainer,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  TextButton.icon(
-                    onPressed: () {
-                      context.go('/home');
-                    },
-                    icon: const Icon(Icons.swap_horiz, size: 16),
-                    label: const Text(
-                      'Switch to Student',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                    ),
-                    style: TextButton.styleFrom(
-                      foregroundColor: colorScheme.primary,
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Expanded(
-            child: IndexedStack(
-              index: _currentIndex,
-              children: screens,
-            ),
-          ),
-        ],
+      body: IndexedStack(
+        index: _currentIndex,
+        children: screens,
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(

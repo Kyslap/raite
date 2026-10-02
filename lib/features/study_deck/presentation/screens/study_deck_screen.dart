@@ -41,7 +41,6 @@ class _StudyDeckScreenState extends ConsumerState<StudyDeckScreen>
       appBar: const RetroTopAppBar(
         title: 'Study Deck',
         subtitle: 'Flashcards & Quizzes',
-        showStreak: true,
       ),
       body: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) {

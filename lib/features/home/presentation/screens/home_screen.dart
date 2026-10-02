@@ -42,73 +42,35 @@ class HomeScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Friendly Greeting & Streak Banner
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.end,
+              // Friendly Greeting
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Welcome back,',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        ref.watch(authStateProvider).when(
-                          data: (user) => Text(
-                            '${user?.name ?? displayName} 👋',
-                            style: theme.textTheme.headlineMedium?.copyWith(
-                              color: colorScheme.onSurface,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          loading: () => const SizedBox(
-                            height: 32,
-                            width: 150,
-                            child: CircularProgressIndicator(),
-                          ),
-                          error: (_, _) => Text(
-                            '$displayName 👋',
-                            style: theme.textTheme.headlineMedium?.copyWith(
-                              color: colorScheme.onSurface,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
+                  Text(
+                    'Welcome back,',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  GestureDetector(
-                    onTap: () => DailyGoalsSheet.show(context),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: colorScheme.surfaceContainer,
-                        borderRadius: BorderRadius.circular(24),
-                        boxShadow: [
-                          BoxShadow(
-                            color: colorScheme.onSurface.withValues(alpha: 0.05),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
+                  const SizedBox(height: 4),
+                  ref.watch(authStateProvider).when(
+                    data: (user) => Text(
+                      '${user?.name ?? displayName} 👋',
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        color: colorScheme.onSurface,
+                        fontWeight: FontWeight.bold,
                       ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.local_fire_department, size: 20, color: Color(0xFFF97316)),
-                          const SizedBox(width: 6),
-                          Text(
-                            '${dailyGoal.streakDays} Days',
-                            style: theme.textTheme.labelLarge?.copyWith(
-                              color: colorScheme.onSurface,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
+                    ),
+                    loading: () => const SizedBox(
+                      height: 32,
+                      width: 150,
+                      child: CircularProgressIndicator(),
+                    ),
+                    error: (_, _) => Text(
+                      '$displayName 👋',
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        color: colorScheme.onSurface,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
